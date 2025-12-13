@@ -4,11 +4,23 @@ import MainContent from './components/MainContent';
 import { portfolioNotes } from './constants';
 import { Theme } from './types';
 import { Moon, Sun, PanelLeft, Share } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 
 const App: React.FC = () => {
-  // State
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(portfolioNotes[0].id);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
+  // State - on mobile, start with no selection; on desktop, select first note
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(() => {
+    // Check if mobile on initial load
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return null;
+    }
+    return portfolioNotes[0].id;
+  });
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
   const [showSidebar, setShowSidebar] = useState<boolean>(true);
   const [theme, setTheme] = useState<Theme>('light');
 
@@ -16,18 +28,28 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
+      const wasMobile = isMobile;
       setIsMobile(mobile);
+      
       if (mobile) {
-        setShowSidebar(!selectedNoteId);
+        // On mobile, show sidebar if no note selected
+        if (!selectedNoteId) {
+          setShowSidebar(true);
+        }
       } else {
+        // Switching from mobile to desktop
         setShowSidebar(true);
+        // If no note selected on desktop, select the first one
+        if (!selectedNoteId && wasMobile) {
+          setSelectedNoteId(portfolioNotes[0].id);
+        }
       }
     };
 
     handleResize(); // Initial check
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [selectedNoteId]);
+  }, [selectedNoteId, isMobile]);
 
   // Theme Toggle Effect
   useEffect(() => {
@@ -54,6 +76,10 @@ const App: React.FC = () => {
 
   const handleBack = () => {
     setShowSidebar(true);
+    // On mobile, unselect the note when going back to sidebar
+    if (isMobile) {
+      setSelectedNoteId(null);
+    }
   };
 
   const toggleTheme = () => {
@@ -87,6 +113,8 @@ const App: React.FC = () => {
   };
 
   return (
+    <>
+    <Analytics />
     <div className="h-screen w-screen flex flex-col bg-apple-bgLight dark:bg-black overflow-hidden font-sans transition-colors duration-200">
       
       {/* Desktop Toolbar (Simulating the Mac App Toolbar) */}
@@ -158,6 +186,7 @@ const App: React.FC = () => {
 
       </div>
     </div>
+    </>
   );
 };
 

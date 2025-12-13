@@ -100,19 +100,19 @@ const Sidebar: React.FC<SidebarProps> = ({ notes, selectedNoteId, onSelectNote }
               className={`
                 group flex flex-col px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-all duration-100 relative select-none
                 ${isSelected
-                  ? 'bg-apple-yellow dark:bg-apple-yellowDark shadow-sm'
+                  ? 'bg-[#A69050] dark:bg-[#998542]'
                   : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
                 }
               `}
             >
-              <div className={`font-semibold text-[15px] mb-0.5 leading-tight truncate ${isSelected ? 'text-black/90' : 'text-black dark:text-white'}`}>
+              <div className={`font-semibold text-[15px] mb-0.5 leading-tight truncate ${isSelected ? 'text-white' : 'text-black dark:text-white'}`}>
                 {note.title}
               </div>
               <div className="flex gap-2 text-[13px] leading-snug w-full">
-                <span className={`${isSelected ? 'text-black/60' : 'text-black/50 dark:text-white/50'} whitespace-nowrap flex-shrink-0`}>
+                <span className={`${isSelected ? 'text-white/70' : 'text-black/50 dark:text-white/50'} whitespace-nowrap flex-shrink-0`}>
                   {dateText}
                 </span>
-                <span className={`truncate ${isSelected ? 'text-black/50' : 'text-apple-textGray'}`}>
+                <span className={`truncate ${isSelected ? 'text-white/60' : 'text-apple-textGray'}`}>
                   {previewText}
                 </span>
               </div>
