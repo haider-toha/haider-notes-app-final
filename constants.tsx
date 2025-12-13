@@ -8,7 +8,7 @@ export const portfolioNotes: Note[] = [
     category: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-01-27T14:23:00.000Z",
+    created_at: "2025-12-08T14:23:00.000Z",
     content: `haider toha
 london, uk
 
@@ -31,7 +31,7 @@ i read more than i probably should. mostly history, philosophy and whatever rabb
     category: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-01-19T22:47:00.000Z",
+    created_at: "2025-11-29T22:47:00.000Z",
     content: `
 
 **ai evals**
@@ -53,7 +53,7 @@ rewriting my automation scripts in go. building a better second brain with notes
     category: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-01-14T11:02:00.000Z",
+    created_at: "2025-11-17T11:02:00.000Z",
     content: `**languages**
 **typescript:** fastest path from idea → interface → shipped feature.
 **python:** models, data, experiments and glue code.
@@ -83,7 +83,7 @@ rewriting my automation scripts in go. building a better second brain with notes
     category: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-01-08T09:34:00.000Z",
+    created_at: "2025-10-23T09:34:00.000Z",
     content: `**users before opinions**
 i’ll trade a clever architecture for a workflow that actually unblocks the user.
 
@@ -106,7 +106,7 @@ i’ll argue for a decision with the data i have. better data wins immediately.`
     category: "experience",
     public: true,
     session_id: "",
-    created_at: "2024-12-29T16:18:00.000Z",
+    created_at: "2025-10-05T16:18:00.000Z",
     content: `**founding engineer — sammy labs (yc w25)** · london · nov 2025–present  
 sit with customers, trace problems end-to-end, build and ship solutions. frontend to backend, idea to production.
 
@@ -126,7 +126,7 @@ built and grew an ai tutoring product from zero to 50+ paying customers.`
     category: "projects",
     public: true,
     session_id: "",
-    created_at: "2024-12-15T20:41:00.000Z",
+    created_at: "2025-09-18T20:41:00.000Z",
     content: `**self-engineering agent framework**
 i wanted faster iteration on agent workflows without manual glue code. built an agent loop that detects missing tools, generates the implementation, writes unit tests, runs them in an ephemeral docker container and only "ships" the tool if tests pass.
 *stack: python, docker sdk, openai api, pgvector.*
@@ -155,7 +155,7 @@ took messy text and made it queryable. extracted ingredients with ner, built a g
     category: "writing",
     public: true,
     session_id: "",
-    created_at: "2024-11-23T23:12:00.000Z",
+    created_at: "2025-08-27T23:12:00.000Z",
     content: `**september 6, 2025 · 10 min read · 1,158 words**
 
 so, is a state of low desire actually a problem? from within, if i am truly content, resting in a quiet ease within my own skin, who can claim that i suffer? why should my lack of wanting be treated as a deficiency if it comes with a profound sense of sufficiency? the trouble seems to arise only when i begin to compare myself to others or when i begin to want what i do not have. it is only at that threshold, when lack intrudes upon contentment, that restlessness and with it suffering, begins.
@@ -199,7 +199,7 @@ thus, the question of desire becomes not merely psychological but spiritual. the
     category: "favorites",
     public: true,
     session_id: "",
-    created_at: "2024-11-04T13:55:00.000Z",
+    created_at: "2025-08-08T13:55:00.000Z",
     content: `spots i keep coming back to. mix of top-rated and hidden gems.
 
 **london** *(home)*
@@ -264,7 +264,7 @@ i always update this list when i visit new places.`
     category: "favorites",
     public: true,
     session_id: "",
-    created_at: "2024-10-17T08:29:00.000Z",
+    created_at: "2025-07-14T08:29:00.000Z",
     content: `videos i've rewatched. conversations that shifted something.
 
 **sport**
@@ -326,7 +326,7 @@ i always update this list when i visit new places.`
     category: "reflections",
     public: true,
     session_id: "",
-    created_at: "2024-09-28T17:43:00.000Z",
+    created_at: "2025-06-22T17:43:00.000Z",
     content: `questions i keep coming back to. no answers yet, just the thinking.
 
 **on building**
@@ -363,7 +363,7 @@ i don't expect to resolve most of these. but they're useful to carry.`
     category: "reflections",
     public: true,
     session_id: "",
-    created_at: "2024-09-11T21:08:00.000Z",
+    created_at: "2025-05-31T21:08:00.000Z",
     content: `beliefs i held strongly and then let go. trying to update faster.
 
 **"more hours = more output"**
@@ -407,7 +407,7 @@ this list will keep growing. that's the point.`
     category: "writing",
     public: true,
     session_id: "",
-    created_at: "2024-08-19T10:36:00.000Z",
+    created_at: "2025-05-09T10:36:00.000Z",
     content: `**may 10, 2025 · 12 min read · 1,124 words**
 
 mathematics is not a cold kingdom of eternal truths set apart from the world. it is a living river, flowing through cultures, carrying with it the sediments of survival and the light of transcendence. ubiratan d'ambrosio calls this current ethnomathematics, for mathematics is always shaped by the human hand, always marked by the earth from which it springs. the ethno gives us the soil and the sky, the mathema gives us that which is learned and the tics gives us the techniques by which we survive and dream. in this view, mathematics is not a ladder dropped from heaven but a rope we weave ourselves, strand by strand, to climb beyond our limits.

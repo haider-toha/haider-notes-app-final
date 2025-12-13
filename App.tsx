@@ -206,7 +206,7 @@ const App: React.FC = () => {
         >
           <Sidebar 
             notes={portfolioNotes} 
-            selectedNoteId={selectedNoteId} 
+            selectedNoteId={isMobile && showSidebar ? null : selectedNoteId} 
             onSelectNote={handleSelectNote}
           />
         </div>
