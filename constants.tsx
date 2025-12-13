@@ -149,7 +149,7 @@ took messy text and made it queryable. extracted ingredients with ner, built a g
   {
     id: "writing-desire",
     slug: "two-faces-of-desire",
-    title: "blogs: the two faces of desire",
+    title: "blog: the two faces of desire",
     category: "writing",
     public: true,
     session_id: "",
@@ -193,7 +193,7 @@ thus, the question of desire becomes not merely psychological but spiritual. the
   {
     id: "writing-curves",
     slug: "curves-of-the-mind",
-    title: "blogs: curves of the world, curves of the mind",
+    title: "blog: curves of the world, curves of the mind",
     category: "writing",
     public: true,
     session_id: "",

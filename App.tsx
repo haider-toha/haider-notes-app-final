@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import { portfolioNotes } from './constants';
@@ -7,22 +8,41 @@ import { Moon, Sun, PanelLeft, Share } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
 
 const App: React.FC = () => {
-  // State - on mobile, start with no selection; on desktop, select first note
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(() => {
-    // Check if mobile on initial load
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      return null;
-    }
-    return portfolioNotes[0].id;
-  });
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Find note by slug or default to first note
+  const getNoteFromSlug = (slugParam: string | undefined) => {
+    if (!slugParam) return null;
+    return portfolioNotes.find(n => n.slug === slugParam) || null;
+  };
+
   const [isMobile, setIsMobile] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return window.innerWidth < 768;
     }
     return false;
   });
-  const [showSidebar, setShowSidebar] = useState<boolean>(true);
+  const [showSidebar, setShowSidebar] = useState<boolean>(() => {
+    // On mobile with no slug, show sidebar
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return !slug;
+    }
+    return true;
+  });
   const [theme, setTheme] = useState<Theme>('light');
+
+  // Get selected note from URL
+  const selectedNote = getNoteFromSlug(slug);
+  const selectedNoteId = selectedNote?.id || null;
+
+  // Handle initial load - redirect to first note on desktop if at root
+  useEffect(() => {
+    if (location.pathname === '/' && !isMobile) {
+      navigate(`/${portfolioNotes[0].slug}`, { replace: true });
+    }
+  }, [location.pathname, isMobile, navigate]);
 
   // Determine mobile state on resize
   useEffect(() => {
@@ -32,16 +52,16 @@ const App: React.FC = () => {
       setIsMobile(mobile);
       
       if (mobile) {
-        // On mobile, show sidebar if no note selected
-        if (!selectedNoteId) {
+        // On mobile, show sidebar if no note selected (at root)
+        if (location.pathname === '/') {
           setShowSidebar(true);
         }
       } else {
         // Switching from mobile to desktop
         setShowSidebar(true);
-        // If no note selected on desktop, select the first one
-        if (!selectedNoteId && wasMobile) {
-          setSelectedNoteId(portfolioNotes[0].id);
+        // If at root on desktop, navigate to first note
+        if (location.pathname === '/' && wasMobile) {
+          navigate(`/${portfolioNotes[0].slug}`, { replace: true });
         }
       }
     };
@@ -49,7 +69,7 @@ const App: React.FC = () => {
     handleResize(); // Initial check
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [selectedNoteId, isMobile]);
+  }, [isMobile, location.pathname, navigate]);
 
   // Theme Toggle Effect
   useEffect(() => {
@@ -67,18 +87,28 @@ const App: React.FC = () => {
     }
   }, [theme]);
 
-  const handleSelectNote = (id: string) => {
-    setSelectedNoteId(id);
-    if (isMobile) {
+  // Update sidebar visibility when slug changes
+  useEffect(() => {
+    if (isMobile && slug) {
       setShowSidebar(false);
+    }
+  }, [slug, isMobile]);
+
+  const handleSelectNote = (id: string) => {
+    const note = portfolioNotes.find(n => n.id === id);
+    if (note) {
+      navigate(`/${note.slug}`);
+      if (isMobile) {
+        setShowSidebar(false);
+      }
     }
   };
 
   const handleBack = () => {
     setShowSidebar(true);
-    // On mobile, unselect the note when going back to sidebar
+    // On mobile, navigate to root when going back to sidebar
     if (isMobile) {
-      setSelectedNoteId(null);
+      navigate('/');
     }
   };
 
@@ -90,22 +120,24 @@ const App: React.FC = () => {
     if (!isMobile) setShowSidebar(prev => !prev);
   };
 
-  const selectedNote = portfolioNotes.find(n => n.id === selectedNoteId);
-
   const handleShare = async () => {
     if (!selectedNote) return;
 
+    // Build the shareable URL
+    const shareUrl = `${window.location.origin}/${selectedNote.slug}`;
+
     const shareData = {
       title: selectedNote.title,
-      text: selectedNote.content,
+      text: selectedNote.content.substring(0, 200) + '...',
+      url: shareUrl,
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(`${selectedNote.title}\n\n${selectedNote.content}`);
-        alert('note copied to clipboard');
+        await navigator.clipboard.writeText(shareUrl);
+        alert('link copied to clipboard');
       }
     } catch (err) {
       console.error('error sharing:', err);
