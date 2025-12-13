@@ -12,7 +12,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ notes, selectedNoteId, onSelectNote }) => {
   const [query, setQuery] = useState('');
 
-  // Format date for sidebar: "10:42 AM", "Yesterday", or "1/5/25"
+  // Format date for sidebar: "10:42 AM", "Yesterday" or "1/5/25"
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
     const now = new Date();
@@ -98,29 +98,21 @@ const Sidebar: React.FC<SidebarProps> = ({ notes, selectedNoteId, onSelectNote }
               key={note.id}
               onClick={() => onSelectNote(note.id)}
               className={`
-                group flex flex-col px-3 py-2.5 rounded-[12px] cursor-pointer transition-colors duration-75 relative select-none
+                group flex flex-col px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-all duration-100 relative select-none
                 ${isSelected
-                  ? 'bg-black/10 dark:bg-white/12'
-                  : 'hover:bg-black/5 dark:hover:bg-white/8'
+                  ? 'bg-apple-yellow dark:bg-apple-yellowDark shadow-sm'
+                  : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
                 }
               `}
             >
-              {/* left accent like Apple Notes selection */}
-              <div
-                className={`
-                  absolute left-1 top-2 bottom-2 w-[3px] rounded-full
-                  ${isSelected ? 'bg-apple-yellow' : 'bg-transparent'}
-                `}
-              />
-
-              <div className={`font-semibold text-[15px] mb-0.5 leading-tight truncate ${isSelected ? 'text-black dark:text-white' : 'text-black dark:text-white'}`}>
+              <div className={`font-semibold text-[15px] mb-0.5 leading-tight truncate ${isSelected ? 'text-black/90' : 'text-black dark:text-white'}`}>
                 {note.title}
               </div>
               <div className="flex gap-2 text-[13px] leading-snug w-full">
-                <span className={`${isSelected ? 'text-black/60 dark:text-white/60' : 'text-black/50 dark:text-white/50'} whitespace-nowrap flex-shrink-0`}>
+                <span className={`${isSelected ? 'text-black/60' : 'text-black/50 dark:text-white/50'} whitespace-nowrap flex-shrink-0`}>
                   {dateText}
                 </span>
-                <span className={`truncate ${isSelected ? 'text-black/55 dark:text-white/55' : 'text-apple-textGray'}`}>
+                <span className={`truncate ${isSelected ? 'text-black/50' : 'text-apple-textGray'}`}>
                   {previewText}
                 </span>
               </div>

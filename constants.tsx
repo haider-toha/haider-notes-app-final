@@ -14,11 +14,11 @@ london, uk
 
 [github](https://github.com/haider-toha) • [email](mailto:mohammedhaidertoha@gmail.com) • [linkedin](https://linkedin.com/in/haidertoha)
 
-i'm a founding engineer at **sammy labs** (yc w25). i build product surfaces that feel fast and reliable, and the backend paths that keep them that way.
+i'm a founding engineer at sammy labs (yc w25). i build end-to-end product surfaces that feel fast and reliable and the backend paths that keep them that way.
 
-my background is aeronautics (imperial college). it trained a habit: define the failure modes, instrument early, and make rollbacks boring. i’ve worked at scale (goldman sachs) and at zero-to-one (provost academics).
+my background is aeronautics (imperial college). it trained a habit to define the failure modes, instrument early and make rollbacks boring. i’ve worked at scale (goldman sachs) and at zero-to-one on my own ventures.
 
-day-to-day, i sit close to real workflows, find what’s slowing people down, and ship the smallest change that moves the metric. sometimes that’s a ui tweak; sometimes it’s idempotency, retries, caching, or a better data model.
+day-to-day, i sit close to real workflows, find what’s slowing people down and ship features that moves the metric. sometimes that’s a ui tweak; sometimes it’s idempotency, retries, caching or a better data model.
 
 offline, i stay active with the gym, cricket and the occasional late-night walk through hyde park when i need to clear my head. i coach my local kids football team which has been one of the most grounding things i do each week. i have also started gliding and plan to get my pilot’s license.
 
@@ -36,7 +36,7 @@ i read a lot. lately: *the dream machine*, *poor charlie's almanack* and whateve
 i’m focused on shortening time-to-value: watch the workflow, find the constraint, ship the fix, measure the delta. i like thin slices that go end-to-end (one flow, instrumented, in prod), then iterate.
 
 **browser agent runtime**
-most automation breaks because the dom is volatile and the world is messy. i’m building a planning layer that treats browsing as graph traversal (state → action → verification) instead of brittle scripts. the goal is predictable behaviour under mutation, latency, and partial failure.
+most automation breaks because the dom is volatile and the world is messy. i’m building a planning layer that treats browsing as graph traversal (state → action → verification) instead of brittle scripts. the goal is predictable behaviour under mutation, latency and partial failure.
 
 **edge ml & quantization**
 hacking on running useful models locally with low latency. i’m experimenting with quantized inference and a local-first rag pipeline that keeps data private while still feeling instant.
@@ -54,7 +54,7 @@ tuning my 'second brain' and rewriting automation in go. rule of thumb: if you d
     created_at: "2025-01-23T08:30:00.000Z",
     content: `**languages**
 **typescript:** fastest path from idea → interface → shipped feature.
-**python:** models, data, experiments, and glue code.
+**python:** models, data, experiments and glue code.
 **go:** services that need to be predictable in prod.
 **rust:** when i want to understand the machine (and remove fear).
 
@@ -92,7 +92,7 @@ code tells you *what*. decisions tell you *why*. i write adrs for one-way doors 
 speed comes from confidence. i build systems where deploys are boring and rollbacks are instant. one-way door = slow down. two-way door = move now.
 
 **make it observable**
-if it can’t be debugged quickly, it isn’t done. clear failure modes, good logs, and metrics are part of the feature.
+if it can’t be debugged quickly, it isn’t done. clear failure modes, good logs and metrics are part of the feature.
 
 **strong opinions, loosely held**
 i’ll argue for a decision with the data i have. better data wins immediately.`
@@ -126,7 +126,7 @@ built and grew an ai tutoring product from zero to paying customers.`
     session_id: "",
     created_at: "2025-01-18T09:00:00.000Z",
     content: `**self-engineering agent framework**
-i wanted faster iteration on agent workflows without manual glue code. built an agent loop that detects missing tools, generates the implementation, writes unit tests, runs them in an ephemeral docker container, and only “ships” the tool if tests pass.
+i wanted faster iteration on agent workflows without manual glue code. built an agent loop that detects missing tools, generates the implementation, writes unit tests, runs them in an ephemeral docker container and only “ships” the tool if tests pass.
 *stack: python, docker sdk, openai api, pgvector*
 [code](https://github.com/your-repo/Self-Engineering-Agent-Framework.git)
 
@@ -143,7 +143,7 @@ end-to-end pipeline from data ingestion → queueing → model inference → vis
 *stack: next.js, react-three-fiber, redis, transformers*
 
 **recipe ancestry graph**
-took messy text and made it queryable. extracted ingredients with ner, built a graph model, and visualised lineage between recipes as a directed network.
+took messy text and made it queryable. extracted ingredients with ner, built a graph model and visualised lineage between recipes as a directed network.
 *stack: python, spacy, networkx, d3.js, fastapi*`
   },
   {
