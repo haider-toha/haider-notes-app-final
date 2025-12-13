@@ -82,7 +82,7 @@ const MainContent: React.FC<MainContentProps> = ({ note, onBack, isMobile, onSha
     <div className="flex flex-col h-full bg-apple-bgLight dark:bg-apple-bgDark relative">
       {/* Mobile Toolbar (Visible only on mobile) */}
       {isMobile && (
-        <div className="h-12 flex items-center justify-between px-2 shrink-0 bg-apple-bgLight dark:bg-apple-bgDark border-b border-transparent z-20">
+        <div className="h-12 flex items-center justify-between px-2 shrink-0 bg-apple-bgLight/80 dark:bg-apple-bgDark/70 backdrop-blur-xl border-b border-black/5 dark:border-white/10 z-20">
           <button 
             onClick={onBack}
             className="flex items-center text-apple-yellow hover:opacity-70 transition-opacity"
@@ -107,21 +107,21 @@ const MainContent: React.FC<MainContentProps> = ({ note, onBack, isMobile, onSha
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto no-scrollbar"
       >
-        <div className="max-w-[700px] mx-auto px-6 md:px-12 py-6 min-h-full">
+        <div className="max-w-[760px] mx-auto px-6 md:px-12 py-8 min-h-full">
           {/* Date Header */}
-          <div className="text-center mb-6">
-            <span className="text-[13px] text-apple-textGray font-medium">
+          <div className="text-center mb-6 select-none">
+            <span className="text-[13px] text-apple-textGray font-semibold tracking-[-0.01em]">
               {fullDate}
             </span>
           </div>
 
           {/* Note Title */}
-          <h1 className="text-3xl md:text-3xl font-bold text-black dark:text-white mb-6 leading-tight outline-none">
+          <h1 className="text-[34px] md:text-[34px] font-bold tracking-[-0.03em] text-black dark:text-white mb-6 leading-[1.12] outline-none">
             {note.title}
           </h1>
 
           {/* Note Body */}
-          <div className="text-[17px] md:text-[17px] text-black dark:text-white leading-[1.6] font-sans outline-none space-y-1">
+          <div className="text-[17px] md:text-[17px] text-black/90 dark:text-white/90 leading-[1.65] font-sans outline-none space-y-1.5">
             {note.content.split('\n').map((line, i) => renderLine(line, i))}
           </div>
           

@@ -14,15 +14,15 @@ london, uk
 
 [github](https://github.com/haider-toha) • [email](mailto:mohammedhaidertoha@gmail.com) • [linkedin](https://linkedin.com/in/haidertoha)
 
-i am a founding engineer at **sammy labs** (yc w25).
+i'm a founding engineer at **sammy labs** (yc w25). i build product surfaces that feel fast and reliable, and the backend paths that keep them that way.
 
-my background is in aeronautics (imperial college), which means i treat software reliability as a safety factor, not a nice-to-have. i have worked at massive scale (goldman sachs) and built profitable products from zero (provost academics).
+my background is aeronautics (imperial college). it trained a habit: define the failure modes, instrument early, and make rollbacks boring. i’ve worked at scale (goldman sachs) and at zero-to-one (provost academics).
 
-currently, i spend my days embedded with unicorn customers, diagnosing deep technical bottlenecks and shipping infrastructure that solves them in hours, not weeks.
+day-to-day, i sit close to real workflows, find what’s slowing people down, and ship the smallest change that moves the metric. sometimes that’s a ui tweak; sometimes it’s idempotency, retries, caching, or a better data model.
 
 offline, i stay active with the gym, cricket and the occasional late-night walk through hyde park when i need to clear my head. i coach my local kids football team which has been one of the most grounding things i do each week. i have also started gliding and plan to get my pilot’s license.
 
-i read voraciously. currently cycling through *the dream machine*, *poor charlie's almanack* and manuals on distributed consensus protocols.`
+i read a lot. lately: *the dream machine*, *poor charlie's almanack* and whatever helps me build simpler systems that don’t wake anyone up at 3am.`
   },
   {
     id: "profile-now",
@@ -32,14 +32,17 @@ i read voraciously. currently cycling through *the dream machine*, *poor charlie
     public: true,
     session_id: "",
     created_at: "2025-01-24T10:00:00.000Z",
-    content: `**browser agent runtime**
-i am reverse-engineering the way we interact with the web. most automation breaks because the dom is volatile. i am building a probabilistic planning layer that treats browser interaction as a graph traversal problem rather than a linear script. this involves building custom headless drivers that can 'see' and 'reason' about page mutations in real-time.
+    content: `**shipping loops**
+i’m focused on shortening time-to-value: watch the workflow, find the constraint, ship the fix, measure the delta. i like thin slices that go end-to-end (one flow, instrumented, in prod), then iterate.
+
+**browser agent runtime**
+most automation breaks because the dom is volatile and the world is messy. i’m building a planning layer that treats browsing as graph traversal (state → action → verification) instead of brittle scripts. the goal is predictable behaviour under mutation, latency, and partial failure.
 
 **edge ml & quantization**
-hacking on running 7b parameter models on consumer hardware with <50ms latency. i am experimenting with llama.cpp bindings for rust to build a local-first rag pipeline that doesn't leak data to the cloud.
+hacking on running useful models locally with low latency. i’m experimenting with quantized inference and a local-first rag pipeline that keeps data private while still feeling instant.
 
 **system architecture**
-tuning my 'second brain' in tana and rewriting my local automation scripts in go. i believe that if you perform a task three times, you should automate it. if you perform it ten times, you should engineer it.`
+tuning my 'second brain' and rewriting automation in go. rule of thumb: if you do it three times, automate it. if you do it ten times, engineer it.`
   },
   {
     id: "profile-toolbox",
@@ -50,16 +53,21 @@ tuning my 'second brain' in tana and rewriting my local automation scripts in go
     session_id: "",
     created_at: "2025-01-23T08:30:00.000Z",
     content: `**languages**
-**typescript:** my default for product velocity.
-**python:** for anything involving tensors or dataframes.
-**go:** for high-concurrency backend services.
-**rust:** currently implementing a toy vector database to understand memory safety.
+**typescript:** fastest path from idea → interface → shipped feature.
+**python:** models, data, experiments, and glue code.
+**go:** services that need to be predictable in prod.
+**rust:** when i want to understand the machine (and remove fear).
 
 **core stack**
-**frontend:** next.js, react server components, tailwind css
+**frontend:** react/next.js, tailwind
 **backend:** fastapi (python), chi (go), trpc
 **data:** postgresql (w/ pgvector), redis, clickhouse
 **infra:** docker, terraform, aws ecs/lambda, fly.io
+
+**defaults**
+- postgres first (constraints over cleverness), redis when latency demands it
+- instrument early (logs/metrics/traces), optimise later
+- prefer removing work over speeding it up
 
 **hardware**
 **machine:** macbook pro 16" (m4 max, 48gb)
@@ -74,17 +82,20 @@ tuning my 'second brain' in tana and rewriting my local automation scripts in go
     public: true,
     session_id: "",
     created_at: "2025-01-22T10:00:00.000Z",
-    content: `**strong opinions, loosely held**
-i will argue passionately for a technical decision based on the data i have. if you show me better data, i will change my mind instantly. ego has no place in a pull request.
+    content: `**users before opinions**
+i’ll trade a clever architecture for a workflow that actually unblocks the user.
 
 **document the 'why'**
-code tells you *what* is happening. comments tell you *why*. i write adr (architecture decision records) for major system choices so future-me doesn't have to guess why we chose an event bus over http.
+code tells you *what*. decisions tell you *why*. i write adrs for one-way doors so future-me isn’t guessing.
 
 **optimise for reversibility**
-speed comes from confidence. i build systems where deployments are boring and rollbacks are instant. if a decision is a one-way door, we slow down. if it's a two-way door, we move immediately.
+speed comes from confidence. i build systems where deploys are boring and rollbacks are instant. one-way door = slow down. two-way door = move now.
 
-**radical candour**
-if the ship is sinking, say so. i value direct, actionable feedback over polite obfuscation. a red build pipeline is a gift because it tells us the truth.`
+**make it observable**
+if it can’t be debugged quickly, it isn’t done. clear failure modes, good logs, and metrics are part of the feature.
+
+**strong opinions, loosely held**
+i’ll argue for a decision with the data i have. better data wins immediately.`
   },
   {
     id: "experience-all",
@@ -94,32 +105,17 @@ if the ship is sinking, say so. i value direct, actionable feedback over polite 
     public: true,
     session_id: "",
     created_at: "2025-01-20T09:00:00.000Z",
-    content: `**founding software engineer : sammy labs (yc w25)**
-london, uk · nov 2025–present
+    content: `**founding engineer — sammy labs (yc w25)** · london · nov 2025–present  
+embed with customers, find bottlenecks, ship fixes fast.
 
-- collaborating closely with enterprise customers like deel to diagnose workflow bottlenecks, trace deep technical issues and ship targeted fixes with turnaround times measured in days.
-- implemented an end-to-end slack & jira notification system triggered by sqs task-completion events.
-- built idempotent consumers and retry-safe delivery paths, delivering sub-200ms notifications at scale.
+**analyst — goldman sachs** · london · jul 2025–nov 2025  
+modernised critical workflows as part of the cloud fast track.
 
-**analyst : goldman sachs**
-london, uk · jul 2025–nov 2025
+**intern — goldman sachs** · birmingham · summer 2024  
+shipped nlp + semantic search tooling to cut time-to-answer for research users.
 
-- selected for the flagship cloud fast track project. worked on modernising critical banking infrastructure.
-- architected legacy on-prem workflows onto aws, leveraging cloud-native patterns for higher availability and resilience.
-
-**intern : goldman sachs**
-birmingham, uk · summer 2024
-
-- built an nlp search service that translates analysts’ natural-language queries into mongodb calls, returning answers in 4s vs 35s legacy workflow for 150+ global investment research users.
-- containerised a java/python microservice using docker and ran it on aws ecs with semantic vector search, achieving 94% query-to-api accuracy. authored terraform iac for zero-click deploys.
-- hosted an 8-bit-quantised llama-3-8b on sagemaker for keyword extraction, halving per-query compute cost (£0.12 to £0.06/1k calls) without loss of f1 score.
-
-**founder & lead engineer : provost academics**
-london, uk · may 2024–present
-
-- bootstrapped an ai tutoring marketplace to 50+ paying clients and £5k mrr.
-- built a rag grading engine (gpt-4, pgvector) that marks papers in under 60s with 95% human-examiner agreement.
-- solved the 'latex hallucination' problem by writing a custom tokeniser that normalises mathematical notation before embedding.`
+**founder — provost academics** · london · may 2024–present  
+built and grew an ai tutoring product from zero to paying customers.`
   },
   {
     id: "projects-all",
@@ -130,25 +126,25 @@ london, uk · may 2024–present
     session_id: "",
     created_at: "2025-01-18T09:00:00.000Z",
     content: `**self-engineering agent framework**
-an experiment in recursive capability. i built an agent loop that identifies missing tools in its registry, generates python code to fulfill that need, writes unit tests and executes them in an ephemeral docker container. if the tests pass, it commits the tool to its own vector memory.
+i wanted faster iteration on agent workflows without manual glue code. built an agent loop that detects missing tools, generates the implementation, writes unit tests, runs them in an ephemeral docker container, and only “ships” the tool if tests pass.
 *stack: python, docker sdk, openai api, pgvector*
 [code](https://github.com/your-repo/Self-Engineering-Agent-Framework.git)
 
 **parallel navier-stokes solver**
-pure computational horsepower. a c++ solver for 2d fluid dynamics equations. i hand-optimised memory access patterns to minimise cache misses and implemented hybrid mpi (multi-node) and openmp (multi-thread) parallelism, achieving a 12x speedup on imperial's hpc cluster.
+pure throughput: a c++ solver for 2d fluid dynamics. optimised memory access to reduce cache misses and implemented hybrid mpi + openmp parallelism for real speedups on a shared cluster.
 *stack: c++, mpi, openmp, hpc*
 
 **fpl moneyball**
-applying operations research to fantasy football. formulated the squad selection problem as an integer linear programming (ilp) model. uses pulp to solve for the maximum expected points subject to constraints (budget, team limits). it consistently beats the global average by ~20%.
-*stack: python, pulp (optimisation), pandas, aws lambda*
+turned “gut feel” into constraints + optimisation. formulated squad selection as an ilp and shipped a solver that consistently outperforms baseline heuristics.
+*stack: python, pulp, pandas, aws lambda*
 
 **global sentiment engine**
-a real-time nlp pipeline. scrapes headlines from 50+ international sources, pushes them to a redis queue and processes them with a fine-tuned bert model for sentiment analysis. the frontend uses three.js to render a 3d heatmap of global anxiety levels.
-*stack: next.js, react-three-fiber, redis, hugging face transformers*
+end-to-end pipeline from data ingestion → queueing → model inference → visualisation. built it to be observable and resilient (backpressure, retries, simple deployment).
+*stack: next.js, react-three-fiber, redis, transformers*
 
 **recipe ancestry graph**
-mapping the evolution of cuisine. uses spacy's named entity recognition (ner) to extract ingredients from unstructured text. builds a networkx directed graph to calculate the 'edit distance' between recipes, visualising how a french bechamel evolves into a greek moussaka.
-*stack: python, networkx, d3.js, fast-api*`
+took messy text and made it queryable. extracted ingredients with ner, built a graph model, and visualised lineage between recipes as a directed network.
+*stack: python, spacy, networkx, d3.js, fastapi*`
   },
   {
     id: "writing-desire",

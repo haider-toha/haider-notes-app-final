@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import MainContent from './components/MainContent';
 import { portfolioNotes } from './constants';
-import { Note, Theme } from './types';
-import { Moon, Sun, PanelLeft, PlusSquare, Trash2, Share, Grid } from 'lucide-react';
+import { Theme } from './types';
+import { Moon, Sun, PanelLeft, Share } from 'lucide-react';
 
 const App: React.FC = () => {
   // State
@@ -91,27 +91,14 @@ const App: React.FC = () => {
       
       {/* Desktop Toolbar (Simulating the Mac App Toolbar) */}
       {!isMobile && (
-        <div className="h-12 bg-apple-sidebarLight dark:bg-apple-sidebarDark flex items-center justify-between px-4 border-b border-apple-separatorLight dark:border-apple-separatorDark shrink-0 z-20 select-none">
+        <div className="h-12 bg-apple-sidebarLight/70 dark:bg-apple-sidebarDark/60 backdrop-blur-xl flex items-center justify-between px-4 border-b border-black/10 dark:border-white/10 shrink-0 z-20 select-none">
           <div className="flex items-center space-x-5">
             <button 
               onClick={toggleDesktopSidebar}
-              className={`hover:opacity-60 transition-opacity ${!showSidebar ? 'text-apple-textGray' : 'text-apple-yellow'}`}
+              className={`hover:opacity-70 transition-opacity ${!showSidebar ? 'text-apple-textGray' : 'text-apple-yellow'}`}
               title="toggle sidebar"
             >
               <PanelLeft className="w-5 h-5 stroke-[2]" />
-            </button>
-            <button 
-              className="text-apple-textGray hover:opacity-60 transition-opacity disabled:opacity-30"
-              disabled
-            >
-              <Grid className="w-4 h-4 stroke-[2]" />
-            </button>
-            <button 
-              className="text-apple-textGray hover:opacity-60 transition-opacity disabled:opacity-30" 
-              onClick={() => {}} 
-              disabled
-            >
-              <Trash2 className="w-4 h-4 stroke-[2]" />
             </button>
           </div>
           
@@ -123,9 +110,6 @@ const App: React.FC = () => {
                title="share"
              >
                 <Share className="w-4 h-4 stroke-[2]" />
-             </button>
-             <button className="text-apple-yellow hover:opacity-60 transition-opacity" title="new note">
-                <PlusSquare className="w-5 h-5 stroke-[2]" />
              </button>
              <div className="w-px h-4 bg-apple-separatorLight dark:bg-apple-separatorDark mx-2"></div>
              <button 
@@ -159,7 +143,6 @@ const App: React.FC = () => {
             notes={portfolioNotes} 
             selectedNoteId={selectedNoteId} 
             onSelectNote={handleSelectNote}
-            isMobile={isMobile}
           />
         </div>
 
