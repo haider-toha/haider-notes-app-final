@@ -106,7 +106,7 @@ i’ll argue for a decision with the data i have. better data wins immediately.`
     category: "experience",
     public: true,
     session_id: "",
-    created_at: "2025-10-05T16:18:00.000Z",
+    created_at: "2025-11-12T16:18:00.000Z",
     content: `**founding engineer — sammy labs (yc w25)** · london · nov 2025–present  
 sit with customers, trace problems end-to-end, build and ship solutions. frontend to backend, idea to production.
 
