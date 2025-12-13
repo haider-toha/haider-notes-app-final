@@ -8,7 +8,7 @@ export const portfolioNotes: Note[] = [
     category: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-01-25T09:00:00.000Z",
+    created_at: "2025-01-27T14:23:00.000Z",
     content: `haider toha
 london, uk
 
@@ -18,11 +18,11 @@ i'm a founding engineer at sammy labs (yc w25). i build end-to-end product surfa
 
 my background is aeronautics (imperial college). it trained a habit to define the failure modes, instrument early and make rollbacks boring. i’ve worked at scale (goldman sachs) and at zero-to-one on my own ventures.
 
-day-to-day, i sit close to real workflows, find what’s slowing people down and ship features that moves the metric. sometimes that’s a ui tweak; sometimes it’s idempotency, retries, caching or a better data model.
+day-to-day, i own problems end-to-end. i talk to users, trace the issue through the stack and ship the fix, whether that means redesigning a flow, refactoring an api, fixing a query or rearchitecting how data moves. product thinking, engineering execution.
 
 offline, i stay active with the gym, cricket and the occasional late-night walk through hyde park when i need to clear my head. i coach my local kids football team which has been one of the most grounding things i do each week. i have also started gliding and plan to get my pilot’s license.
 
-i read a lot. lately: *the dream machine*, *poor charlie's almanack* and whatever helps me build simpler systems that don’t wake anyone up at 3am.`
+i read more than i probably should. mostly history, philosophy and whatever rabbit hole i'm in that week.`
   },
   {
     id: "profile-now",
@@ -31,18 +31,20 @@ i read a lot. lately: *the dream machine*, *poor charlie's almanack* and whateve
     category: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-01-24T10:00:00.000Z",
-    content: `**shipping loops**
-i’m focused on shortening time-to-value: watch the workflow, find the constraint, ship the fix, measure the delta. i like thin slices that go end-to-end (one flow, instrumented, in prod), then iterate.
+    created_at: "2025-01-19T22:47:00.000Z",
+    content: `
 
-**browser agent runtime**
-most automation breaks because the dom is volatile and the world is messy. i’m building a planning layer that treats browsing as graph traversal (state → action → verification) instead of brittle scripts. the goal is predictable behaviour under mutation, latency and partial failure.
+**ai evals**
+really into how we measure whether models actually work. at work i'm building eval harnesses that go beyond vibes: custom datasets, automated grading, catching regressions before they hit users. thinking a lot about what "good enough" means when you're shipping ai to production. the gap between demo and reliable is almost always an eval problem.
 
-**edge ml & quantization**
-hacking on running useful models locally with low latency. i’m experimenting with quantized inference and a local-first rag pipeline that keeps data private while still feeling instant.
+**browser agents**
+working on making browser automation less brittle. the dom is volatile, sites change, things break. i'm treating navigation as graph traversal (state, action, verification) instead of linear scripts. building a planning layer that can recover from failures and adapt to mutations. lots of edge cases, lots of fun.
 
-**system architecture**
-tuning my 'second brain' and rewriting automation in go. rule of thumb: if you do it three times, automate it. if you do it ten times, engineer it.`
+**local inference**
+experimenting with running models on-device. quantised inference, ggml, trying to get useful outputs with low latency. also playing with local-first rag: embeddings and retrieval that stay on your machine. the goal is fast, private and actually usable.
+
+**personal infra**
+rewriting my automation scripts in go. building a better second brain with notes, tasks and references all connected. also setting up proper observability for my side projects. the usual tinkering that makes everything else faster.`
   },
   {
     id: "profile-toolbox",
@@ -51,7 +53,7 @@ tuning my 'second brain' and rewriting automation in go. rule of thumb: if you d
     category: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-01-23T08:30:00.000Z",
+    created_at: "2025-01-14T11:02:00.000Z",
     content: `**languages**
 **typescript:** fastest path from idea → interface → shipped feature.
 **python:** models, data, experiments and glue code.
@@ -59,20 +61,20 @@ tuning my 'second brain' and rewriting automation in go. rule of thumb: if you d
 **rust:** when i want to understand the machine (and remove fear).
 
 **core stack**
-**frontend:** react/next.js, tailwind
-**backend:** fastapi (python), chi (go), trpc
-**data:** postgresql (w/ pgvector), redis, clickhouse
-**infra:** docker, terraform, aws ecs/lambda, fly.io
+**frontend:** react/next.js, tailwind.
+**backend:** fastapi (python), chi (go), trpc.
+**data:** postgresql (w/ pgvector), redis, clickhouse.
+**infra:** docker, terraform, aws ecs/lambda, fly.io.
 
 **defaults**
-- postgres first (constraints over cleverness), redis when latency demands it
-- instrument early (logs/metrics/traces), optimise later
-- prefer removing work over speeding it up
+- postgres first (constraints over cleverness), redis when latency demands it.
+- instrument early (logs/metrics/traces), optimise later.
+- prefer removing work over speeding it up.
 
 **hardware**
-**machine:** macbook pro 16" (m4 max, 48gb)
-**input:** hhkb hybrid type-s (topre switches), mx master 3s
-**audio:** sony wh-1000xm4 and airpods max (for deep work)`
+**machine:** macbook pro 16" (m4 max, 48gb).
+**input:** hhkb hybrid type-s (topre switches), mx master 3s.
+**audio:** sony wh-1000xm4 and airpods max (for deep work).`
   },
   {
     id: "profile-operating-manual",
@@ -81,7 +83,7 @@ tuning my 'second brain' and rewriting automation in go. rule of thumb: if you d
     category: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-01-22T10:00:00.000Z",
+    created_at: "2025-01-08T09:34:00.000Z",
     content: `**users before opinions**
 i’ll trade a clever architecture for a workflow that actually unblocks the user.
 
@@ -104,18 +106,18 @@ i’ll argue for a decision with the data i have. better data wins immediately.`
     category: "experience",
     public: true,
     session_id: "",
-    created_at: "2025-01-20T09:00:00.000Z",
+    created_at: "2024-12-29T16:18:00.000Z",
     content: `**founding engineer — sammy labs (yc w25)** · london · nov 2025–present  
-embed with customers, find bottlenecks, ship fixes fast.
+sit with customers, trace problems end-to-end, build and ship solutions. frontend to backend, idea to production.
 
 **analyst — goldman sachs** · london · jul 2025–nov 2025  
-modernised critical workflows as part of the cloud fast track.
+cloud migration. internal tooling. short stint before joining sammy.
 
 **intern — goldman sachs** · birmingham · summer 2024  
 shipped nlp + semantic search tooling to cut time-to-answer for research users.
 
 **founder — provost academics** · london · may 2024–present  
-built and grew an ai tutoring product from zero to paying customers.`
+built and grew an ai tutoring product from zero to 50+ paying customers.`
   },
   {
     id: "projects-all",
@@ -124,27 +126,27 @@ built and grew an ai tutoring product from zero to paying customers.`
     category: "projects",
     public: true,
     session_id: "",
-    created_at: "2025-01-18T09:00:00.000Z",
+    created_at: "2024-12-15T20:41:00.000Z",
     content: `**self-engineering agent framework**
-i wanted faster iteration on agent workflows without manual glue code. built an agent loop that detects missing tools, generates the implementation, writes unit tests, runs them in an ephemeral docker container and only “ships” the tool if tests pass.
-*stack: python, docker sdk, openai api, pgvector*
+i wanted faster iteration on agent workflows without manual glue code. built an agent loop that detects missing tools, generates the implementation, writes unit tests, runs them in an ephemeral docker container and only "ships" the tool if tests pass.
+*stack: python, docker sdk, openai api, pgvector.*
 [code](https://github.com/your-repo/Self-Engineering-Agent-Framework.git)
 
 **parallel navier-stokes solver**
 pure throughput: a c++ solver for 2d fluid dynamics. optimised memory access to reduce cache misses and implemented hybrid mpi + openmp parallelism for real speedups on a shared cluster.
-*stack: c++, mpi, openmp, hpc*
+*stack: c++, mpi, openmp, hpc.*
 
 **fpl moneyball**
-turned “gut feel” into constraints + optimisation. formulated squad selection as an ilp and shipped a solver that consistently outperforms baseline heuristics.
-*stack: python, pulp, pandas, aws lambda*
+turned "gut feel" into constraints + optimisation. formulated squad selection as an ilp and shipped a solver that consistently outperforms baseline heuristics.
+*stack: python, pulp, pandas, aws lambda.*
 
 **global sentiment engine**
 end-to-end pipeline from data ingestion → queueing → model inference → visualisation. built it to be observable and resilient (backpressure, retries, simple deployment).
-*stack: next.js, react-three-fiber, redis, transformers*
+*stack: next.js, react-three-fiber, redis, transformers.*
 
 **recipe ancestry graph**
 took messy text and made it queryable. extracted ingredients with ner, built a graph model and visualised lineage between recipes as a directed network.
-*stack: python, spacy, networkx, d3.js, fastapi*`
+*stack: python, spacy, networkx, d3.js, fastapi.*`
   },
   {
     id: "writing-desire",
@@ -153,7 +155,7 @@ took messy text and made it queryable. extracted ingredients with ner, built a g
     category: "writing",
     public: true,
     session_id: "",
-    created_at: "2025-09-06T21:05:43.000Z",
+    created_at: "2024-11-23T23:12:00.000Z",
     content: `**september 6, 2025 · 10 min read · 1,158 words**
 
 so, is a state of low desire actually a problem? from within, if i am truly content, resting in a quiet ease within my own skin, who can claim that i suffer? why should my lack of wanting be treated as a deficiency if it comes with a profound sense of sufficiency? the trouble seems to arise only when i begin to compare myself to others or when i begin to want what i do not have. it is only at that threshold, when lack intrudes upon contentment, that restlessness and with it suffering, begins.
@@ -191,13 +193,221 @@ the conclusion is subtle yet profound. the problem is never the quantity of desi
 thus, the question of desire becomes not merely psychological but spiritual. the challenge is to discern which quiet we are living in; is it the quiet of fulfillment or the quiet of neglect.`
   },
   {
+    id: "food adventures",
+    slug: "food adventures",
+    title: "food adventures",
+    category: "favorites",
+    public: true,
+    session_id: "",
+    created_at: "2024-11-04T13:55:00.000Z",
+    content: `spots i keep coming back to. mix of top-rated and hidden gems.
+
+**london** *(home)*
+- *dishoom* — the keema per eedu at breakfast. chicken ruby for dinner. institution.
+- *tayyabs* — whitechapel legend. lamb chops that haunt your dreams. always a queue.
+- *gymkhana* — michelin-starred indian. refined, rich, worth every penny.
+- *mangal 2* — dalston ocakbasi. charcoal-grilled perfection.
+- *the meat co.* — westfield. proper halal steakhouse when you need a good cut.
+- *maroush* — edgware road. lebanese late-night after everything else closes.
+- *sheesh* — chigwell vibes. turkish done upscale.
+
+**new york**
+- *hyderabadi zaiqa* — michelin guide biryani. dum style, curry hill.
+- *the halal guys* — street cart classic. white sauce is the move.
+- *al badawi* — brooklyn, middle eastern, traditional setting.
+- *adel's famous halal pizza* — halal slices with proper nyc attitude.
+
+**san francisco**
+- *old mandarin islamic restaurant* — hidden gem. halal chinese, the hot pot is unreal.
+- *reem's california* — arab street food. mana'eesh and fresh bread.
+- *mela tandoori kitchen* — solid pakistani and indian. reliable.
+
+**milan**
+- *aladino* — cozy egyptian/middle eastern. kebabs and falafel done right.
+- *riad marrakech* — moroccan tagines and couscous in traditional setting.
+- *dawali* — lebanese in central milan. good mezze spread.
+
+**rome**
+- *himalaya's kashmir* — indian/pakistani biryani and tandoori. reliable halal.
+- *ali baba* — middle eastern classics. falafel and shawarma.
+
+**paris**
+- *l'as du fallafel* — marais district. the falafel sandwich is legendary.
+- *kashmir house* — pakistani done well. curries with depth.
+- *le wok saint germain* — halal asian fusion. stir-fries and noodles.
+
+**tenerife**
+- *restaurante libanés el líbano* — lebanese on the island. mezze and grills.
+
+**dubai** *(everything halal but these stand out)*
+- *al ustad special kabab* — old dubai institution. iranian kebabs since forever.
+- *3 fils* — japanese-middle eastern fusion. waterfront vibes.
+- *al fanar* — traditional emirati. nostalgic setting, proper local food.
+- *enigma at palazzo versace* — fine dining. persian influences, special occasion.
+
+**munich**
+- *saray restaurant* — turkish classics. köfte and kebabs.
+- *sultanahmet köftecisi* — another solid turkish option.
+- *sababa* — middle eastern. falafel and shawarma.
+
+**dhaka** *(home country, everything halal)*
+- *star kabab & restaurant* — the kebabs. traditional bangladeshi done right.
+- *nando's* — yes, it's a chain, but the peri peri hits different there.
+- *kacchi bhai* — if you want real kacchi biryani.
+
+i always update this list when i visit new places.`
+  },
+  {
+    id: "favorites-videos",
+    slug: "favorite-videos",
+    title: "favorite interviews & videos",
+    category: "favorites",
+    public: true,
+    session_id: "",
+    created_at: "2024-10-17T08:29:00.000Z",
+    content: `videos i've rewatched. conversations that shifted something.
+
+**sport**
+- *michael jordan - the last dance* — obsession, leadership, the cost of greatness.
+- *sachin tendulkar: a billion dreams* — cricket as religion, pressure as fuel.
+- *pep guardiola masterclass* — tactics, philosophy, how he sees the game.
+- *kobe bryant's mamba mentality interview* — relentless work ethic explained.
+- *muhammad ali interviews* — conviction, wit, standing for something.
+
+**music & artists**
+- *frank ocean - blonded radio episodes* — rare glimpses into his process.
+- *quincy jones on finding michael jackson* — legendary storytelling.
+- *rick rubin: the creative act* — on taste, silence and letting things emerge.
+- *tyler, the creator on flower boy* — growth, vulnerability, artistic evolution.
+- *j dilla documentary: still shining* — the producer's producer.
+
+**film & storytelling**
+- *martin scorsese on cinema* — what makes a movie a movie.
+- *christopher nolan bfi masterclass* — time, structure, practical effects.
+- *hayao miyazaki: 10 years with the master* — animation as meditation.
+- *denis villeneuve on dune* — adapting the unadaptable.
+- *a24 behind the scenes* — how they built a studio on taste.
+
+**philosophy & faith**
+- *hamza yusuf lectures on the soul* — islamic spirituality, beautifully articulated.
+- *abdal hakim murad on modernity* — tradition meeting the contemporary.
+- *alan watts on letting go* — eastern philosophy, western clarity.
+- *simone de beauvoir interview (1959)* — freedom, choice, existence.
+- *james baldwin debates william buckley* — rhetoric, dignity, truth to power.
+
+**culture & ideas**
+- *anthony bourdain: parts unknown* — any episode. travel as understanding.
+- *chimamanda ngozi adichie: the danger of a single story* — perspective, narrative.
+- *david foster wallace on ambition* — the water we swim in.
+- *trevor noah on identity* — code-switching, belonging, humor as survival.
+- *roger federer dartmouth commencement* — effortless is a lie, accept losing.
+
+**documentaries**
+- *jiro dreams of sushi* — mastery, dedication, 80 years of one thing.
+- *free solo* — fear, preparation, what commitment actually looks like.
+- *chef's table: jeong kwan* — cooking as spiritual practice.
+- *the defiant ones* — dr. dre and jimmy iovine. unlikely partnership, empire.
+- *senna* — rivalry, purity, racing as art.
+
+**design & craft**
+- *jony ive on objectified* — obsession with materials and intent.
+- *dieter rams: less but better* — principles that outlast trends.
+- *kenya hara on emptiness* — japanese design philosophy.
+
+**building things**
+- *steve jobs lost interview (1995)* — taste, conviction, what matters.
+- *andrej karpathy neural net lectures* — if you want to actually understand ml.
+- *bret victor: inventing on principle* — what a creative tool should feel like.`
+  },
+  {
+    id: "reflections-questions",
+    slug: "open-questions",
+    title: "questions i'm sitting with",
+    category: "reflections",
+    public: true,
+    session_id: "",
+    created_at: "2024-09-28T17:43:00.000Z",
+    content: `questions i keep coming back to. no answers yet, just the thinking.
+
+**on building**
+- when does optimisation become procrastination? at what point is "making it better" just avoiding shipping?
+- how do you build for users who don't know what they want yet? where's the line between vision and arrogance?
+- is most complexity accidental or are we just bad at seeing why it's necessary?
+
+**on work**
+- what's the difference between ambition and anxiety dressed up as ambition?
+- how do you stay hungry after you've "made it" by some definition? what replaces the chip on your shoulder?
+- is founder mode sustainable or does it just burn different fuel?
+
+**on craft**
+- can you have taste without ego? or is conviction about quality inherently a little arrogant?
+- how much of expertise is pattern matching vs actual understanding? does it matter?
+- what's the right ratio of depth to breadth? when does being a generalist become an excuse?
+
+**on life**
+- how do you balance presence with ambition? one says "be here now," the other says "build for later."
+- what do you owe the people who shaped you? how do you repay debts you didn't ask to incur?
+- is contentment something you find or something you choose? can you will yourself into peace?
+
+**on faith and meaning**
+- how do you hold religious conviction without closing off intellectual honesty?
+- what does it mean to act well in a world where you can't know all the consequences?
+- where does discipline end and self-denial begin?
+
+i don't expect to resolve most of these. but they're useful to carry.`
+  },
+  {
+    id: "reflections-changed-mind",
+    slug: "changed-my-mind",
+    title: "things i've changed my mind on",
+    category: "reflections",
+    public: true,
+    session_id: "",
+    created_at: "2024-09-11T21:08:00.000Z",
+    content: `beliefs i held strongly and then let go. trying to update faster.
+
+**"more hours = more output"**
+*before:* grinding longer meant caring more. if you weren't exhausted, you weren't trying.
+*now:* sleep, rest, and stepping away are inputs, not rewards. my best work happens in 4 focused hours, not 12 scattered ones.
+
+**"the best code is clever code"**
+*before:* elegance meant compression. one-liners were beautiful. abstractions showed sophistication.
+*now:* boring code is beautiful. the goal is for someone else (or future me) to understand it instantly. clever is expensive.
+
+**"you need a cs degree to be a real engineer"**
+*before:* imposter syndrome from coming from aeronautics. felt like i was faking it.
+*now:* the degree teaches structure, not ability. the best engineers i know have every background imaginable. what matters is how you think and how fast you learn.
+
+**"networking is fake"**
+*before:* thought building relationships for career reasons was inauthentic. just do good work and people will notice.
+*now:* relationships are how anything meaningful happens. it's not networking if you're genuinely curious about people. good work matters, but in silence it dies.
+
+**"move fast and break things"**
+*before:* speed above all. fix it later. ship now.
+*now:* move fast but know what you're breaking. some things shouldn't break. speed without intention is just chaos with branding.
+
+**"strong opinions, strongly held"**
+*before:* conviction was identity. changing your mind was weakness.
+*now:* strong opinions, loosely held. the point is to find truth, not to be right. updating quickly is a flex, not a failure.
+
+**"passion is everything"**
+*before:* if you're not obsessed, you're doing the wrong thing. follow your passion.
+*now:* passion follows mastery. get good at something useful, find meaning in the craft, and passion often shows up. waiting for passion is a trap.
+
+**"success is making it"**
+*before:* there's a finish line. get the job, hit the number, then you're done.
+*now:* there's no arrival. just different games with different stakes. peace comes from the process, not the outcome.
+
+this list will keep growing. that's the point.`
+  },
+  {
     id: "writing-curves",
     slug: "curves-of-the-mind",
     title: "blog: curves of the world, curves of the mind",
     category: "writing",
     public: true,
     session_id: "",
-    created_at: "2025-05-10T11:45:00.000Z",
+    created_at: "2024-08-19T10:36:00.000Z",
     content: `**may 10, 2025 · 12 min read · 1,124 words**
 
 mathematics is not a cold kingdom of eternal truths set apart from the world. it is a living river, flowing through cultures, carrying with it the sediments of survival and the light of transcendence. ubiratan d'ambrosio calls this current ethnomathematics, for mathematics is always shaped by the human hand, always marked by the earth from which it springs. the ethno gives us the soil and the sky, the mathema gives us that which is learned and the tics gives us the techniques by which we survive and dream. in this view, mathematics is not a ladder dropped from heaven but a rope we weave ourselves, strand by strand, to climb beyond our limits.

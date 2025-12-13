@@ -105,10 +105,15 @@ const App: React.FC = () => {
   };
 
   const handleBack = () => {
-    setShowSidebar(true);
-    // On mobile, navigate to root when going back to sidebar
+    // On mobile, navigate to root first, then show sidebar after URL updates
     if (isMobile) {
       navigate('/');
+      // Small delay to let the URL update before showing sidebar with cleared selection
+      requestAnimationFrame(() => {
+        setShowSidebar(true);
+      });
+    } else {
+      setShowSidebar(true);
     }
   };
 
