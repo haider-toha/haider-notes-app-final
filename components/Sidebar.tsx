@@ -98,7 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({ notes, selectedNoteId, onSelectNote }
               key={note.id}
               onClick={() => onSelectNote(note.id)}
               className={`
-                group flex flex-col px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-all duration-100 relative select-none
+                group flex flex-col px-3.5 py-2.5 rounded-[10px] cursor-pointer transition-all duration-200 ease-out relative select-none
                 ${isSelected
                   ? 'bg-[#A69050] dark:bg-[#998542]'
                   : 'hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
