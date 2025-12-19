@@ -114,10 +114,10 @@ const App: React.FC = () => {
 
   // Update sidebar visibility when route changes to a note
   useEffect(() => {
-    if (isMobile && (slug || folderParam)) {
+    if (isMobile && slug) {
       setShowSidebar(false);
     }
-  }, [slug, folderParam, isMobile]);
+  }, [slug, isMobile]);
 
   const handleSelectNote = (id: string) => {
     const note = portfolioNotes.find((n) => n.id === id);
