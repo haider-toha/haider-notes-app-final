@@ -8,14 +8,36 @@ import { Moon, Sun, PanelLeft, Share } from "lucide-react";
 import { Analytics } from "@vercel/analytics/react";
 
 const App: React.FC = () => {
-  const { slug } = useParams<{ slug: string }>();
+  const { folder: folderParam, slug } = useParams<{ folder?: string; slug?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Find note by slug or default to first note
-  const getNoteFromSlug = (slugParam: string | undefined) => {
-    if (!slugParam) return null;
-    return portfolioNotes.find((n) => n.slug === slugParam) || null;
+  // Check if the folder param is a valid folder
+  const isValidFolder = (id: string | undefined) => {
+    if (!id) return false;
+    return folders.some((f) => f.id === id);
+  };
+
+  // Find note by folder and slug
+  const getNoteFromParams = (folderParam: string | undefined, slugParam: string | undefined) => {
+    if (!folderParam) return null;
+    
+    // Special handling for "all" folder - search all notes by slug only
+    if (folderParam === "all") {
+      if (slugParam) {
+        return portfolioNotes.find((n) => n.slug === slugParam) || null;
+      }
+      // Return first note if no slug specified (only for "all" as landing page)
+      return portfolioNotes[0] || null;
+    }
+    
+    // If we have both folder and slug, find the specific note
+    if (slugParam) {
+      return portfolioNotes.find((n) => n.folder === folderParam && n.slug === slugParam) || null;
+    }
+    
+    // For other folders without a slug, don't auto-select a note
+    return null;
   };
 
   const [isMobile, setIsMobile] = useState<boolean>(() => {
@@ -26,32 +48,24 @@ const App: React.FC = () => {
   });
   const [showSidebar, setShowSidebar] = useState<boolean>(() => {
     if (typeof window !== "undefined" && window.innerWidth < 768) {
-      return !slug;
+      return !slug && !folderParam;
     }
     return true;
   });
   const [theme, setTheme] = useState<Theme>("light");
-  const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
+
+  // Get selected folder from URL param
+  const selectedFolderId = isValidFolder(folderParam) ? folderParam! : "all";
 
   // Get selected note from URL
-  const selectedNote = getNoteFromSlug(slug);
+  const selectedNote = getNoteFromParams(folderParam, slug);
   const selectedNoteId = selectedNote?.id || null;
-
-  // When a note is selected, update the folder to match
-  useEffect(() => {
-    if (
-      selectedNote?.folder &&
-      selectedFolderId !== selectedNote.folder &&
-      selectedFolderId !== "all"
-    ) {
-      // Keep current folder if note belongs to it or we're viewing "all"
-    }
-  }, [selectedNote, selectedFolderId]);
 
   // Handle initial load - redirect to first note on desktop if at root
   useEffect(() => {
     if (location.pathname === "/" && !isMobile) {
-      navigate(`/${portfolioNotes[0].slug}`, { replace: true });
+      const firstNote = portfolioNotes[0];
+      navigate(`/all/${firstNote.slug}`, { replace: true });
     }
   }, [location.pathname, isMobile, navigate]);
 
@@ -69,7 +83,8 @@ const App: React.FC = () => {
       } else {
         setShowSidebar(true);
         if (location.pathname === "/" && wasMobile) {
-          navigate(`/${portfolioNotes[0].slug}`, { replace: true });
+          const firstNote = portfolioNotes[0];
+          navigate(`/all/${firstNote.slug}`, { replace: true });
         }
       }
     };
@@ -97,17 +112,19 @@ const App: React.FC = () => {
     }
   }, [theme]);
 
-  // Update sidebar visibility when slug changes
+  // Update sidebar visibility when route changes to a note
   useEffect(() => {
-    if (isMobile && slug) {
+    if (isMobile && (slug || folderParam)) {
       setShowSidebar(false);
     }
-  }, [slug, isMobile]);
+  }, [slug, folderParam, isMobile]);
 
   const handleSelectNote = (id: string) => {
     const note = portfolioNotes.find((n) => n.id === id);
     if (note) {
-      navigate(`/${note.slug}`);
+      // Preserve current folder context - if viewing "all", stay in "all"
+      const currentFolder = selectedFolderId === "all" ? "all" : note.folder;
+      navigate(`/${currentFolder}/${note.slug}`);
       if (isMobile) {
         setShowSidebar(false);
       }
@@ -115,7 +132,18 @@ const App: React.FC = () => {
   };
 
   const handleSelectFolder = (folderId: string) => {
-    setSelectedFolderId(folderId);
+    if (folderId === "all") {
+      // For "all", navigate to /all with the first note (landing page behavior)
+      const firstNote = portfolioNotes[0];
+      if (isMobile) {
+        navigate("/all");
+      } else {
+        navigate(`/all/${firstNote.slug}`);
+      }
+    } else {
+      // For other folders, just navigate to the folder without selecting a note
+      navigate(`/${folderId}`);
+    }
   };
 
   const handleBack = () => {
@@ -134,7 +162,7 @@ const App: React.FC = () => {
   const handleShare = async () => {
     if (!selectedNote) return;
 
-    const shareUrl = `${window.location.origin}/${selectedNote.slug}`;
+    const shareUrl = `${window.location.origin}/${selectedNote.folder}/${selectedNote.slug}`;
 
     const shareData = {
       title: selectedNote.title,

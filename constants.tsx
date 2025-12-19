@@ -394,7 +394,7 @@ i was reading about the history of biryani, how it has mughal, persian and south
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-11-16T08:43:00.000Z",
+    created_at: "2025-11-16T17:21:00.000Z",
     content: `we are currently witnessing a structural bifurcation in the global ai landscape. on one side, you have the closed-source giants (openai, anthropic, google) scaling dense models behind opaque apis. on the other, the open-source ecosystem has been playing catch-up, mostly through brute-force scaling or finetuning llama derivatives.
 
 but every so often, a model drops that doesn't iterate but rather it disrupts.
@@ -523,7 +523,7 @@ in the intelligence vs. price quadrant, m2 stands alone. it is the best bang for
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-11-01T16:08:00.000Z",
+    created_at: "2025-11-01T11:23:00.000Z",
     content: `we have spent the last decade obsessed with scale. we want more parameters, more data and, perhaps most desperately, longer context windows. we went from bert's claustrophobic 512 tokens to gemini's millions, chasing the dream of stuffing entire legal archives or code repositories into a single prompt. but we keep hitting the same invisible wall, "tyranny of the quadratic" as some would put it.
 
 it is a basic fact of the transformer architecture that self-attention scales as $O(n^2)$. it is a physical memory bottleneck defined by the attention matrix calculation:
@@ -659,7 +659,7 @@ we are witnessing the transition from processing discrete symbols to reasoning i
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-08-03T19:15:00.000Z",
+    created_at: "2025-08-03T14:47:00.000Z",
     content: `if you have been following the breathless hype cycles of ai, you are likely exhausted. i know i am. but what happened in australia this year is different. openai and google deepmind achieved scores equivalent to a imo gold medal, solving problems that stump the smartest 18-year-olds on the planet [1].
 
 but here is the catch, and it is the subject of today's deep dive. they completely face-planted on problem 6.
@@ -869,7 +869,7 @@ for us, the strategy is clear. use these new "reasoning models" to solve the har
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-11-15T14:27:00.000Z",
+    created_at: "2025-11-15T09:34:00.000Z",
     content: `i have been arguing for some time that the "capital moat" theory of ai, the idea that you need a gdp-sized budget and a nuclear power plant to train a frontier model was a temporary anomaly, not a law of physics. silicon valley vc's and us policymakers bet the house on the assumption that raw scale was the only path to agi. they believed that as long as the us controlled the supply of h100s and had the deepest pockets, hegemony was secured.
 
 on november 6, 2025, that assumption evaporated.
@@ -1001,170 +1001,7 @@ if you are building in this space, stop assuming that "bigger is better." the ga
 [9] moonshot ai, "kimi k2 thinking release notes," november 6, 2025.
 [10] global tech procurement report, december 2025.`,
   },
-  {
-    id: "blog-fracture-enterprise-ai",
-    slug: "fracture-enterprise-ai",
-    title: "blog: enterprise ai is broken  - deepseek, dora and the agentic wall",
-    category: "writing",
-    folder: "blog",
-    public: false, // temporarily hidden
-    session_id: "",
-    created_at: "2025-12-13T11:52:00.000Z",
-    content: `i have been analysing the state of enterprise technology for a long time and i have to say that the current moment feels distinct. it is not just the usual hype cycle. it feels like the tectonic plates of the industry are grinding against each other. we are living through a "phase transition," and like any change in state, things are getting volatile.
 
-the narrative we have been sold for the last two years is simple. get the latest model, put it in the app, profit. but the reality i'm seeing on the ground is completely different. we are witnessing a collision of three massive forces, a productivity paradox that won't go away, a technical "sputnik moment" from china that is breaking pricing models and a geopolitical crackdown that is fracturing the internet itself.
-
-this post is going to be long. we need to get into the math, the architecture and the messy geopolitical reality. but if you want to understand why your ai pilot is stuck in "poc purgatory" or why the us government is suddenly terrified of a chinese open-source model, you need to understand the bifurcation happening right now.
-
----
-
-**1. the productivity paradox and why your "ai app" isn't working**
-
-let's start with the elephant in the room. we are two years into the generative ai revolution and for most enterprises, the roi just isn't there.
-
-economist robert solow famously quipped in 1987, "you can see the computer age everywhere but in the productivity statistics" [1]. we are seeing the exact same thing today. we see ai in our ide's, our notion docs and our search bars. but we do not see it in the ebitda.
-
-why? because we are stuck in phase one of the maturity curve, **the assistive trap**.
-
-90% of organisations are here [2]. we treat ai as a "copilot." it is a faster typewriter. it helps a developer write a function 10% faster or a marketer draft an email 20% faster. but this is an "additive" approach. it doesn't remove work; it often creates it.
-
-stanford researchers have coined a term for this **"workslop"** [3]. because the marginal cost of creating content (code, text, emails) has dropped to near zero, we are flooding our organisations with low-value digital artifacts. someone has to review that code. someone has to read that verbose email. the bottleneck didn't disappear; it just moved from creation to verification.
-
-to actually get the "trillion-dollar impact" analysts promised, we have to move to **phase two, agentic workflows**. this is where the ai stops being a helper and starts being a manager. it takes a goal ("fix this bug," "process this invoice") and executes the loop autonomously [4].
-
-but here is the catch. agentic workflows break the economic model of 2024.
-
----
-
-**2. the math of the agentic loop**
-
-agents are expensive. in a standard chat interface, you ask a question and the model answers. linear cost.
-
-in an agentic loop, the model reasons, creates a plan, uses a tool, reads the output, realises it failed, corrects the plan and tries again. this recursive loop consumes massive amounts of tokens.
-
-if you are running a complex agentic workflow, you are looking at a **15x token multiplier** compared to a standard chat [5].
-
-let's look at the unit economics.
-
-if you are using a gpt-4 class model at standard western pricing (approx. 15 usd blended per million tokens) to run a background agent that processes invoices:
-
-- **context:** 50k tokens (history + docs)
-- **iterations:** 10 loops
-- **total tokens:** 500,000
-- **cost:** ~7.50 usd per invoice
-
-that is insolvent. it is cheaper to hire a human. this is the **"unreliability tax"** [5]. you are paying for the agent to fix its own mistakes.
-
-this economic wall was supposed to hold for another few years. but then, deepseek happened.
-
----
-
-**3. the sputnik moment with deepseek v3.2 and the "china shock"**
-
-in early 2025, deepseek (a chinese lab) dropped v3.2 which broke the pricing structure.
-
-they are offering frontier-level reasoning or **0.28 usd per million tokens**.
-
-how? they didn't just throw more gpus at the problem. they couldn't. due to us export controls, they are forced to train on nvidia h800s, crippled chips with reduced interconnect bandwidth [6]. constraints breed creativity. they had to innovate on the architecture to survive.
-
-here is the technical breakdown of how they cheated the physics of the transformer.
-
-**3a. deepseek sparse attention (dsa)**
-
-the fundamental flaw of the standard transformer architecture is that the attention mechanism has a complexity of $O(N²)$, where $N$ is the context length [7]. if you double the text, the compute cost quadruples.
-
-deepseek introduced sparse attention. instead of every token looking at every other token, they use a "lightning indexer."
-
-- the indexer scans the global context and identifies relevant "blocks"
-- the model only activates its heavy compute on the top-k relevant blocks
-- it effectively turns an $O(N²)$ problem into a roughly linear problem
-
-**3b. multi-head latent attention (mla)**
-
-the other bottleneck is memory. storing the "key-value (kv) cache" for long conversations eats up massive amounts of vram.
-
-deepseek compresses the kv cache into a low-rank latent vector [8]. this allows them to serve way more concurrent users on fewer gpus.
-
-the result? they can run massive 685-billion parameter models at a fraction of the cost of openai or anthropic.
-
----
-
-**4. the geopolitical fracture**
-
-this technical breakthrough has triggered a massive geopolitical reaction. we are seeing a "splinternet" emerge in real-time.
-
-us sanctions were designed to starve china of compute. but deepseek proved that **algorithmic efficiency > brute force hardware**.
-
-now, the us government is scrambling. we are seeing proposed legislation like the "no deepseek on government devices act" [9] and aggressive "know your customer" (kyc) laws for cloud providers [10]. the fear is valid. if the entire western developer ecosystem starts routing their code through a chinese api because it is 95% cheaper, that is a massive data exfiltration risk (or "trojan horse" scenario) [11].
-
-but the market is ruthless. i am seeing cios and ctos quietly using what i call the **"cloud loophole."** they are using western aggregators (like openrouter) or hosting the open weights in neutral clouds to access this cheap intelligence. the mandate is "fast and cheap," and right now, the east is winning on unit economics.
-
----
-
-**5. the "ai mirror" and what the dora report tells us**
-
-even if you solve the cost problem with deepseek, you still have the organisational problem. the 2024 dora state of devops report dropped a bombshell that many people ignored: **ai is hurting stability for low-performing teams** [12].
-
-they found a **7.2% decrease in delivery stability** for teams that adopted ai without having strong platform engineering fundamentals.
-
-why? because ai acts as an **"ai mirror."** it reflects and amplifies your existing culture.
-
-- if you have a high-trust, automated ci/cd culture (elite performers), ai accelerates you
-- if you have a manual, bureaucratic culture (low performers), ai just generates more "workslop" that gets stuck in your manual testing queues
-
-this creates **"downstream disorder"** [13]. developers generate code in minutes, but the security review takes days. the inventory of half-baked code piles up and the system clogs.
-
----
-
-**6. the strategy for building the agentic mesh**
-
-so, what do we do? we cannot ignore the efficiency of the chinese models, but we cannot ignore the security risks. and we certainly cannot ignore the organisational dysfunction.
-
-here is the roadmap for the ai native transition:
-
-**6a. the agentic mesh**
-stop building chatbots. start building an infrastructure where agents can talk to each other. this means moving from "human-readable" data (pdfs) to "agent-readable" data (semantic knowledge graphs) [14].
-
-**6b. the ai gateway**
-you need a virtualisation layer. do not hardcode openai or deepseek into your app. use an ai gateway that routes traffic:
-- **high security/reasoning:** route to gpt-4o / claude 3.5 (west)
-- **high volume/low risk:** route to a self-hosted deepseek v3 (east/local)
-
-**6c. clean rooms**
-if you are going to use the "cheap" models, do not use the public api. download the open weights. run them in an air-gapped vpc with zero internet egress. sanitise the inputs and outputs.
-
-**6d. platform engineering**
-you cannot have humans in the loop for every agent action. you need automated governance that scans ai code for vulnerabilities before it hits the repo.
-
----
-
-**7. the verdict**
-
-the global ai ecosystem is dead. it has bifurcated into a **high-cost/high-compliance stack (west)** and a **low-cost/hyper-efficient stack (east)**.
-
-the winners of the next cycle won't be the ones who blindly pick a side. it will be the ones who can architect a system that leverages the economics of the east and the safety of the west, while rigorously automating their own internal culture to handle the speed.
-
-the "productivity paradox" isn't a failure of the technology. it's a failure of our architecture. time to fix it.
-
----
-
-**references**
-
-1. solow, r. m. (1987). [we'd better watch out](https://www.nytimes.com/1987/07/12/books/we-d-better-watch-out.html), new york times book review
-2. [2024 ai adoption index](https://www.ibm.com/thought-leadership/institute-business-value/en-us/report/ai-adoption-index), ibm
-3. [workslop and the hidden costs of ai](https://hai.stanford.edu/), stanford hai
-4. [agentic workflows vs zero-shot](https://www.deeplearning.ai/the-batch/how-agents-can-improve-llm-performance/) andrew ng
-5. [the unreliability tax in agentic systems](https://www.latent.space/p/agents-reliability), latent space
-6. [the chip ban & h800 constraints](https://www.reuters.com/technology/nvidia-h800-chinas-alternative-h100-chip-2023-03-22/), reuters
-7. [deepseek v3 technical report](https://arxiv.org/abs/2412.19437), arxiv
-8. [multi-head latent attention analysis](https://arxiv.org/abs/2405.04434), arxiv
-9. [proposed no deepseek legislation](https://www.congress.gov/bill/118th-congress/house-bill/1234)
-10. [us dept of commerce iaas rule](https://www.bis.doc.gov/index.php/regulations/export-administration-regulations-ear)
-11. [ai poisoning & backdoors in open weights](https://arxiv.org/abs/2401.05566), arxiv
-12. [dora state of devops report 2024](https://dora.dev/research/2024/dora-report/)
-13. [cognitive load & platform engineering](https://platformengineering.org/blog/what-is-platform-engineering)
-14. [semantic data planes for ai](https://www.semanticweb.org/)`,
-  },
   {
     id: "writing-desire",
     slug: "two-faces-of-desire",
