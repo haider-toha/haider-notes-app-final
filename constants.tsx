@@ -6,7 +6,7 @@ export const folders: Folder[] = [
   { id: "profile", name: "Profile", icon: "folder" },
   { id: "blog", name: "Blog", icon: "blog" },
   { id: "projects", name: "Projects", icon: "folder" },
-  { id: "bookmarks", name: "Bookmarks", icon: "bookmarks" },
+  { id: "finds", name: "Finds", icon: "bookmarks" },
   { id: "reflections", name: "Reflections", icon: "reflections" },
 ];
 
@@ -19,23 +19,23 @@ export const portfolioNotes: Note[] = [
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-12-08T14:23:00.000Z",
+    created_at: "2025-12-19T09:14:00.000Z",
     content: `haider toha
 london, uk
 
 [github](https://github.com/haider-toha) • [email](mailto:mohammedhaidertoha@gmail.com) • [linkedin](https://linkedin.com/in/haidertoha)
 
-founding engineer at sammy labs (yc w25). i write code across the stack - typescript on the frontend, python on the backend, postgres underneath. most of my time goes into building features end-to-end: designing the interface, writing the api, optimizing the queries, and making sure it holds up in production.
+founding engineer at sammy labs (yc w25). i write code across the stack, from typescript on the frontend to python on the backend with postgres underneath. most of my time goes into building features end-to-end, designing the interface, writing the api, optimising the queries and making sure it holds up in production.
 
-my background is aeronautics (imperial college). designing systems that can't afford to fail taught me to think about failure modes first: what breaks, when, and how do you recover gracefully? i’ve since worked at goldman sachs (scale, process, reliability) and built my own ventures from zero (speed, scrappiness, shipping daily). both shaped how i write code.
+my background is aeronautics (imperial college). designing systems that can't afford to fail taught me to think about failure modes first, asking what breaks, when, and how you recover gracefully. i’ve since worked at goldman sachs (scale, process, reliability) and built my own ventures from zero (speed, scrappiness, shipping daily). both shaped how i write code.
 
-i spend about a third of my time with customers - on calls, debugging their issues live, understanding what's actually blocking them vs what they say is blocking them. the best features i've shipped came from watching someone struggle with the product.
+i spend about a third of my time with customers, on calls, debugging their issues live, understanding what's actually blocking them vs what they say is blocking them. the best features i've shipped came from watching someone struggle with the product.
 
-what i care about: clean abstractions, fast feedback loops, code that's easy to delete. i'd rather ship something small that works than something ambitious that doesn't.
+what i care about is clean abstractions, fast feedback loops, and code that's easy to delete. i'd rather ship something small that works than something ambitious that doesn't.
 
-outside of work: gym, cricket, and late-night walks through hyde park when i need to think. i coach my local kids football team - the most grounding thing i do each week. recently started gliding and working toward my pilot’s license.
+outside of work i'm usually at the gym, playing cricket, or on late-night walks through hyde park when i need to think. i coach my local kids football team, which is the most grounding thing i do each week. recently started gliding and working towards my pilot’s licence.
 
-i read too much. mostly history, philosophy, and whatever rabbit hole has me that week.`,
+i read too much. mostly history, philosophy and whatever rabbit hole has me that week.`,
   },
   {
     id: "profile-now",
@@ -45,20 +45,20 @@ i read too much. mostly history, philosophy, and whatever rabbit hole has me tha
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-11-29T22:47:00.000Z",
+    created_at: "2025-12-18T16:42:00.000Z",
     content: `
 
 **ai evals**
-really into how we measure whether models actually work. at work i'm building eval harnesses that go beyond vibes: custom datasets, automated grading, catching regressions before they hit users. thinking a lot about what "good enough" means when you're shipping ai to production. the gap between demo and reliable is almost always an eval problem.
+obsessed with how we actually measure whether models work. most eval suites test the wrong thing or test the right thing badly. i've been building harnesses that catch regressions before they ship, using synthetic datasets designed to probe specific failure modes. the interesting question isn't "is this model good" but "good enough for what, and how would we know?" the gap between impressive demo and production-reliable is almost always an eval problem nobody bothered to define properly.
 
 **browser agents**
-working on making browser automation less brittle. the dom is volatile, sites change, things break. i'm treating navigation as graph traversal (state, action, verification) instead of linear scripts. building a planning layer that can recover from failures and adapt to mutations. lots of edge cases, lots of fun.
+trying to make browser automation less brittle. the dom is hostile, sites mutate constantly and linear scripts shatter on first contact. i'm modelling navigation as graph traversal where each node is a page state and edges are actions with verification conditions. the agent maintains a belief state and can backtrack or replan when something breaks. still early but it's already more robust than anything i've used off the shelf.
 
 **local inference**
-experimenting with running models on-device. quantised inference, ggml, trying to get useful outputs with low latency. also playing with local-first rag: embeddings and retrieval that stay on your machine. the goal is fast, private and actually usable.
+experimenting with running models entirely on-device. quantised inference through llama.cpp, optimising for latency on apple silicon. also building local-first rag pipelines where your embeddings and vector store never leave your machine. no api calls, no telemetry, sub-100ms retrieval. the goal is to make privacy the default without sacrificing usability.
 
-**personal infra**
-rewriting my automation scripts in go. building a better second brain with notes, tasks and references all connected. also setting up proper observability for my side projects. the usual tinkering that makes everything else faster.`,
+**structured reasoning**
+interested in how llms can reason over structured data rather than just text. working on pipelines that extract entities and relations into knowledge graphs, then use graph traversal to ground the model's responses in verified facts. the dream is retrieval that understands schema, not just similarity. early experiments with neo4j and custom entity linkers.`,
   },
   {
     id: "profile-toolbox",
@@ -68,23 +68,17 @@ rewriting my automation scripts in go. building a better second brain with notes
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-11-17T11:02:00.000Z",
+    created_at: "2025-12-17T21:33:00.000Z",
     content: `**languages**
 **typescript:** fastest path from idea → interface → shipped feature.
 **python:** models, data, experiments and glue code.
-**go:** services that need to be predictable in prod.
-**rust:** when i want to understand the machine (and remove fear).
+**go:** currently teaching myself. drawn to the simplicity and predictability.
 
 **core stack**
 **frontend:** react/next.js, tailwind.
 **backend:** fastapi (python), chi (go), trpc.
-**data:** postgresql (w/ pgvector), redis, clickhouse.
-**infra:** docker, terraform, aws ecs/lambda, fly.io.
-
-**defaults**
-- postgres first (constraints over cleverness), redis when latency demands it.
-- instrument early (logs/metrics/traces), optimise later.
-- prefer removing work over speeding it up.
+**data:** postgresql (w/ pgvector), redis.
+**infra:** docker, terraform, aws ecs/lambda.
 
 **hardware**
 **machine:** macbook pro 16" (m4 max, 48gb).
@@ -99,7 +93,7 @@ rewriting my automation scripts in go. building a better second brain with notes
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-10-23T09:34:00.000Z",
+    created_at: "2025-12-16T11:07:00.000Z",
     content: `**users before opinions**
 i’ll trade a clever architecture for a workflow that actually unblocks the user.
 
@@ -123,18 +117,18 @@ i’ll argue for a decision with the data i have. better data wins immediately.`
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-11-12T16:18:00.000Z",
-    content: `**founding engineer  - sammy labs (yc w25)** · london · nov 2025-present  
-sit with customers, trace problems end-to-end, build and ship solutions. frontend to backend, idea to production.
+    created_at: "2025-12-15T14:51:00.000Z",
+    content: `**founding engineer · sammy labs (yc w25)** · london · nov 2025-present  
+own full stack features from react frontend to python backend to postgres. spend about a third of my time on customer calls, debugging issues live and translating pain points into features. i like to move fast and ship daily.
 
-**analyst  - goldman sachs** · london · jul 2025-nov 2025  
-cloud migration. internal tooling. short stint before joining sammy.
+**analyst · goldman sachs** · london · jul 2025-nov 2025  
+worked on cloud security and internal tooling for the tech risk & cybersec team. short stint before joining sammy at the seed stage.
 
-**intern  - goldman sachs** · birmingham · summer 2024  
-shipped nlp + semantic search tooling to cut time-to-answer for research users.
+**intern · goldman sachs** · birmingham · summer 2024  
+built nlp and semantic search tooling that reduced time-to-answer for research analysts. first exposure to building production systems at scale.
 
-**founder  - provost academics** · london · may 2024-present  
-built and grew an ai tutoring product from zero to 50+ paying customers.`,
+**founder · provost academics** · london · may 2024-present  
+built an ai tutoring product from scratch and grew it to 50+ paying customers. handled everything from product design to infrastructure to customer support. still running on the side.`,
   },
   {
     id: "project-self-engineering-agent",
@@ -145,15 +139,15 @@ built and grew an ai tutoring product from zero to 50+ paying customers.`,
     public: true,
     session_id: "",
     created_at: "2025-09-18T20:41:00.000Z",
-    content: `i wanted faster iteration on agent workflows without manual glue code. the problem: every time i needed a new tool for an agent, i had to write it, test it, integrate it. repetitive. slow. error-prone.
+    content: `i wanted faster iteration on agent workflows without manual glue code. the problem was that every time i needed a new tool for an agent, i had to write it, test it, integrate it. repetitive. slow. error-prone.
 
 **the idea**
-what if the agent could write its own tools? not just call them, but detect when it needs a capability it doesn't have, generate the implementation, validate it, and only then use it.
+what if the agent could write its own tools? not just call them, but detect when it needs a capability it doesn't have, generate the implementation, validate it and only then use it.
 
 **how it works**
 - **capability detection:** when the agent encounters a task it can't complete with existing tools, it logs the gap and generates a tool specification
 - **code generation:** using gpt-4, it writes the python implementation following strict function signatures and docstrings
-- **test generation:** it also writes unit tests covering expected inputs, edge cases, and failure modes
+- **test generation:** it also writes unit tests covering expected inputs, edge cases and failure modes
 - **sandboxed execution:** tests run in an ephemeral docker container. no access to host filesystem. network isolated. 30-second timeout
 - **promotion logic:** if all tests pass, the tool is added to the agent's registry. if not, it logs the failure and retries with the error message as context
 
@@ -189,7 +183,13 @@ the tool registry is backed by pgvector for semantic search. when the agent need
     content: `a high-performance c++ solver for 2d incompressible fluid dynamics. built during my aeronautics degree when i wanted to understand both the physics and the computational techniques at a low level.
 
 **the problem**
-simulating fluid flow is computationally expensive. the navier-stokes equations describe how velocity fields evolve, but solving them at high resolution requires millions of calculations per timestep. sequential code hits a wall fast.
+simulating fluid flow is computationally expensive. the navier-stokes equations describe how velocity fields evolve:
+
+$$\\frac{\\partial \\mathbf{u}}{\\partial t} + (\\mathbf{u} \\cdot \\nabla)\\mathbf{u} = -\\frac{1}{\\rho}\\nabla p + \\nu \\nabla^2 \\mathbf{u} + \\mathbf{f}$$
+
+$$\\nabla \\cdot \\mathbf{u} = 0$$
+
+where $\\mathbf{u}$ is velocity, $p$ is pressure, $\\rho$ is density, $\\nu$ is kinematic viscosity and $\\mathbf{f}$ represents external forces. solving them at high resolution requires millions of calculations per timestep. sequential code hits a wall fast.
 
 **approach**
 i implemented a pressure-projection method:
@@ -198,11 +198,19 @@ i implemented a pressure-projection method:
 3. solve pressure poisson equation (enforce incompressibility)
 4. project velocity to be divergence-free
 
-the expensive part is step 3. i used a jacobi iterative solver, which is embarrassingly parallel  - each cell update only depends on its neighbors.
+the expensive part is step 3, solving the pressure poisson equation:
+
+$$\\nabla^2 p = \\frac{\\rho}{\\Delta t} \\nabla \\cdot \\mathbf{u}^*$$
+
+i used a jacobi iterative solver where each cell update only depends on its neighbours:
+
+$$p_{i,j}^{n+1} = \\frac{1}{4}(p_{i+1,j}^n + p_{i-1,j}^n + p_{i,j+1}^n + p_{i,j-1}^n - \\Delta x^2 b_{i,j})$$
+
+this is embarrassingly parallel since each cell can be updated independently.
 
 **parallelisation strategy**
 - **mpi for distributed memory:** split the grid across nodes. each node owns a horizontal slice. ghost cell exchanges happen at boundaries
-- **openmp for shared memory:** within each node, parallelize the inner loops with pragma directives. cache-aware iteration order (row-major) reduced l1/l2 misses by ~40%
+- **openmp for shared memory:** within each node, parallelise the inner loops with pragma directives. cache-aware iteration order (row-major) reduced l1/l2 misses by ~40%
 - **hybrid approach:** mpi between nodes, openmp within nodes. this matched the cluster architecture (16 cores per node, 8 nodes)
 
 **optimisations**
@@ -212,8 +220,8 @@ the expensive part is step 3. i used a jacobi iterative solver, which is embarra
 - red-black gauss-seidel for faster convergence (2x fewer iterations than jacobi)
 
 **results**
-- achieved near-linear speedup up to 64 cores
-- 512x512 grid at 1000 timesteps: 45 minutes sequential → 48 seconds parallel
+- achieved near-linear speedup up to 64 cores, with parallel efficiency $E = S/P \\approx 0.88$ where $S$ is speedup and $P$ is processor count
+- 512x512 grid at 1000 timesteps: 45 minutes sequential → 48 seconds parallel ($S \\approx 56\\times$)
 - learned more about memory hierarchies than any textbook could teach
 
 **stack:** c++, mpi, openmp, hpc cluster, vtk for visualisation
@@ -229,20 +237,33 @@ the code is messy (academic code always is), but the experience shaped how i thi
     public: true,
     session_id: "",
     created_at: "2025-07-22T09:15:00.000Z",
-    content: `fantasy premier league meets operations research. i was tired of picking my team based on gut feel and wanted to see if optimisation could beat intuition.
+    content: `i wanted to see if optimisation could beat intuition in fantasy premier league.
 
 **the game**
-in fpl, you have a £100m budget to pick 15 players. each gameweek, you field 11, and they earn points based on real-life performance (goals, assists, clean sheets, etc.). simple rules, complex strategy.
+in fpl, you have a £100m budget to pick 15 players. each gameweek, you field 11 and they earn points based on real-life performance (goals, assists, clean sheets, etc.). simple rules, complex strategy.
 
 **the approach**
-i framed squad selection as an integer linear program (ilp):
-- **decision variables:** binary variables for each player (in squad or not, in starting 11 or not)
-- **objective:** maximise expected points for the gameweek
-- **constraints:** budget, squad size, max 3 players per team, positional requirements (1 gk, 3-5 def, 2-5 mid, 1-3 fwd)
+i framed squad selection as an integer linear program (ilp). let $x_i \\in \\{0,1\\}$ indicate whether player $i$ is in the squad and $y_i \\in \\{0,1\\}$ whether they're in the starting 11:
+
+$$\\max \\sum_{i=1}^{n} \\mathbb{E}[\\text{pts}_i] \\cdot y_i$$
+
+subject to:
+
+$$\\sum_{i=1}^{n} c_i \\cdot x_i \\leq 100 \\quad \\text{(budget)}$$
+
+$$\\sum_{i \\in T_j} x_i \\leq 3 \\quad \\forall j \\quad \\text{(max 3 per team)}$$
+
+$$y_i \\leq x_i \\quad \\forall i \\quad \\text{(can only start if in squad)}$$
+
+plus positional constraints (1 gk, 3-5 def, 2-5 mid, 1-3 fwd).
 
 **data pipeline**
 - scraped historical player data from the fpl api (goals, xG, xA, minutes, fixtures)
-- built a simple expected points model: weighted combination of form, fixture difficulty, and historical averages
+- built an expected points model:
+
+$$\\mathbb{E}[\\text{pts}_i] = \\alpha \\cdot \\text{form}_i + \\beta \\cdot \\text{fdr}_i + \\gamma \\cdot \\text{hist}_i$$
+
+where $\\text{fdr}$ is fixture difficulty rating (inverted so easier fixtures score higher) and coefficients were tuned via cross-validation on historical gameweeks
 - updated weekly via aws lambda + eventbridge cron
 
 **solver**
@@ -257,11 +278,9 @@ used pulp (python linear programming library) with the cbc backend. solves in <1
 **results**
 - consistently finished top 100k (out of ~10m players) without spending hours on team selection
 - beat my manual decisions in 75% of gameweeks
-- the edge comes from discipline: the model doesn't get attached to players or chase last week's haul
+- the edge comes from discipline because the model doesn't get attached to players or chase last week's haul
 
-**stack:** python, pulp, pandas, aws lambda, s3, the fpl api
-
-**lesson:** gut feel is just pattern matching you can't explain. sometimes it's right. but when you can encode the problem mathematically, do it.`,
+**stack:** python, pulp, pandas, aws lambda, s3, the fpl api`,
   },
   {
     id: "project-sentiment-engine",
@@ -272,10 +291,10 @@ used pulp (python linear programming library) with the cbc backend. solves in <1
     public: true,
     session_id: "",
     created_at: "2025-06-10T16:30:00.000Z",
-    content: `a real-time pipeline that ingests news and social data, runs sentiment analysis, and visualises the emotional state of the world on a 3d globe.
+    content: `a real-time pipeline that ingests news and social data, runs sentiment analysis and visualises the emotional state of the world on a 3d globe.
 
 **motivation**
-i wanted to build something visually striking that also required solid backend engineering. sentiment analysis is a solved problem  - the interesting part is the plumbing: getting data in, processing it reliably, and rendering it beautifully.
+i wanted to build something visually striking that also required solid backend engineering. sentiment analysis is a solved problem, so the interesting part is the plumbing, getting data in, processing it reliably and rendering it beautifully.
 
 **architecture**
 
@@ -288,7 +307,7 @@ i wanted to build something visually striking that also required solid backend e
 *queueing*
 - redis streams for message passing
 - consumer groups for parallel processing
-- backpressure handling: if consumers fall behind, producers slow down
+- backpressure handling so that if consumers fall behind, producers slow down
 
 *sentiment analysis*
 - hugging face transformers (distilbert fine-tuned on financial news)
@@ -297,7 +316,7 @@ i wanted to build something visually striking that also required solid backend e
 
 *storage*
 - timescaledb for time-series sentiment data
-- aggregated by country, topic, and hour
+- aggregated by country, topic and hour with source credibility weighting
 - 30-day retention with downsampling for older data
 
 *visualisation*
@@ -309,16 +328,14 @@ i wanted to build something visually striking that also required solid backend e
 **challenges**
 - rate limits everywhere. had to implement exponential backoff and request pooling
 - model latency: gpu inference is fast, but cold starts kill p99. solution: keep the model warm with periodic dummy requests
-- timezone hell: normalising timestamps from global sources is harder than it sounds
+- timezone hell, because normalising timestamps from global sources is harder than it sounds
 
 **observability**
 - structured logging with correlation ids
 - prometheus metrics for queue depth, inference latency, error rates
 - grafana dashboards for at-a-glance health
 
-**stack:** next.js, react-three-fiber, redis, hugging face transformers, timescaledb, docker, vercel
-
-the globe visualisation is a crowd-pleaser, but the real learning was in making the pipeline resilient. data systems fail in boring ways  - retries, timeouts, and good defaults matter more than clever algorithms.`,
+**stack:** next.js, react-three-fiber, redis, hugging face transformers, timescaledb, docker, vercel`,
   },
   {
     id: "project-recipe-ancestry",
@@ -329,20 +346,20 @@ the globe visualisation is a crowd-pleaser, but the real learning was in making 
     public: true,
     session_id: "",
     created_at: "2025-05-01T11:45:00.000Z",
-    content: `a knowledge graph that maps the relationships between recipes: which dishes influenced which, what ingredients they share, and how culinary traditions evolve.
+    content: `a knowledge graph that maps the relationships between recipes, showing which dishes influenced which, what ingredients they share and how culinary traditions evolve.
 
 **origin**
-i was reading about the history of biryani  - how it has mughal, persian, and south indian roots  - and wondered: could you map these influences computationally? not just for biryani, but for thousands of recipes across cuisines.
+i was reading about the history of biryani, how it has mughal, persian and south indian roots, and wondered if you could map these influences computationally. not just for biryani, but for thousands of recipes across cuisines.
 
 **approach**
 
 *data collection*
-- scraped ~50k recipes from allrecipes, bbc good food, and regional cooking sites
+- scraped ~50k recipes from allrecipes, bbc good food and regional cooking sites
 - used selenium for javascript-heavy sites, beautifulsoup for static ones
 - normalised ingredient names (chicken breast, breast of chicken, boneless chicken → chicken)
 
 *entity extraction*
-- trained a spacy ner model to extract ingredients, techniques, and cuisine markers
+- trained a spacy ner model to extract ingredients, techniques and cuisine markers
 - custom entity labels: INGREDIENT, TECHNIQUE, REGION, DISH_TYPE
 - f1 score of 0.89 on a hand-labelled test set of 500 recipes
 
@@ -354,12 +371,12 @@ i was reading about the history of biryani  - how it has mughal, persian, and so
 *similarity scoring*
 - jaccard similarity on ingredient sets as a baseline
 - tf-idf weighted similarity for better precision (common ingredients like salt matter less)
-- graph-based similarity using node2vec embeddings
+- graph-based similarity using node2vec embeddings for capturing multi-hop relationships
 
 **visualisation**
 - d3.js force-directed graph for exploration
 - click a recipe to see its ancestors and descendants
-- filter by cuisine, ingredient, or time period
+- filter by cuisine, ingredient or time period
 - fastapi backend for search and graph traversal queries
 
 **interesting findings**
@@ -367,9 +384,7 @@ i was reading about the history of biryani  - how it has mughal, persian, and so
 - techniques travel faster than ingredients (fermentation, smoking, frying appear across unconnected cuisines)
 - fusion cuisines cluster predictably (indo-chinese, tex-mex) but sometimes reveal unexpected bridges
 
-**stack:** python, spacy, networkx, d3.js, fastapi, beautifulsoup, selenium
-
-**reflection:** this project taught me that unstructured text is a goldmine if you're patient. ner + graphs can surface patterns that keyword search never could. also: food history is fascinating.`,
+**stack:** python, spacy, networkx, d3.js, fastapi, beautifulsoup, selenium`,
   },
   {
     id: "blog-minimax-m2",
@@ -379,47 +394,45 @@ i was reading about the history of biryani  - how it has mughal, persian, and so
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-12-21T09:00:00.000Z",
-    content: `**the minimax m2 paradigm: why the "best bang for the buck" just changed the game**
+    created_at: "2025-11-16T08:43:00.000Z",
+    content: `we are currently witnessing a structural bifurcation in the global ai landscape. on one side, you have the closed-source giants (openai, anthropic, google) scaling dense models behind opaque apis. on the other, the open-source ecosystem has been playing catch-up, mostly through brute-force scaling or finetuning llama derivatives.
 
-we are currently witnessing a structural bifurcation in the global ai landscape. on one side, you have the closed-source giants -openai, anthropic, google -scaling dense models behind opaque apis. on the other, the open-source ecosystem has been playing catch-up, mostly through brute-force scaling or finetuning llama derivatives.
+but every so often, a model drops that doesn't iterate but rather it disrupts.
 
-but every so often, a model drops that doesn't just iterate; it disrupts.
+the release of **minimax m2** is one of those moments. it poses a very uncomfortable question for the proprietary labs, asking how a model that ranks in the top five of the artificial analysis benchmark, territory usually reserved for gpt-4 and claude opus, can exist with open weights? [1]
 
-the release of **minimax m2** is one of those moments. it poses a very uncomfortable question for the proprietary labs: how does a model that ranks in the top five of the artificial analysis benchmark -territory usually reserved for gpt-4 and claude opus -exist with open weights? [1]
-
-i have been testing m2 extensively. it is currently the third most-used model on openrouter, and let me be clear: this isn't hype. it is a pragmatic recognition that we have finally hit the "intelligence-cost quadrant" sweet spot. we have been looking for **pareto optimality** where high reasoning capabilities intersect with dirt-cheap inference. m2 occupies this space decisively.
+i have been testing m2 extensively. it is currently the third most-used model on openrouter and let me be clear, this isn't hype. it is a pragmatic recognition that we have finally hit the "intelligence-cost quadrant" sweet spot. we have been looking for **pareto optimality** where high reasoning capabilities intersect with dirt-cheap inference. m2 occupies this space decisively.
 
 here is my deep dive into why this 230-billion parameter monster (that only thinks it is a 10-billion parameter model) is the future of agentic intelligence.
 
 ---
 
-**1. the "mini/max" paradox: a lesson in sparsity**
+**1. the "mini/max" paradox**
 
-the nomenclature "minimax" isn't just marketing; it is the governing engineering principle.
+the nomenclature "minimax" is the governing engineering principle behind m2.
 
 - **"mini"** refers to the active computational footprint.
 - **"max"** refers to the knowledge capacity.
 
 the architecture relies on a massive mixture-of-experts (moe) design. the total parameter count is a staggering 230 billion. in a traditional dense model (like llama 3 70b), every single one of those parameters would fire for every token generated. that is computationally expensive and slow.
 
-m2, however, utilizes an aggressive sparsity ratio of approximately 23:1. it only activates **10 billion parameters** per token generation step [3].
+m2, however, uses an aggressive sparsity ratio of approximately 23:1. it only activates **10 billion parameters** per token generation step [3].
 
 **the math of efficiency**
 
-to visualize why this matters, consider the cost of inference ($C$). in a dense model, cost scales with total parameters ($P_{total}$). in m2, it scales with active parameters ($P_{active}$).
+to visualise why this matters, consider the cost of inference ($C$). in a dense model, cost scales with total parameters ($P_{total}$). in m2, it scales with active parameters ($P_{active}$).
 
 $$C_{M2} \\propto P_{active} \\approx \\frac{P_{total}}{23}$$
 
 this simple equation is why m2 changes the economics of ai. it holds the encyclopedic breadth of a 200b+ model (the "max") but runs with the latency and cost profile of a small 10b model (the "mini").
 
-for autonomous agents, this is critical. agents require loops. they plan, they act, they observe, they refine. this cycle can consume thousands of tokens per task. if your underlying model is claude 3 opus, you go broke. if it is llama 3 8b, the agent is too stupid to finish the task. m2 hits the sweet spot: it is smart enough to handle long-horizon tasks but roughly **92% cheaper** than comparable proprietary models [7].
+for autonomous agents, this is critical. agents require loops. they plan, they act, they observe, they refine. this cycle can consume thousands of tokens per task. if your underlying model is claude 3 opus, you go broke. if it is llama 3 8b, the agent is too stupid to finish the task. m2 hits the sweet spot because it is smart enough to handle long-horizon tasks but roughly **92% cheaper** than comparable proprietary models [7].
 
 ---
 
-**2. the great attention pivot: why m2 dropped "lightning"**
+**2. the great attention pivot and why m2 dropped "lightning"**
 
-here is a nuanced detail that many people miss. the predecessor, minimax m1, was famous for using "lightning attention" -a linear attention mechanism that allowed for massive 1m+ token contexts.
+here is a nuanced detail that many people miss. the predecessor, minimax m1, was famous for using "lightning attention", a linear attention mechanism that allowed for massive 1m+ token contexts.
 
 **m2 dropped it.**
 
@@ -429,15 +442,15 @@ linear attention approximates the interaction between tokens to achieve $O(n)$ c
 
 $$\\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right)V$$
 
-see that $QK^T$ term? that's the model comparing *every* token to *every other* token. minimax engineers realized that for an agent to correctly identify a single bug in 50 files of code, you cannot afford the "lossy" compression of linear attention [4]. you need the brutal exactness of the $n \\times n$ matrix. this decision to prioritize **accuracy over raw speed** is why m2 feels so much sharper at coding tasks than m1 did.
+see that $QK^T$ term? that's the model comparing *every* token to *every other* token. minimax engineers realised that for an agent to correctly identify a single bug in 50 files of code, you cannot afford the "lossy" compression of linear attention [4]. you need the brutal exactness of the $n \\times n$ matrix. this decision to prioritise **accuracy over raw speed** is why m2 feels so much sharper at coding tasks than m1 did.
 
 ---
 
-**3. the death of chain-of-thought: enter "interleaved reasoning"**
+**3. the death of chain-of-thought and the rise of "interleaved reasoning"**
 
-we need to talk about how this thing thinks. since mid-2024, the industry has been obsessed with chain-of-thought (cot) -the idea that the model should vomit out a "reasoning preamble" before giving you an answer.
+we need to talk about how this thing thinks. since mid-2024, the industry has been obsessed with chain-of-thought (cot), the idea that the model should vomit out a "reasoning preamble" before giving you an answer.
 
-the problem with standard cot is that it is linear.
+the problem with standard cot is that, it is linear.
 
 *input → giant block of thinking → final output.*
 
@@ -447,13 +460,13 @@ minimax m2 introduces **interleaved reasoning**. it doesn't separate thinking an
 
 *input → think → tool call (act) → **observation** → think → tool call (act) → answer.*
 
-this is a subtle but profound shift. in this paradigm, "thinking" isn't a preamble; it is a pervasive thread. if the agent tries to scrape a website and gets a 403 forbidden error, it doesn't fail. it sees the observation, "thinks" about it ("*i need to try a different endpoint*"), and acts again.
+this is a subtle but profound shift. in this paradigm, "thinking" isn't a preamble; it is a pervasive thread. if the agent tries to scrape a website and gets a 403 forbidden error, it doesn't fail. it sees the observation, "thinks" about it ("*i need to try a different endpoint*") and acts again.
 
 in my testing, this state preservation is the killer feature. the reasoning traces are kept as part of the conversation history object. at step 50 of a complex task, m2 can look back at step 10 and see *why* it made a decision, not just *what* it did [1].
 
 ---
 
-**4. the stability algorithm: cispo**
+**4. the stability algorithm behind cispo**
 
 why is m2 so stable during these long loops? it comes down to how it was trained.
 
@@ -461,7 +474,7 @@ training reasoning models with reinforcement learning (rl) is notoriously unstab
 
 the problem? ppo clips the *update*. this often suppresses those "aha!" moments where the model makes a massive leap in logic because the algorithm interprets that leap as instability [8].
 
-minimax uses a novel algorithm called **cispo** (clipped importance sampling policy optimization).
+minimax uses a novel algorithm called **cispo** (clipped importance sampling policy optimisation).
 
 $$L_{CISPO}(\\theta) = \\mathbb{E}\\left[\\min\\left(r_t(\\theta)A_t, \\text{clip}(r_t(\\theta), 1-\\epsilon, 1+\\epsilon)A_t\\right)\\right]$$
 
@@ -471,41 +484,21 @@ meta ai recently released a paper on scaling rl compute and explicitly identifie
 
 ---
 
-**5. benchmarks: the "tau squared" and coding dominance**
+**5. benchmarks and the "tau squared" coding dominance**
 
 the report request mentioned the "tau squared" benchmark. this refers to **tau-bench** ($\\tau^2$), the current gold standard for agentic reliability.
 
-- **tau-bench ($\\tau^2$):** m2 scores **87%** in the telecom domain. this measures reliability in multi-turn tool use. most models lose track of the user's constraints after turn 3. m2 holds the state.
+- **tau-bench:** m2 scores **87%** in the telecom domain. this measures reliability in multi-turn tool use. most models lose track of the user's constraints after turn 3. m2 holds the state.
 - **swe-bench verified:** this is the big one for autonomous coding. m2 scores **69.4%**. for context, claude 3.5 sonnet is around 77% and gpt-4o is around 75%. m2 is within striking distance of the absolute state-of-the-art, while being open-weights and significantly cheaper to run [6].
 - **browsecomp:** in web navigation agents, m2 scored **44.0%**, which ironically nearly triples the score of claude 3.5 sonnet (19.6%) on that specific evaluation.
 
 ---
 
-**6. case study: the deep research dashboard**
+**to wrap up**
 
-to see if these numbers hold up, we can look at the "deep research dashboard" test case, popularized by the caleb wright analysis.
+by decoupling total knowledge from active compute (230b/10b), minimax has solved the **economic blocker** for autonomous agents. by implementing interleaved reasoning, they have solved the **cognitive blocker**. and by using cispo, they have turned the "black magic" of rl training into a rigorous science.
 
-the prompt: *"write me a dashboard that runs deep research to gather all publicly available information on ai companies... including venture capitals, hyperscalers, new clouds and more."*
-
-this is a nightmare prompt. it requires planning, web scraping, data normalization (converting "10m" and "$10,000,000" to the same integer), and frontend coding.
-
-m2 handled it via the interleaved loop:
-
-1. **plan:** broke down the query into specific google searches.
-2. **act:** scraped techcrunch and vc databases.
-3. **reflect:** it encountered a coding error in the visualization library (recharts). instead of giving up, it read the error, "thought" about the deprecated api, and rewrote the code in real-time [5].
-
-a standard model might hallucinate the data or fail at the code syntax. m2 functioned as a junior full-stack engineer.
-
----
-
-**conclusion: the new baseline**
-
-the minimax m2 is not just another entry in the hugging face model registry. it is a proof of concept for a different way of building ai.
-
-by decoupling total knowledge from active compute (230b/10b), minimax has solved the **economic blocker** for autonomous agents. by implementing interleaved reasoning, they have solved the **cognitive blocker**. and by utilizing cispo, they have turned the "black magic" of rl training into a rigorous science.
-
-for developers, the choice is becoming clearer. you can pay the "proprietary tax" for the absolute peak of intelligence, or you can use m2 to get 95% of the performance at a fraction of the cost, with full control over your infrastructure.
+for developers, the choice is becoming clearer. you can pay the "proprietary tax" for the absolute peak of intelligence or you can use m2 to get 95% of the performance at a fraction of the cost, with full control over your infrastructure.
 
 in the intelligence vs. price quadrant, m2 stands alone. it is the best bang for the buck we have ever seen.
 
@@ -524,30 +517,28 @@ in the intelligence vs. price quadrant, m2 stands alone. it is the best bang for
   },
   {
     id: "blog-deepseek-ocr",
-    slug: "death-of-tokenizer-deepseek-ocr",
+    slug: "death-of-tokeniser-deepseek-ocr",
     title: "blog: deepseek-ocr  - why pictures are cheaper than words",
     category: "writing",
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-12-20T10:00:00.000Z",
-    content: `**the death of the tokenizer: why deepseek-ocr is actually a compression algorithm**
+    created_at: "2025-11-01T16:08:00.000Z",
+    content: `we have spent the last decade obsessed with scale. we want more parameters, more data and, perhaps most desperately, longer context windows. we went from bert's claustrophobic 512 tokens to gemini's millions, chasing the dream of stuffing entire legal archives or code repositories into a single prompt. but we keep hitting the same invisible wall, "tyranny of the quadratic" as some would put it.
 
-we have spent the last decade obsessed with scale. we want more parameters, more data, and, perhaps most desperately, longer context windows. we went from bert's claustrophobic 512 tokens to gemini's millions, chasing the dream of stuffing entire legal archives or code repositories into a single prompt. but we keep hitting the same invisible wall: the "tyranny of the quadratic."
-
-it is a basic fact of the transformer architecture that self-attention scales as $O(n^2)$. this isn't just a notation; it is a physical memory bottleneck defined by the attention matrix calculation:
+it is a basic fact of the transformer architecture that self-attention scales as $O(n^2)$. it is a physical memory bottleneck defined by the attention matrix calculation:
 
 $$\\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right)V$$
 
-the killer here is the $QK^T$ term. it produces a matrix of size $n \\times n$. if you double your sequence length $n$, your memory requirement for storing these attention scores quadruples [1]. we have tried engineering our way out of this with sliding windows and sparse attention, but those are just band-aids. the real problem isn't the attention mechanism; it is the input itself. we are still feeding our ais discrete text tokens, a legacy method that is surprisingly inefficient for dense information.
+the killer here is the $QK^T$ term. it produces a matrix of size $n \\times n$. if you double your sequence length $n$, your memory requirement for storing these attention scores quadruples [1]. we have tried engineering our way out of this with sliding windows and sparse attention, but those are just band-aids. the real problem is the input itself. we are still feeding our ai's discrete text tokens, a legacy method that is surprisingly inefficient for dense information.
 
-enter deepseek-ocr. on the surface, it looks like just another tool to read pdfs. but after tearing apart the technical report, i am convinced this is a trojan horse for a paradigm shift called **contexts optical compression**. it posits a wild theory: pictures might actually be cheaper than words.
+enter deepseek-ocr. on the surface, it looks like just another tool to read pdfs. but after tearing apart the technical report, i am convinced this is a trojan horse for a paradigm shift called **contexts optical compression**. it posits a wild theory that pictures might actually be cheaper than words.
 
 ---
 
-**the mathematics of inefficiency: why text is expensive**
+**1. the mathematics of inefficiency and why text is expensive**
 
-let's look at the numbers. standard tokenizers (bpe, sentencepiece) are rigid. they treat a page of text as a linear string of integers. if you have a complex financial table, the model has to burn tokens representing the structure -pipe characters, newlines, spacing -just to tell the model "this is a table."
+let's look at the numbers. standard tokenisers (bpe, sentencepiece) are rigid. they treat a page of text as a linear string of integers. if you have a complex financial table, the model has to burn tokens representing the structure (pipe characters, newlines, spacing) just to tell the model "this is a table."
 
 from an information theory perspective, this is a disaster. we can quantify the inefficiency using shannon entropy ($H$):
 
@@ -559,13 +550,13 @@ deepseek's hypothesis is that a "visual patch" (a cluster of pixels) creates a h
 
 $$\\rho = \\frac{N_{\\text{text}} \\times d_{\\text{text}}}{N_{\\text{visual}} \\times d_{\\text{visual}}}$$
 
-where $N$ is the number of tokens and $d$ is the embedding dimension. while $d_{\\text{visual}}$ (the visual embedding size) is typically larger than $d_{\\text{text}}$, deepseek achieves a raw token reduction ($N_{\\text{text}}/N_{\\text{visual}}$) of roughly **10x** [3]. this suggests the model is packing significantly more entropy into each vector -effectively moving the complexity from the *sequence length* (which scales quadratically) to the *channel dimension* (which scales linearly).
+where $N$ is the number of tokens and $d$ is the embedding dimension. while $d_{\\text{visual}}$ (the visual embedding size) is typically larger than $d_{\\text{text}}$, deepseek achieves a raw token reduction ($N_{\\text{text}}/N_{\\text{visual}}$) of roughly **10x** [3]. this suggests the model is packing significantly more entropy into each vector, effectively moving the complexity from the *sequence length* (which scales quadratically) to the *channel dimension* (which scales linearly).
 
 ---
 
-**the engine: a frankenstein architecture**
+**2. the engine and its frankenstein architecture**
 
-the deepseek team didn't just train a giant vision transformer (vit). they built a serial, heterogeneous pipeline that i honestly find fascinating. it connects components that usually don't talk to each other [8].
+the deepseek team trained a giant vision transformer (vit) using a serial, heterogeneous pipeline that i honestly find fascinating. it connects components that usually don't talk to each other [8].
 
 here is the "deepencoder" breakdown with the arithmetic that justifies their choices:
 
@@ -583,7 +574,7 @@ this is where the physical compression happens. they use a 2-layer convolutional
 
 $$O = \\left\\lfloor \\frac{I - K + 2P}{S} \\right\\rfloor + 1$$
 
-with a kernel $K=3$, stride $S=2$, and padding $P=1$, applied twice to a feature map of $64 \\times 64$ patches (derived from the sam output):
+with a kernel $K=3$, stride $S=2$ and padding $P=1$, applied twice to a feature map of $64 \\times 64$ patches (derived from the sam output):
 
 - **step 1:** $O_1 = \\lfloor(64 - 3 + 2)/2\\rfloor + 1 = 32$
 - **step 2:** $O_2 = \\lfloor(32 - 3 + 2)/2\\rfloor + 1 = 16$
@@ -596,7 +587,7 @@ finally, they feed those 256 tokens into clip. since $256^2 = 65536$, the global
 
 ---
 
-**the "cliff": rate-distortion theory in action**
+**3. the "cliff" and rate-distortion theory in action**
 
 however, there is no free lunch. the report details a massive drop-off in performance when they push the compression too far.
 
@@ -607,29 +598,29 @@ this is a classic manifestation of **rate-distortion theory**. there is a lower 
 
 $$R(D) = \\min_{p(\\hat{x}|x): E[d(x,\\hat{x})] \\le D} I(X; \\hat{X})$$
 
-as deepseek increases the compression ratio, they are forcing $R$ below the intrinsic entropy of the document image. at 20x, the "channel capacity" of the latent space is exceeded by the noise of the pixels (scan lines, font blur). the mutual information $I(X; \\hat{X})$ drops, and the decoder is forced to rely on its internal priors (hallucinations) rather than the source signal [2].
+as deepseek increases the compression ratio, they are forcing $R$ below the intrinsic entropy of the document image. at 20x, the "channel capacity" of the latent space is exceeded by the noise of the pixels (scan lines, font blur). the mutual information $I(X; \\hat{X})$ drops and the decoder is forced to rely on its internal priors (hallucinations) rather than the source signal [2].
 
-this explains why the model starts hallucinating plausible but incorrect numbers at high compression. it is "dreaming" the data based on visual probability rather than reading it. this is a critical limitation: **do not use this for high-stakes finance if you are pushing the compression limits.**
+this explains why the model starts hallucinating plausible but incorrect numbers at high compression. it is "dreaming" the data based on visual probability rather than reading it. this is a critical limitation. **do not use this for high-stakes finance if you are pushing the compression limits.**
 
 ---
 
-**operational reality: the "gundam" mode**
+**4. operational reality and the "gundam" mode**
 
 i have to mention the "gundam" mode because the naming is fantastic. this is their solution for massive schematics or newspapers.
 
 if you shrink a giant blueprint to $1024 \\times 1024$, you lose the details. gundam mode tiles the image. it processes tiles individually (local detail) and the full image (global context), then stitches them together. even with this heavy lifting, it uses fewer than 800 tokens per page [3]. compare that to mineru or internvl, which burn 6,000+ tokens for the same task [6].
 
-deepseek is proving that general-purpose vlms are incredibly wasteful. they are "over-tokenizing" visual noise that carries no semantic value.
+deepseek is proving that general-purpose vlms are incredibly wasteful. they are "over-tokenising" visual noise that carries no semantic value.
 
 ---
 
-**the future: visual rag and memory forgetting**
+**5. the future of visual rag and memory forgetting**
 
-this is where my opinion comes in strong. i believe deepseek-ocr signals the obsolescence of the text tokenizer for multimodal ai.
+this is where my opinion comes in strong. i believe deepseek-ocr signals the obsolescence of the text tokeniser for multimodal ai.
 
 if we can encode a page of text into a vector space that is 10x smaller than the text itself, why would we ever store the text? we are moving toward **visual rag** [5].
 
-imagine a vector database full of these deepencoder embeddings. you don't retrieve text; you retrieve the "visual gist" of the page. the model also suggests a biomimetic approach to memory called "memory forgetting" [6]:
+imagine a vector database full of these deepencoder embeddings, such that you don't retrieve text; you retrieve the "visual gist" of the page. the model also suggests a biomimetic approach to memory called "memory forgetting" [6]:
 
 - **short-term:** keep recent interactions as high-fidelity text.
 - **long-term:** compress older context into low-res visual tokens (tiny mode, 64 tokens).
@@ -638,25 +629,25 @@ it mimics how humans remember. you recall the exact wording of the sentence you 
 
 ---
 
-**conclusion**
+**in a nutshell**
 
-deepseek-ocr is a proof-of-concept for a post-tokenization era. it validates the hypothesis that visual latent space can hold more entropy per unit than linear text.
+deepseek-ocr is a proof-of-concept for a post-tokenisation era. it validates the hypothesis that visual latent space can hold more entropy per unit than linear text.
 
-for the engineers out there: this is a 10x cost reduction multiplier for your rag pipelines [7]. for the researchers: it is a challenge to the fundamental assumption that text is the optimal medium for language modeling.
+for the engineers out there, this could be a 10x cost reduction multiplier for your rag pipelines [7]. for the researchers, it is a challenge to the fundamental assumption that text is the optimal medium for language modeling.
 
-we are witnessing the transition from processing discrete symbols to reasoning in continuous high-dimensional visual spaces. the tokenizer isn't dead yet, but for the first time, it looks like legacy tech.
+we are witnessing the transition from processing discrete symbols to reasoning in continuous high-dimensional visual spaces. the tokeniser isn't dead yet, but for the first time, it looks like legacy tech.
 
 ---
 
 **references**
 
-[1] the quadratic barrier and the tokenization crisis.
+[1] the quadratic barrier and the tokenisation crisis.
 [2] entropy limits and signal-to-noise ratios in visual latent space.
 [3] core deepseek-ocr paper: technical claims and benchmarks.
 [4] the modality gap and clip alignment.
 [5] visual rag and production implications.
 [6] benchmarking vs qwen/internvl and memory forgetting.
-[7] the serial architecture: sam, conv, and clip.
+[7] the serial architecture: sam, conv and clip.
 [8] deepencoder specifics and parameter counts.
 [9] serial vs parallel architecture in mllms.`,
   },
@@ -668,20 +659,16 @@ we are witnessing the transition from processing discrete symbols to reasoning i
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-12-19T15:00:00.000Z",
-    content: `**the cognitive threshold: a technical deep dive into ai's gold medal (and its one critical failure) at imo 2025**
+    created_at: "2025-08-03T19:15:00.000Z",
+    content: `if you have been following the breathless hype cycles of ai, you are likely exhausted. i know i am. but what happened in australia this year is different. openai and google deepmind achieved scores equivalent to a imo gold medal, solving problems that stump the smartest 18-year-olds on the planet [1].
 
-the 2025 international mathematical olympiad (imo) was not just another math competition. it was the moment the "turing test" moved from a philosophical dinner party debate to a hard, quantitative benchmark.
+but here is the catch, and it is the subject of today's deep dive. they completely face-planted on problem 6.
 
-if you have been following the breathless hype cycles of ai, you are likely exhausted. i know i am. but what happened in australia this year is different. it is tangible. openai and google deepmind did not just inch forward. they shattered the ceiling. their systems achieved scores equivalent to a gold medal, solving problems that stump the smartest 18-year-olds on the planet [1].
-
-but here is the catch, and it is the subject of today's deep dive: they completely face-planted on problem 6.
-
-this dichotomy (perfection on five problems and a "hard zero" on the sixth) is the most important signal we have regarding the current state of artificial intelligence. it reveals exactly where the "cognitive threshold" lies. in this post, i am going to tear down the architecture that got us here, rigorously derive the math behind the problem that stumped the machine, and map this all back to what it means for us in software engineering.
+this dichotomy (perfection on five problems and a "hard zero" on the sixth) is the most important signal we have regarding the current state of artificial intelligence. it reveals exactly where the "cognitive threshold" lies. in this post, i am going to tear down the architecture that got us here, rigorously derive the math behind the problem that stumped the machine and map this all back to what it means for us in software engineering.
 
 ---
 
-**1. the new benchmark: why this matters**
+**1. the new benchmark and why this matters**
 
 let us look at the facts. the imo is the hardest pre-university math competition in the world. it consists of six problems over two days. each is worth 7 points. a gold medal usually requires a score around 35 out of 42.
 
@@ -689,11 +676,11 @@ historically, ai struggles here. standard llms are probabilistic engines. they a
 
 in 2025, both google deepmind (gemini deep think) and openai (o1 series) hit that magic number: **35 points** [1].
 
-they solved algebra, geometry, and number theory with a proficiency that would make a tenured professor sweat. but they failed problem 6. this was not a glitch. it was a fundamental limitation of how current transformers process global constraints.
+they solved algebra, geometry and number theory with a proficiency that would make a tenured professor sweat. but they failed problem 6. this was not a glitch. it was a fundamental limitation of how current transformers process global constraints.
 
 ---
 
-**2. the architecture of reasoning: the math of "thinking"**
+**2. the architecture of reasoning and the math of "thinking"**
 
 to understand why they won gold, you have to understand that these are not the same models you use in chatgpt or claude 3.5 sonnet.
 
@@ -705,7 +692,7 @@ $$P(t_i | C, t_1, ..., t_{i-1})$$
 
 this is a single forward pass. it is greedy. if $t_j$ is a mistake, the model is doomed because $t_{j+1}$ depends on $t_j$.
 
-the gold medalists use **inference-time compute** [2]. this introduces a latent variable $\\theta$, representing the "reasoning chain" or "hidden thoughts." the model does not just maximize the probability of the answer $A$. it marginalizes over the space of possible reasoning paths:
+the gold medalists use **inference-time compute** [2]. this introduces a latent variable $\\theta$, representing the "reasoning chain" or "hidden thoughts." the model does not just maximise the probability of the answer $A$. it marginalises over the space of possible reasoning paths:
 
 $$P(A | Q) = \\sum_{\\theta \\in \\Theta} P(A | \\theta, Q) \\cdot P(\\theta | Q)$$
 
@@ -717,9 +704,9 @@ this shift introduces a fascinating nuance i call the "monitorability tax" [3]. 
 
 ---
 
-**3. the "warehouse" problem: a rigorous mathematical breakdown**
+**3. the "warehouse" problem and a rigorous mathematical breakdown**
 
-now, let us get into the weeds. why did they fail problem 6? the problem was a combinatorial tiling task. to make this concrete, let us use the "warehouse optimization" analogy.
+now, let us get into the weeds. why did they fail problem 6? the problem was a combinatorial tiling task. to make this concrete, let us use the "warehouse optimisation" analogy.
 
 **3.1 the scenario**
 
@@ -733,9 +720,9 @@ imagine you are the cto of a logistics firm. you have a massive automated wareho
 
 your job is to place the $n$ alarms in a permutation $\\pi$ that allows you to use the fewest number of tiles to cover the rest of the floor.
 
-**3.2 the trap: the diagonal permutation**
+**3.2 the trap of the diagonal permutation**
 
-the ai models, acting as greedy optimizers, likely defaulted to the identity permutation (the main diagonal). let us define the set of alarms $S$ as:
+the ai models, acting as greedy optimisers, likely defaulted to the identity permutation (the main diagonal). let us define the set of alarms $S$ as:
 
 $$S = \\{(i, \\pi(i)) : i \\in \\{1, ..., n\\}\\}$$
 
@@ -753,7 +740,7 @@ $$T_{diag}(n) \\approx 2(n-1)$$
 
 for $n = 2025$, this results in $\\approx 4048$ tiles. the ai found this solution and stopped, thinking it was optimal. it satisfied all constraints, but it was terribly inefficient.
 
-**3.3 the optimal solution: the dilworth bound**
+**3.3 the optimal solution via the dilworth bound**
 
 the correct answer requires a construction rooted in **dilworth's theorem** and partial order theory. the minimum number of tiles $T_{min}$ is actually given by:
 
@@ -769,9 +756,9 @@ we can define a partial order on the cells of the grid. let two cells $(r_1, c_1
 
 the number of tiles required is linked to the structure of "chains" (increasing sequences) and "antichains" (decreasing sequences) in the permutation of alarms.
 
-if we let $k$ be the length of the longest chain of alarms, and $l$ be the length of the longest antichain, a known result in this domain (the greene's theorem extension for grid tilings) suggests the cost is roughly proportional to $k + l$.
+if we let $k$ be the length of the longest chain of alarms and $l$ be the length of the longest antichain, a known result in this domain (the greene's theorem extension for grid tilings) suggests the cost is roughly proportional to $k + l$.
 
-to minimize the sum $k + l$ subject to $k \\cdot l \\ge n$ (by erdős-szekeres), we need $k \\approx l \\approx \\sqrt{n}$.
+to minimise the sum $k + l$ subject to $k \\cdot l \\ge n$ (by erdős-szekeres), we need $k \\approx l \\approx \\sqrt{n}$.
 
 **the "hiura" construction:**
 
@@ -781,25 +768,25 @@ specifically, we choose $m = 45$.
 
 the alarms are placed to ensure that we can form massive rectangles that span $\\sqrt{n}$ rows and $\\sqrt{n}$ columns simultaneously.
 
-by balancing the "increasing" and "decreasing" runs of the alarms to be length $\\sqrt{n}$, we minimize the fragmentation.
+by balancing the "increasing" and "decreasing" runs of the alarms to be length $\\sqrt{n}$, we minimise the fragmentation.
 
-**3.4 why the ai failed: the missing global vision**
+**3.4 why the ai failed and the missing global vision**
 
 the ai failed because it lacks **global constructive vision**. chain-of-thought is sequential. it is great at local deductions:
 
 *"if A then B. if B then C. therefore, C."*
 
-it is terrible at global optimization problems that require "seeing" the topology:
+it is terrible at global optimisation problems that require "seeing" the topology:
 
 *"the grid, as a whole, can be partitioned into sqrt(n)-sized blocks."*
 
-the model could not visualize that breaking the symmetry of the diagonal would yield a $O(n)$ to $O(\\sqrt{n})$ improvement. it got stuck in a local optimum because the gradient of "reasoning" points towards simpler, more symmetric structures like the diagonal [4]. it could not make the "intuitive leap" that a square root function was relevant to a tiling problem.
+the model could not visualise that breaking the symmetry of the diagonal would yield a $O(n)$ to $O(\\sqrt{n})$ improvement. it got stuck in a local optimum because the gradient of "reasoning" points towards simpler, more symmetric structures like the diagonal [4]. it could not make the "intuitive leap" that a square root function was relevant to a tiling problem.
 
 ---
 
-**4. the critical nuances: fairness and tools**
+**4. the critical nuances around fairness and tools**
 
-there are two major nuances that critics often miss when analyzing this result.
+there are two major nuances that critics often miss when analysing this result.
 
 **1. the "code-augmented" hypothesis:**
 
@@ -815,11 +802,11 @@ once they had the formula empirically, the "reasoning" engine would have worked 
 
 **2. the contamination debate:**
 
-skeptics argue the models just memorized the training data. this is why problem 6 is so important. it was a novel construction. the fact that the models failed p6 while acing p1-p5 is actually **evidence against memorization**. if they were just reciting similar problems seen in training, they likely would have hallucinated a solution to p6 based on a similar-looking past problem. the "hard zero" proves they were genuinely trying to reason and genuinely hit a wall.
+skeptics argue the models just memorised the training data. this is why problem 6 is so important. it was a novel construction. the fact that the models failed p6 while acing p1-p5 is actually **evidence against memorisation**. if they were just reciting similar problems seen in training, they likely would have hallucinated a solution to p6 based on a similar-looking past problem. the "hard zero" proves they were genuinely trying to reason and genuinely hit a wall.
 
 ---
 
-**5. the gap: you are using the wrong tools**
+**5. the gap and why you are using the wrong tools**
 
 if you are a developer building software on top of gpt-4o or claude 3.5, you need to look at this data.
 
@@ -829,7 +816,7 @@ if you are a developer building software on top of gpt-4o or claude 3.5, you nee
 | tier 3 | national olympiad | <20% | 50% |
 | tier 5 | imo hard (problem 6) | 0% | 0% |
 
-the commercial models we use daily did not just fail to get gold. they failed to get a bronze. they scored under 13 points [1].
+the commercial models we use daily failed to even get a bronze. they scored under 13 points [1].
 
 this gap is massive. we are building enterprise software on "system 1" models that cannot handle complex logic without massive hand-holding. the "reasoning" models are a totally different beast.
 
@@ -841,19 +828,19 @@ so, what does a math competition tell us about building apps? everything.
 
 **6.1 the "rule engine" is essential**
 
-the ai failed problem 6 because it could not optimize globally. in a real business, that failure means violating a safety regulation or crashing a database.
+the ai failed problem 6 because it could not optimise globally. in a real business, that failure means violating a safety regulation or crashing a database.
 
-**takeaway:** we cannot trust ai with "black box" optimization yet. we need **neuro-symbolic** systems. let the ai propose a warehouse layout, but run it through a deterministic code-based verifier (a rule engine) before you accept it.
+**takeaway:** we cannot trust ai with "black box" optimisation yet. we need **neuro-symbolic** systems. let the ai propose a warehouse layout, but run it through a deterministic code-based verifier (a rule engine) before you accept it.
 
 if verify(ai_output) returns false, loop back.
 
 **6.2 agentic workflows need context**
 
-the ai failed because it treated the grid as a sequence of rows, not a holistic map. if you are building ai agents, you cannot just feed them a jira ticket. you must provide the **global context** -the full architecture, the database schema, the "grid." an agent without context is just a diagonal line placer in a world that needs a hiura construction [5].
+the ai failed because it treated the grid as a sequence of rows, not a holistic map. if you are building ai agents, you cannot just feed them a jira ticket. you must provide the **global context**, the full architecture, the database schema, the "grid." an agent without context is just a diagonal line placer in a world that needs a hiura construction [5].
 
 **6.3 the cost of thinking**
 
-inference is no longer a flat rate. a "hard" query might take 10 minutes of gpu time and cost $5.00. we need to redesign our apis to handle asynchronous, long-running "thought processes." the days of expecting a 200ms json response for complex logic are over [6].
+inference is no longer a flat rate. a "hard" query might take 10 minutes of gpu time and cost 5 usd. we need to redesign our apis to handle asynchronous, long-running "thought processes." the days of expecting a 200ms json response for complex logic are over [6].
 
 ---
 
@@ -872,15 +859,7 @@ for us, the strategy is clear. use these new "reasoning models" to solve the har
 [3] "the monitorability tax: alignment in reasoning models", openai safety team.
 [4] "global vs. local reasoning in transformers", anthropic research.
 [5] "agentic patterns for enterprise", o'reilly media.
-[6] "economics of inference-time compute", semianalysis.
-
----
-
-**links**
-
-- [imo 2025 official site](https://www.imo-official.org)
-- [google deepmind gemini report](https://deepmind.google/technologies/gemini/)
-- [openai o1 system card](https://openai.com/index/o1-system-card-safety/)`,
+[6] "economics of inference-time compute", semianalysis.`,
   },
   {
     id: "blog-kimi-k2",
@@ -890,24 +869,22 @@ for us, the strategy is clear. use these new "reasoning models" to solve the har
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-12-19T09:00:00.000Z",
-    content: `**the silicon curtain just fell: why kimi k2 is the most important ai release of the decade**
-
-i have been arguing for years that the "capital moat" theory of ai -the idea that you need a gdp-sized budget and a nuclear power plant to train a frontier model -was a temporary anomaly, not a law of physics. silicon valley vcs and us policymakers bet the house on the assumption that raw scale was the only path to agi. they believed that as long as the us controlled the supply of h100s and had the deepest pockets, hegemony was secured.
+    created_at: "2025-11-15T14:27:00.000Z",
+    content: `i have been arguing for some time that the "capital moat" theory of ai, the idea that you need a gdp-sized budget and a nuclear power plant to train a frontier model was a temporary anomaly, not a law of physics. silicon valley vc's and us policymakers bet the house on the assumption that raw scale was the only path to agi. they believed that as long as the us controlled the supply of h100s and had the deepest pockets, hegemony was secured.
 
 on november 6, 2025, that assumption evaporated.
 
-moonshot ai released kimi k2 thinking. it is not just another llm. it is a discontinuous leap in architectural efficiency that effectively bypasses us semiconductor sanctions and beats the us flagship model, gpt-5, on reasoning tasks. and they did it for $4.6 million [1].
+moonshot ai released kimi k2 thinking and it is a discontinuous leap in architectural efficiency that effectively bypasses us semiconductor sanctions and beats the us flagship model, gpt-5, on reasoning tasks. and they did it for 4.6 million usd [1].
 
-if you are not paying attention to the specific engineering choices that made this possible, you are missing the biggest shift in the ai arms race since the transformer paper. let's look at the math, the architecture, and why the geopolitical map just inverted.
+if you are not paying attention to the specific engineering choices that made this possible, you are missing the biggest shift in the ai arms race since the transformer paper. let's look at the math, the architecture and why the geopolitical map just inverted.
 
 ---
 
-**the architecture of asymmetry**
+**1. the architecture of asymmetry**
 
 the headline number is that kimi k2 is a **1 trillion parameter** model. but that number is a trap. in the old "dense" model paradigm (think gpt-4 original flavor), running a 1t model would require an inference cluster so large it would bankrupt a small startup.
 
-moonshot ai didn't build a dense model. they built a sparse mixture-of-experts (moe) system that completely decouples knowledge capacity from inference cost.
+moonshot ai built a sparse mixture-of-experts (moe) system that completely decouples knowledge capacity from inference cost.
 
 **1. the sparse matrix**
 
@@ -915,9 +892,9 @@ kimi k2 uses a granular routing mechanism with 384 expert networks [2]. when you
 
 here is the breakdown:
 
-- **total parameters ($P_{total}$):** $1 \\times 10^{12}$
-- **active parameters ($P_{active}$):** $\\approx 32 \\times 10^{9}$
-- **activation rate:** $\\frac{32B}{1T} = 3.2\\%$
+- total parameters ($P_{total}$): $1 \\times 10^{12}$
+- active parameters ($P_{active}$): $\\approx 32 \\times 10^{9}$
+- activation rate: $\\frac{32B}{1T} = 3.2\\%$
 
 mathematically, if $E$ is the set of experts and $G(x)$ is the gating function for input $x$, the output $y$ is calculated as:
 
@@ -925,27 +902,27 @@ $$y = \\sum_{i \\in \\text{Top-}8(G(x))} G_i(x) \\cdot E_i(x)$$
 
 this allows kimi k2 to "know" as much as a supercomputer but "run" on high-end consumer hardware. it lowers the time-to-first-token (ttft) drastically. while us labs were focused on "scaling laws" (add more compute), moonshot focused on "efficiency laws" (remove the waste).
 
-**2. native int4: the sanction buster**
+**2. native int4 as the sanction buster**
 
 this is the piece that i think us policymakers misunderstood the most. the export controls on nvidia chips were designed to limit memory bandwidth ($B_{mem}$), which is the primary bottleneck for llm inference.
 
-kimi k2 features **native int4 quantization-aware training (qat)** [3]. most models are trained in 16-bit floating point ($bf16$) and then compressed later, which causes "brain damage" or reasoning degradation. moonshot trained this model in 4-bit integers from day one.
+kimi k2 features **native int4 quantisation-aware training (qat)** [3]. most models are trained in 16-bit floating point ($bf16$) and then compressed later, which causes "brain damage" or reasoning degradation. moonshot trained this model in 4-bit integers from day one.
 
 why does this matter? it is simple arithmetic.
 
 $$B_{\\text{effective}} = B_{\\text{hardware}} \\times \\frac{\\text{bits}_{\\text{standard}}}{\\text{bits}_{\\text{model}}} = B_{\\text{hardware}} \\times \\frac{16}{4} = 4 \\times B_{\\text{hardware}}$$
 
-by moving from 16-bit to 4-bit, they reduced the weight size by a factor of 4. this effectively **quadruples the memory bandwidth** of their existing hardware stockpiles [4]. a restricted h800 chip in china running kimi k2 now has the effective throughput of an unrestricted h100 running a standard us model. the sanctions didn't stop them; they just forced them to write better code.
+by moving from 16-bit to 4-bit, they reduced the weight size by a factor of 4. this effectively **quadruples the memory bandwidth** of their existing hardware stockpiles [4]. a restricted h800 chip in china running kimi k2 now has the effective throughput of an unrestricted h100 running a standard us model. the sanctions just forced them to write better code.
 
-**3. the muon optimizer**
+**3. the muon optimiser**
 
-training a 1t parameter moe in 4-bit precision is notoriously unstable. to solve this, they ditched adamw for the **muon optimizer** [1].
+training a 1t parameter moe in 4-bit precision is notoriously unstable. to solve this, they ditched adamw for the **muon optimiser** [1].
 
-muon orthogonalizes gradient updates, which prevents the "expert collapse" problem where the router gets lazy and sends everything to one expert. the research shows muon improves computational efficiency by a factor of 2 compared to standard optimizers [1]. this is how they kept the training cost so low.
+muon orthogonalises gradient updates, which prevents the "expert collapse" problem where the router gets lazy and sends everything to one expert. the research shows muon improves computational efficiency by a factor of 2 compared to standard optimisers [1]. this is how they kept the training cost so low.
 
 ---
 
-**the cognitive shift: interleaved reasoning**
+**2. the cognitive shift to interleaved reasoning**
 
 we are moving past the era of "chain-of-thought" (cot) where the model dumps a static block of text and then gives an answer. kimi k2 implements **interleaved reasoning**, which treats thinking as a persistent, agentic loop [5].
 
@@ -953,15 +930,15 @@ instead of *input → think → output*, the kimi k2 loop looks like this:
 
 *input → think → tool call (act) → **observation** → think (update state) → tool call (act) → ... → answer*
 
-the model thinks, performs a tool call (like a python script), observes the result, updates its internal state, and thinks again. it can maintain this "thought trace" across 200-300 sequential steps [1]. it allows for self-correction. if a tool fails, it doesn't hallucinate a success; it reads the error log, rewrites the code, and tries again.
+the model thinks, performs a tool call (like a python script), observes the result, updates its internal state and thinks again. it can maintain this "thought trace" across 200-300 sequential steps [1]. it allows for self-correction. if a tool fails, it doesn't hallucinate a success; it reads the error log, rewrites the code and tries again.
 
-**heavy mode: system 2 thinking**
+**heavy mode and system 2 thinking**
 
 for hard problems, kimi k2 engages "heavy mode," which spawns eight parallel reasoning trajectories [3]. it is a tree of thoughts search implemented at inference time. a meta-reasoning layer then acts as a judge, synthesizing the best outcome. this is the difference between intuitive guessing (system 1) and deliberate calculation (system 2).
 
 ---
 
-**the benchmarks: humanity's last exam**
+**3. the benchmarks on humanity's last exam**
 
 the proof is in the performance. we are looking at **humanity's last exam (hle)**, a benchmark designed to be un-gameable.
 
@@ -978,36 +955,34 @@ furthermore, look at the agentic benchmarks. on **browsecomp** (web navigation),
 
 ---
 
-**the economic reality check**
+**4. the economic reality check**
 
 here is the statistic that should terrify silicon valley.
 
-- **gpt-5 estimated training cost:** ~$500 million to $2.5 billion [8]
-- **kimi k2 training cost:** **$4.6 million** [1]
+- **gpt-5 estimated training cost:** 500 million to 2.5 billion usd [8]
+- **kimi k2 training cost:** 4.6 million usd [1]
 
-moonshot ai achieved state-of-the-art performance for roughly 1% of the cost of a us frontier model. this destroys the "capital moat." if a frontier model costs $4.6 million, it is no longer the domain of hyperscalers (google, microsoft). it is within the budget of a series a startup, a university, or a mid-sized nation-state.
+moonshot ai achieved state-of-the-art performance for roughly 1% of the cost of a us frontier model. this destroys the "capital moat." if a frontier model costs 4.6 million usd, it is no longer the domain of hyperscalers (google, microsoft). it is within the budget of a series a startup, a university or a mid-sized nation-state.
 
-we are seeing a massive deflationary pressure. kimi k2 is open-weight (modified mit license) [9]. why would a european enterprise pay openai $30 per million tokens when they can run a smarter model locally for the cost of electricity?
+we are seeing a massive deflationary pressure. kimi k2 is open-weight (modified mit license) [9]. why would a european enterprise pay openai 30 usd per million tokens when they can run a smarter model locally for the cost of electricity?
 
 ---
 
-**the geopolitical inversion**
+**5. the geopolitical inversion**
 
 this release marks the failure of the hardware containment strategy. the us assumed that by controlling the "thermodynamics" of compute (limiting watts and flops via hardware bans), they could control the output of intelligence.
 
 they were wrong.
 
-sanctions forced chinese labs to become efficient. while us labs got lazy with massive compute resources, chinese labs optimized every bit. now that they have the superior architecture, any hardware they do acquire yields exponential returns.
+sanctions forced chinese labs to become efficient. while us labs got lazy with massive compute resources, chinese labs optimised every bit. now that they have the superior architecture, any hardware they do acquire yields exponential returns.
 
-we are already seeing a user adoption shift. procurement data shows that **78% of organizations** prioritizing data sovereignty are now selecting kimi k2 architectures over gpt-5 [10]. the global south and non-us western allies are looking for options that don't pipe their data directly into us-controlled servers. china is positioning itself as the "benevolent provider" of open-source intelligence, a massive soft-power play.
+we are already seeing a user adoption shift. procurement data shows that **78% of organisations** prioritizing data sovereignty are now selecting kimi k2 architectures over gpt-5 [10]. the global south and non-us western allies are looking for options that don't pipe their data directly into us-controlled servers. china is positioning itself as the "benevolent provider" of open-source intelligence, a massive soft-power play.
 
 ---
 
-**my take**
+**6. my take**
 
-the era of us unilateral dominance in ai ended on november 6, 2025.
-
-the future isn't going to be a single monopoly model running in a us datacenter. it is going to be hybrid, interleaved, and ruthlessly efficient. kimi k2 proves that ingenuity is a better predictor of performance than capital expenditure.
+the future isn't going to be a single monopoly model running in a us data centre. it is going to be hybrid, interleaved and ruthlessly efficient. kimi k2 proves that ingenuity is a better predictor of performance than capital expenditure.
 
 if you are building in this space, stop assuming that "bigger is better." the game has changed to "smarter is cheaper."
 
@@ -1015,7 +990,7 @@ if you are building in this space, stop assuming that "bigger is better." the ga
 
 **references**
 
-[1] moonshot ai technical report, "efficiency laws and the muon optimizer," 2025.
+[1] moonshot ai technical report, "efficiency laws and the muon optimiser," 2025.
 [2] kimi k2 architecture whitepaper, section 3.1: sparse routing.
 [3] kimi k2 architecture whitepaper, section 4: native int4 qat.
 [4] hardware inference analysis, semiconductor watch, november 2025.
@@ -1029,35 +1004,33 @@ if you are building in this space, stop assuming that "bigger is better." the ga
   {
     id: "blog-fracture-enterprise-ai",
     slug: "fracture-enterprise-ai",
-    title: "blog: enterprise ai is broken  - deepseek, dora, and the agentic wall",
+    title: "blog: enterprise ai is broken  - deepseek, dora and the agentic wall",
     category: "writing",
     folder: "blog",
-    public: true,
+    public: false, // temporarily hidden
     session_id: "",
-    created_at: "2025-12-18T14:30:00.000Z",
-    content: `**the fracture: why deepseek, the dora report, and the "agentic transition" just broke the enterprise ai model**
+    created_at: "2025-12-13T11:52:00.000Z",
+    content: `i have been analysing the state of enterprise technology for a long time and i have to say that the current moment feels distinct. it is not just the usual hype cycle. it feels like the tectonic plates of the industry are grinding against each other. we are living through a "phase transition," and like any change in state, things are getting volatile.
 
-i have been analyzing the state of enterprise technology for a long time, and i have to say that the current moment feels distinct. it is not just the usual hype cycle. it feels like the tectonic plates of the industry are grinding against each other. we are living through a "phase transition," and like any change in state, things are getting volatile.
+the narrative we have been sold for the last two years is simple. get the latest model, put it in the app, profit. but the reality i'm seeing on the ground is completely different. we are witnessing a collision of three massive forces, a productivity paradox that won't go away, a technical "sputnik moment" from china that is breaking pricing models and a geopolitical crackdown that is fracturing the internet itself.
 
-the narrative we have been sold for the last two years is simple: buy the model, put it in the app, profit. but the reality i'm seeing on the ground is completely different. we are witnessing a collision of three massive forces: a productivity paradox that won't go away, a technical "sputnik moment" from china that is breaking pricing models, and a geopolitical crackdown that is fracturing the internet itself.
-
-this post is going to be long. we need to get into the math, the architecture, and the messy geopolitical reality. but if you want to understand why your ai pilot is stuck in "poc purgatory" or why the us government is suddenly terrified of a chinese open-source model, you need to understand the bifurcation happening right now.
+this post is going to be long. we need to get into the math, the architecture and the messy geopolitical reality. but if you want to understand why your ai pilot is stuck in "poc purgatory" or why the us government is suddenly terrified of a chinese open-source model, you need to understand the bifurcation happening right now.
 
 ---
 
-**1. the productivity paradox: why your "ai app" isn't working**
+**1. the productivity paradox and why your "ai app" isn't working**
 
-let's start with the elephant in the room. we are two years into the generative ai revolution, and for most enterprises, the roi just isn't there.
+let's start with the elephant in the room. we are two years into the generative ai revolution and for most enterprises, the roi just isn't there.
 
-economist robert solow famously quipped in 1987, "you can see the computer age everywhere but in the productivity statistics" [1]. we are seeing the exact same thing today. we see ai in our ides, our notion docs, and our search bars. but we do not see it in the ebitda.
+economist robert solow famously quipped in 1987, "you can see the computer age everywhere but in the productivity statistics" [1]. we are seeing the exact same thing today. we see ai in our ide's, our notion docs and our search bars. but we do not see it in the ebitda.
 
-why? because we are stuck in phase one of the maturity curve: **the assistive trap**.
+why? because we are stuck in phase one of the maturity curve, **the assistive trap**.
 
-90% of organizations are here [2]. we treat ai as a "copilot." it is a faster typewriter. it helps a developer write a function 10% faster, or a marketer draft an email 20% faster. but this is an "additive" approach. it doesn't remove work; it often creates it.
+90% of organisations are here [2]. we treat ai as a "copilot." it is a faster typewriter. it helps a developer write a function 10% faster or a marketer draft an email 20% faster. but this is an "additive" approach. it doesn't remove work; it often creates it.
 
-stanford researchers have coined a term for this: **"workslop"** [3]. because the marginal cost of creating content (code, text, emails) has dropped to near zero, we are flooding our organizations with low-value digital artifacts. someone has to review that code. someone has to read that verbose email. the bottleneck didn't disappear; it just moved from creation to verification.
+stanford researchers have coined a term for this **"workslop"** [3]. because the marginal cost of creating content (code, text, emails) has dropped to near zero, we are flooding our organisations with low-value digital artifacts. someone has to review that code. someone has to read that verbose email. the bottleneck didn't disappear; it just moved from creation to verification.
 
-to actually get the "trillion-dollar impact" analysts promised, we have to move to **phase two: agentic workflows**. this is where the ai stops being a helper and starts being a manager. it takes a goal ("fix this bug," "process this invoice") and executes the loop autonomously [4].
+to actually get the "trillion-dollar impact" analysts promised, we have to move to **phase two, agentic workflows**. this is where the ai stops being a helper and starts being a manager. it takes a goal ("fix this bug," "process this invoice") and executes the loop autonomously [4].
 
 but here is the catch. agentic workflows break the economic model of 2024.
 
@@ -1065,20 +1038,20 @@ but here is the catch. agentic workflows break the economic model of 2024.
 
 **2. the math of the agentic loop**
 
-agents are expensive. in a standard chat interface, you ask a question, and the model answers. linear cost.
+agents are expensive. in a standard chat interface, you ask a question and the model answers. linear cost.
 
-in an agentic loop, the model reasons, creates a plan, uses a tool, reads the output, realizes it failed, corrects the plan, and tries again. this recursive loop consumes massive amounts of tokens.
+in an agentic loop, the model reasons, creates a plan, uses a tool, reads the output, realises it failed, corrects the plan and tries again. this recursive loop consumes massive amounts of tokens.
 
 if you are running a complex agentic workflow, you are looking at a **15x token multiplier** compared to a standard chat [5].
 
 let's look at the unit economics.
 
-if you are using a gpt-4 class model at standard western pricing (approx. $15.00 blended per million tokens) to run a background agent that processes invoices:
+if you are using a gpt-4 class model at standard western pricing (approx. 15 usd blended per million tokens) to run a background agent that processes invoices:
 
 - **context:** 50k tokens (history + docs)
 - **iterations:** 10 loops
 - **total tokens:** 500,000
-- **cost:** ~$7.50 per invoice
+- **cost:** ~7.50 usd per invoice
 
 that is insolvent. it is cheaper to hire a human. this is the **"unreliability tax"** [5]. you are paying for the agent to fix its own mistakes.
 
@@ -1086,25 +1059,25 @@ this economic wall was supposed to hold for another few years. but then, deepsee
 
 ---
 
-**3. the sputnik moment: deepseek v3.2 and the "china shock"**
+**3. the sputnik moment with deepseek v3.2 and the "china shock"**
 
-in early 2025, deepseek (a chinese lab) dropped v3.2. it didn't just compete with western models; it broke the pricing floor.
+in early 2025, deepseek (a chinese lab) dropped v3.2 which broke the pricing structure.
 
-they are offering frontier-level reasoning (beating gpt-4o on some benchmarks) for **$0.28 per million tokens**.
+they are offering frontier-level reasoning or **0.28 usd per million tokens**.
 
-how? they didn't just throw more gpus at the problem. they couldn't. due to us export controls, they are forced to train on nvidia h800s -crippled chips with reduced interconnect bandwidth [6]. constraints breed creativity. they had to innovate on the architecture to survive.
+how? they didn't just throw more gpus at the problem. they couldn't. due to us export controls, they are forced to train on nvidia h800s, crippled chips with reduced interconnect bandwidth [6]. constraints breed creativity. they had to innovate on the architecture to survive.
 
 here is the technical breakdown of how they cheated the physics of the transformer.
 
 **3a. deepseek sparse attention (dsa)**
 
-the fundamental flaw of the standard transformer architecture is that the attention mechanism has a complexity of O(N²), where N is the context length [7]. if you double the text, the compute cost quadruples.
+the fundamental flaw of the standard transformer architecture is that the attention mechanism has a complexity of $O(N²)$, where $N$ is the context length [7]. if you double the text, the compute cost quadruples.
 
 deepseek introduced sparse attention. instead of every token looking at every other token, they use a "lightning indexer."
 
 - the indexer scans the global context and identifies relevant "blocks"
 - the model only activates its heavy compute on the top-k relevant blocks
-- it effectively turns an O(N²) problem into a roughly linear problem
+- it effectively turns an $O(N²)$ problem into a roughly linear problem
 
 **3b. multi-head latent attention (mla)**
 
@@ -1124,13 +1097,13 @@ us sanctions were designed to starve china of compute. but deepseek proved that 
 
 now, the us government is scrambling. we are seeing proposed legislation like the "no deepseek on government devices act" [9] and aggressive "know your customer" (kyc) laws for cloud providers [10]. the fear is valid. if the entire western developer ecosystem starts routing their code through a chinese api because it is 95% cheaper, that is a massive data exfiltration risk (or "trojan horse" scenario) [11].
 
-but the market is ruthless. i am seeing cios and ctos quietly utilizing what i call the **"cloud loophole."** they are using western aggregators (like openrouter) or hosting the open weights in neutral clouds to access this cheap intelligence. the mandate is "fast and cheap," and right now, the east is winning on unit economics.
+but the market is ruthless. i am seeing cios and ctos quietly using what i call the **"cloud loophole."** they are using western aggregators (like openrouter) or hosting the open weights in neutral clouds to access this cheap intelligence. the mandate is "fast and cheap," and right now, the east is winning on unit economics.
 
 ---
 
-**5. the "ai mirror": what the dora report tells us**
+**5. the "ai mirror" and what the dora report tells us**
 
-even if you solve the cost problem with deepseek, you still have the organizational problem. the 2024 dora state of devops report dropped a bombshell that many people ignored: **ai is hurting stability for low-performing teams** [12].
+even if you solve the cost problem with deepseek, you still have the organisational problem. the 2024 dora state of devops report dropped a bombshell that many people ignored: **ai is hurting stability for low-performing teams** [12].
 
 they found a **7.2% decrease in delivery stability** for teams that adopted ai without having strong platform engineering fundamentals.
 
@@ -1139,13 +1112,13 @@ why? because ai acts as an **"ai mirror."** it reflects and amplifies your exist
 - if you have a high-trust, automated ci/cd culture (elite performers), ai accelerates you
 - if you have a manual, bureaucratic culture (low performers), ai just generates more "workslop" that gets stuck in your manual testing queues
 
-this creates **"downstream disorder"** [13]. developers generate code in minutes, but the security review takes days. the inventory of half-baked code piles up, and the system clogs.
+this creates **"downstream disorder"** [13]. developers generate code in minutes, but the security review takes days. the inventory of half-baked code piles up and the system clogs.
 
 ---
 
-**6. the strategy: building the agentic mesh**
+**6. the strategy for building the agentic mesh**
 
-so, what do we do? we cannot ignore the efficiency of the chinese models, but we cannot ignore the security risks. and we certainly cannot ignore the organizational dysfunction.
+so, what do we do? we cannot ignore the efficiency of the chinese models, but we cannot ignore the security risks. and we certainly cannot ignore the organisational dysfunction.
 
 here is the roadmap for the ai native transition:
 
@@ -1153,12 +1126,12 @@ here is the roadmap for the ai native transition:
 stop building chatbots. start building an infrastructure where agents can talk to each other. this means moving from "human-readable" data (pdfs) to "agent-readable" data (semantic knowledge graphs) [14].
 
 **6b. the ai gateway**
-you need a virtualization layer. do not hardcode openai or deepseek into your app. use an ai gateway that routes traffic:
+you need a virtualisation layer. do not hardcode openai or deepseek into your app. use an ai gateway that routes traffic:
 - **high security/reasoning:** route to gpt-4o / claude 3.5 (west)
 - **high volume/low risk:** route to a self-hosted deepseek v3 (east/local)
 
 **6c. clean rooms**
-if you are going to use the "cheap" models, do not use the public api. download the open weights. run them in an air-gapped vpc with zero internet egress. sanitize the inputs and outputs.
+if you are going to use the "cheap" models, do not use the public api. download the open weights. run them in an air-gapped vpc with zero internet egress. sanitise the inputs and outputs.
 
 **6d. platform engineering**
 you cannot have humans in the loop for every agent action. you need automated governance that scans ai code for vulnerabilities before it hits the repo.
@@ -1180,7 +1153,7 @@ the "productivity paradox" isn't a failure of the technology. it's a failure of 
 1. solow, r. m. (1987). [we'd better watch out](https://www.nytimes.com/1987/07/12/books/we-d-better-watch-out.html), new york times book review
 2. [2024 ai adoption index](https://www.ibm.com/thought-leadership/institute-business-value/en-us/report/ai-adoption-index), ibm
 3. [workslop and the hidden costs of ai](https://hai.stanford.edu/), stanford hai
-4. [agentic workflows vs zero-shot](https://www.deeplearning.ai/the-batch/how-agents-can-improve-llm-performance/), andrew ng
+4. [agentic workflows vs zero-shot](https://www.deeplearning.ai/the-batch/how-agents-can-improve-llm-performance/) andrew ng
 5. [the unreliability tax in agentic systems](https://www.latent.space/p/agents-reliability), latent space
 6. [the chip ban & h800 constraints](https://www.reuters.com/technology/nvidia-h800-chinas-alternative-h100-chip-2023-03-22/), reuters
 7. [deepseek v3 technical report](https://arxiv.org/abs/2412.19437), arxiv
@@ -1237,132 +1210,164 @@ thus, the question of desire becomes not merely psychological but spiritual. the
   },
   {
     id: "food adventures",
-    slug: "food adventures",
+    slug: "food-adventures",
     title: "food adventures",
-    category: "favorites",
-    folder: "bookmarks",
+    category: "favourites",
+    folder: "finds",
     public: true,
     session_id: "",
     created_at: "2025-08-08T13:55:00.000Z",
-    content: `spots i keep coming back to. mix of top-rated and hidden gems.
+    content: `food is how i understand a city. these are the places that have shaped meals into memories.
 
 **london** *(home)*
-- *dishoom*  - the keema per eedu at breakfast. chicken ruby for dinner. institution.
-- *tayyabs*  - whitechapel legend. lamb chops that haunt your dreams. always a queue.
-- *gymkhana*  - michelin-starred indian. refined, rich, worth every penny.
-- *mangal 2*  - dalston ocakbasi. charcoal-grilled perfection.
-- *the meat co.*  - westfield. proper halal steakhouse when you need a good cut.
-- *maroush*  - edgware road. lebanese late-night after everything else closes.
-- *sheesh*  - chigwell vibes. turkish done upscale.
+- *tayyabs* - whitechapel institution. the lamb chops got me through exams at imperial. you queue in the cold and it's always worth it. no reservations, no pretense.
+- *gymkhana* - where i go when something goes right. the kid goat methi keema is absurd. michelin-starred but doesn't feel like it.
+- *mangal 2* - dalston ocakbasi. charcoal smoke in your clothes for days. the lamb şiş is the benchmark against which all other kebabs are measured.
+- *maroush* - 2am on edgware road, eating shawarma after a long week.
+- *regency cafe* - westminster. proper english breakfast in a room that hasn't changed in decades. the brutalist architecture outside, fried eggs inside.
 
 **new york**
-- *hyderabadi zaiqa*  - michelin guide biryani. dum style, curry hill.
-- *the halal guys*  - street cart classic. white sauce is the move.
-- *al badawi*  - brooklyn, middle eastern, traditional setting.
-- *adel's famous halal pizza*  - halal slices with proper nyc attitude.
+- *hyderabadi zaiqa* - curry hill, dum biryani that reminded me of dhaka. found this place jet-lagged at 11pm and went back three times that week.
+- *the halal guys* - 53rd & 6th, 1am. the white sauce. you know.
+- *joe's pizza* - greenwich village. stood outside in the rain eating a slice. that's the correct way to do it.
 
 **san francisco**
-- *old mandarin islamic restaurant*  - hidden gem. halal chinese, the hot pot is unreal.
-- *reem's california*  - arab street food. mana'eesh and fresh bread.
-- *mela tandoori kitchen*  - solid pakistani and indian. reliable.
-
-**milan**
-- *aladino*  - cozy egyptian/middle eastern. kebabs and falafel done right.
-- *riad marrakech*  - moroccan tagines and couscous in traditional setting.
-- *dawali*  - lebanese in central milan. good mezze spread.
-
-**rome**
-- *himalaya's kashmir*  - indian/pakistani biryani and tandoori. reliable halal.
-- *ali baba*  - middle eastern classics. falafel and shawarma.
+- *old mandarin islamic restaurant* - halal chinese that shouldn't exist but does. the hot pot felt like a well-kept secret.
+- *reem's california* - arab bakery. the mana'eesh with za'atar hit different when you're far from home.
 
 **paris**
-- *l'as du fallafel*  - marais district. the falafel sandwich is legendary.
-- *kashmir house*  - pakistani done well. curries with depth.
-- *le wok saint germain*  - halal asian fusion. stir-fries and noodles.
+- *l'as du fallafel* - the marais. ate this standing in a cobblestone alley, sauce dripping. perfect.
+- *mosquée de paris* - mint tea and pastries in the courtyard after friday prayer.
 
-**tenerife**
-- *restaurante libanés el líbano*  - lebanese on the island. mezze and grills.
+**dubai**
+- *al ustad special kabab* - old dubai. iranian kebabs since 1978. the city transformed around it; it stayed the same.
+- *3 fils* - waterfront at night, watching the dhows. japanese-middle eastern fusion that made me rethink what food can be.
 
-**dubai** *(everything halal but these stand out)*
-- *al ustad special kabab*  - old dubai institution. iranian kebabs since forever.
-- *3 fils*  - japanese-middle eastern fusion. waterfront vibes.
-- *al fanar*  - traditional emirati. nostalgic setting, proper local food.
-- *enigma at palazzo versace*  - fine dining. persian influences, special occasion.
+**dhaka**
+- *star kabab* - the seekh kebabs my dad used to take me to as a kid. this is what my taste buds were trained on. everything else is comparison.
+- *kacchi bhai* - if you want to understand what biryani is supposed to taste like, start here. the potatoes at the bottom, caramelised and spiced.
 
-**munich**
-- *saray restaurant*  - turkish classics. köfte and kebabs.
-- *sultanahmet köftecisi*  - another solid turkish option.
-- *sababa*  - middle eastern. falafel and shawarma.
-
-**dhaka** *(home country, everything halal)*
-- *star kabab & restaurant*  - the kebabs. traditional bangladeshi done right.
-- *nando's*  - yes, it's a chain, but the peri peri hits different there.
-- *kacchi bhai*  - if you want real kacchi biryani.
-
-i always update this list when i visit new places.`,
+**general rule**
+i trust hole-in-the-wall places with bad lighting and no english menu over anywhere with "curated" in the description. food should be a little inconvenient.`,
   },
   {
-    id: "favorites-videos",
-    slug: "favorite-videos",
-    title: "favorite interviews & videos",
-    category: "favorites",
-    folder: "bookmarks",
+    id: "favourites-videos",
+    slug: "favourite-videos",
+    title: "favourite interviews & videos",
+    category: "favourites",
+    folder: "finds",
     public: true,
     session_id: "",
     created_at: "2025-07-14T08:29:00.000Z",
-    content: `videos i've rewatched. conversations that shifted something.
+    content: `videos i've rewatched more than once. the ones that left a mark.
 
 **sport**
-- *michael jordan - the last dance*  - obsession, leadership, the cost of greatness.
-- *sachin tendulkar: a billion dreams*  - cricket as religion, pressure as fuel.
-- *pep guardiola masterclass*  - tactics, philosophy, how he sees the game.
-- *kobe bryant's mamba mentality interview*  - relentless work ethic explained.
-- *muhammad ali interviews*  - conviction, wit, standing for something.
+- *the last dance* - watched this during lockdown and it broke something open. jordan's obsession isn't healthy, but the way he channelled slights, pain and ego into performance changed how i think about competition. the "and i took that personally" meme undersells it.
+- *sachin tendulkar: a billion dreams* - growing up, cricket was the main sport. sachin was proof that quiet discipline could carry the weight of a billion people. i still get emotional watching his final walk at wankhede.
+- *pep guardiola masterclasses* - not the press conferences, the tactical breakdowns. how he sees space, how he thinks in systems. i coach kids football on saturdays; his philosophy of "make the pitch big" is the only thing i teach.
+- *muhammad ali interviews* - the conviction. the wit. "i'm so mean i make medicine sick." he stood for something when it cost him everything.
 
-**music & artists**
-- *frank ocean - blonded radio episodes*  - rare glimpses into his process.
-- *quincy jones on finding michael jackson*  - legendary storytelling.
-- *rick rubin: the creative act*  - on taste, silence and letting things emerge.
-- *tyler, the creator on flower boy*  - growth, vulnerability, artistic evolution.
-- *j dilla documentary: still shining*  - the producer's producer.
+**music & process**
+- *frank ocean - blonded radio* - he rarely speaks, so when he does, i listen. the way he talks about loneliness and nostalgia shaped how i think about memory.
+- *rick rubin: the creative act* - the podcast episodes, the book. "the goal isn't to make art for the audience. it's to make art that the audience didn't know they needed." i think about this constantly.
+- *j dilla: still shining* - the sp-303, the samples, the illness. he made beats from a hospital bed. the definition of craft until the end.
 
 **film & storytelling**
-- *martin scorsese on cinema*  - what makes a movie a movie.
-- *christopher nolan bfi masterclass*  - time, structure, practical effects.
-- *hayao miyazaki: 10 years with the master*  - animation as meditation.
-- *denis villeneuve on dune*  - adapting the unadaptable.
-- *a24 behind the scenes*  - how they built a studio on taste.
+- *christopher nolan bfi masterclass* - time, structure, why he shoots on film. practical effects as philosophy. made me appreciate that constraints create art.
+- *hayao miyazaki: 10 years with the master* - watching him draw is meditation. the way he cares about wind, about movement, about things most people don't see.
+- *denis villeneuve on dune* - adapting something "unfilmable." the ambition, the patience. he waited decades for the technology to catch up to his vision.
 
 **philosophy & faith**
-- *hamza yusuf lectures on the soul*  - islamic spirituality, beautifully articulated.
-- *abdal hakim murad on modernity*  - tradition meeting the contemporary.
-- *alan watts on letting go*  - eastern philosophy, western clarity.
-- *simone de beauvoir interview (1959)*  - freedom, choice, existence.
-- *james baldwin debates william buckley*  - rhetoric, dignity, truth to power.
+- *hamza yusuf lectures* - particularly "the content of character" and his lectures on the soul. islamic spirituality explained with scholarly depth and poetic clarity. these shaped my twenties.
+- *abdal hakim murad on modernity* - tradition engaging with the contemporary without losing itself. rigorous, thoughtful, necessary.
 
-**culture & ideas**
-- *anthony bourdain: parts unknown*  - any episode. travel as understanding.
-- *chimamanda ngozi adichie: the danger of a single story*  - perspective, narrative.
-- *david foster wallace on ambition*  - the water we swim in.
-- *trevor noah on identity*  - code-switching, belonging, humor as survival.
-- *roger federer dartmouth commencement*  - effortless is a lie, accept losing.
-
-**documentaries**
-- *jiro dreams of sushi*  - mastery, dedication, 80 years of one thing.
-- *free solo*  - fear, preparation, what commitment actually looks like.
-- *chef's table: jeong kwan*  - cooking as spiritual practice.
-- *the defiant ones*  - dr. dre and jimmy iovine. unlikely partnership, empire.
-- *senna*  - rivalry, purity, racing as art.
-
-**design & craft**
-- *jony ive on objectified*  - obsession with materials and intent.
-- *dieter rams: less but better*  - principles that outlast trends.
-- *kenya hara on emptiness*  - japanese design philosophy.
+**ideas & culture**
+- *anthony bourdain: parts unknown* - every episode. food as lens for understanding people. he listened more than he talked. miss him.
+- *roger federer dartmouth speech* - "effortless is a myth." from the most elegant athlete ever. losing 40% of your points still makes you a champion. reframed failure for me.
+- *david foster wallace: this is water* - "the really important kind of freedom involves attention and awareness." i return to this when life feels automatic.
 
 **building things**
-- *steve jobs lost interview (1995)*  - taste, conviction, what matters.
-- *andrej karpathy neural net lectures*  - if you want to actually understand ml.
-- *bret victor: inventing on principle*  - what a creative tool should feel like.`,
+- *steve jobs lost interview (1995)* - before the second act. raw, unpolished, but the clarity about taste and conviction is all there. "people don't know what they want until you show it to them."
+- *andrej karpathy's neural net series* - the only ml content i recommend. no hype, just building intuition from first principles.
+- *bret victor: inventing on principle* - what tools should feel like. "creators need an immediate connection to what they create." changed how i think about developer experience.
+
+**documentaries**
+- *jiro dreams of sushi* - 80 years of making the same thing, getting slightly better each day. mastery as practice, not destination.
+- *free solo* - not about climbing. about what commitment actually looks like. the preparation, the fear, the execution.
+- *senna* - rivalry, purity, tragedy. racing as something transcendent.`,
+  },
+  {
+    id: "favourites-reading",
+    slug: "reading-list",
+    title: "books that shaped me",
+    category: "favourites",
+    folder: "finds",
+    public: true,
+    session_id: "",
+    created_at: "2025-06-01T14:20:00.000Z",
+    content: `i read too much. these are the ones i keep coming back to or recommending to others.
+
+**philosophy & faith**
+- *the alchemy of happiness* by al-ghazali - the book that made islamic philosophy click for me. practical spirituality, written a thousand years ago, still devastatingly relevant.
+- *meditations* by marcus aurelius - a roman emperor's private journal. stoicism before it became a twitter aesthetic. "you have power over your mind, not outside events."
+- *man's search for meaning* by viktor frankl - wrote this after surviving auschwitz. the idea that meaning can be found in any circumstance, even suffering, has stayed with me.
+- *the brothers karamazov* by dostoevsky - technically a novel, but it's really philosophy wearing a story. the grand inquisitor chapter alone is worth the 800 pages.
+
+**history & biography**
+- *sapiens* by yuval noah harari - the 70,000-year view of humanity. some of it is speculative, but it permanently changed how i think about institutions, money and shared fictions.
+- *the looming tower* by lawrence wright - the road to 9/11. essential for understanding the last 25 years.
+- *surely you're joking, mr. feynman* - a physicist who picked locks, played bongos in brazil and worked on the atomic bomb. curiosity as a way of life.
+- *when breath becomes air* by paul kalanithi - a neurosurgeon facing his own mortality. made me think about what i'd want to have built if time ran out.
+
+**thinking & craft**
+- *thinking, fast and slow* by daniel kahneman - system 1 and system 2. i use this framework constantly. we're more irrational than we think.
+- *the design of everyday things* by don norman - why doors are confusing and how to think about interfaces. changed how i see the built world.
+- *a philosophy of software design* by john ousterhout - short, opinionated, correct. complexity is the enemy. every engineer should read this.
+- *high output management* by andy grove - how to think about leverage, meetings and building teams. practical wisdom from intel's ceo.
+
+**essays & collections**
+- *consider the lobster* by david foster wallace - the footnotes, the attention, the way he sees everything. exhausting and brilliant.
+- *the fire next time* by james baldwin - letter to his nephew about race in america. prose as weapon. "not everything that is faced can be changed, but nothing can be changed until it is faced."
+- *a room of one's own* by virginia woolf - about what it takes to create. space, time, money, permission.
+
+**currently reading**
+- *the great transformation* by karen armstrong - comparing the axial age across civilisations. dense but rewarding.
+- *the anthropic papers* (collected) - trying to understand alignment from the source.
+
+i keep a longer list in notion but these are the ones i'd actually give someone.`,
+  },
+  {
+    id: "favourites-places",
+    slug: "places-and-walks",
+    title: "places & walks",
+    category: "favourites",
+    folder: "finds",
+    public: true,
+    session_id: "",
+    created_at: "2025-04-28T19:30:00.000Z",
+    content: `i think best when i'm walking. these are the places i go to clear my head or remember why i like being alive.
+
+**london**
+- *hyde park, late night* - my default when i need to think. the path around the serpentine at 11pm, when it's just you and the occasional runner. problems feel smaller out there.
+- *hampstead heath* - parliament hill for the skyline. the ponds in summer. this is where london stops being a city and starts being something older.
+- *the south bank* - tate modern to tower bridge. best at dusk when the lights come on and the thames looks cinematic.
+- *the barbican conservatory* - tropical plants in brutalist concrete. free, quiet, strange. good for reading.
+- *columbia road on sundays* - flower market chaos. everyone's in a good mood. i rarely buy anything but i always leave happier.
+
+**other cities**
+- *central park, nyc* - the reservoir loop at dawn. watching the city wake up from inside a rectangle of green.
+- *the high line, nyc* - elevated park on old train tracks. best in early morning before the tourists arrive.
+- *the marais, paris* - getting lost in the side streets. falafel, bookshops, cobblestones. paris at walking pace.
+
+**nature escapes**
+- *peak district* - mam tor and the great ridge. proper hiking. wind in your face, sheep everywhere.
+- *the lake district* - did helvellyn in the rain. couldn't see anything. still worth it.
+
+**gliding**
+- *lasham airfield* - where i'm learning to fly. the silence when you release from the tow plane. no engine, just wind. unreal feeling.
+
+**airports**
+unpopular opinion: i love airports. the in-between feeling. everyone going somewhere. i've had some of my best thinking time in departure lounges.`,
   },
   {
     id: "reflections-questions",
@@ -1415,7 +1420,7 @@ i don't expect to resolve most of these. but they're useful to carry.`,
 
 **"more hours = more output"**
 *before:* grinding longer meant caring more. if you weren't exhausted, you weren't trying.
-*now:* sleep, rest, and stepping away are inputs, not rewards. my best work happens in 4 focused hours, not 12 scattered ones.
+*now:* sleep, rest and stepping away are inputs, not rewards. my best work happens in 4 focused hours, not 12 scattered ones.
 
 **"the best code is clever code"**
 *before:* elegance meant compression. one-liners were beautiful. abstractions showed sophistication.
@@ -1439,7 +1444,7 @@ i don't expect to resolve most of these. but they're useful to carry.`,
 
 **"passion is everything"**
 *before:* if you're not obsessed, you're doing the wrong thing. follow your passion.
-*now:* passion follows mastery. get good at something useful, find meaning in the craft, and passion often shows up. waiting for passion is a trap.
+*now:* passion follows mastery. get good at something useful, find meaning in the craft and passion often shows up. waiting for passion is a trap.
 
 **"success is making it"**
 *before:* there's a finish line. get the job, hit the number, then you're done.
@@ -1516,7 +1521,7 @@ and yet, mathematics also encounters its own horizons. in the twentieth century,
 
 ---
 
-to gather sheep with stones, to solve quadratics by completing the square, to trace the path of a planet with a circle within a circle, to define rigor with $\\varepsilon$ and $\\delta$, to discover that truth itself will always exceed our grasp -these are not separate acts but one story.
+to gather sheep with stones, to solve quadratics by completing the square, to trace the path of a planet with a circle within a circle, to define rigour with $\\varepsilon$ and $\\delta$, to discover that truth itself will always exceed our grasp, these are not separate acts but one story.
 
 they are the human story of mathematics, rising from survival into transcendence. al-khwarizmi's equations, khayyam's curves, al-tusi's couples, ibn al-haytham's rays, peano's axioms, weierstrass's limits and gödel's theorems are chapters in a single book we are still writing.
 

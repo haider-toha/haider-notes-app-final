@@ -104,7 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     return notes.filter((n) => n.folder === folderId).length;
   };
 
-  // Filter notes by selected folder and search query
+  // Filter notes by selected folder and search query, then sort by date (newest first)
   const filteredNotes = useMemo(() => {
     let filtered =
       selectedFolderId === "all"
@@ -121,7 +121,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         );
       });
     }
-    return filtered;
+    
+    // Sort by created_at descending (newest first)
+    return [...filtered].sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
   }, [notes, selectedFolderId, query]);
 
   const selectedFolder = folders.find((f) => f.id === selectedFolderId);

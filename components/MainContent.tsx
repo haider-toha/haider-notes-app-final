@@ -127,7 +127,7 @@ const MainContent: React.FC<MainContentProps> = ({
   // Calculate word count and reading time for blog posts
   const isBlogPost = note.folder === "blog";
   const calculateWordCount = (text: string): number => {
-    // Remove markdown formatting, URLs, and special characters
+    // Remove markdown formatting, URLs and special characters
     const cleanText = text
       .replace(/!\[.*?\]\(.*?\)/g, "") // Remove images
       .replace(/\[.*?\]\(.*?\)/g, (match) => match.replace(/\[|\]|\(.*?\)/g, "")) // Keep link text only
@@ -392,7 +392,7 @@ const MainContent: React.FC<MainContentProps> = ({
     }
   };
 
-  // Helper to render text with bold, italic, links, and math
+  // Helper to render text with bold, italic, links and math
   const renderTextWithFormatting = (content: string): React.ReactNode[] => {
     // First, handle block math ($$...$$)
     const blockMathRegex = /\$\$([\s\S]*?)\$\$/g;
