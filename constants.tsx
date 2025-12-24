@@ -284,7 +284,7 @@ decoupled backend (fastapi) and frontend (next.js) communicating via rest api. t
 - **chip strategy recommendations:** when to use bench boost, triple captain, free hit, wildcard based on fixture patterns and dgws
 
 **results**
-consistently finished top 100k (out of ~10m players) without spending hours on team selection. the edge comes from discipline: the model doesn't get attached to players or chase last week's haul. beat my manual decisions in 75% of gameweeks.
+consistently finished top 100k (out of ~10m players) without spending hours on team selection. the edge comes from discipline so the model doesn't get attached to players or chase last week's haul. beat my manual decisions in 75% of gameweeks.
 
 **stack:** python, fastapi, xgboost, pulp, numpy, next.js, typescript, tailwind, tanstack query, recharts, render`,
   },
