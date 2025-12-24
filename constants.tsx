@@ -141,7 +141,7 @@ built an ai tutoring product from scratch and grew it to 50+ paying customers. h
     created_at: "2025-09-18T20:41:00.000Z",
     content: `i wanted faster iteration on agent workflows without manual glue code. every time i needed a new tool for an agent, i had to write it, test it, integrate it. repetitive. slow. error-prone. so i asked myself what if the agent could write its own tools?
 
-[github](https://github.com/haider-toha/Self-Engineering-Agent-Framework)
+[github](https://github.com/haider-toha/Self-Engineering-Agent-Framework) • [demo](https://youtu.be/7Uh1ukl5Vj8)
 
 **the idea**
 
