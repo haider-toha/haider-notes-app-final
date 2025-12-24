@@ -139,37 +139,48 @@ built an ai tutoring product from scratch and grew it to 50+ paying customers. h
     public: true,
     session_id: "",
     created_at: "2025-09-18T20:41:00.000Z",
-    content: `i wanted faster iteration on agent workflows without manual glue code. the problem was that every time i needed a new tool for an agent, i had to write it, test it, integrate it. repetitive. slow. error-prone.
+    content: `i wanted faster iteration on agent workflows without manual glue code. every time i needed a new tool for an agent, i had to write it, test it, integrate it. repetitive. slow. error-prone. so i asked myself what if the agent could write its own tools?
+
+[github](https://github.com/haider-toha/Self-Engineering-Agent-Framework)
 
 **the idea**
-what if the agent could write its own tools? not just call them, but detect when it needs a capability it doesn't have, generate the implementation, validate it and only then use it.
+
+not just calling tools, but detecting when it needs a capability it doesn't have, generating the implementation, validating it, and only then using it. the key insight was using test-driven development. by generating tests first, the agent has an unambiguous specification of what the code must do. code either passes or fails. no subjective quality judgments.
 
 **how it works**
-- **capability detection:** when the agent encounters a task it can't complete with existing tools, it logs the gap and generates a tool specification
-- **code generation:** using gpt-4, it writes the python implementation following strict function signatures and docstrings
-- **test generation:** it also writes unit tests covering expected inputs, edge cases and failure modes
-- **sandboxed execution:** tests run in an ephemeral docker container. no access to host filesystem. network isolated. 30-second timeout
-- **promotion logic:** if all tests pass, the tool is added to the agent's registry. if not, it logs the failure and retries with the error message as context
 
-**architecture**
-the core loop is simple:
-1. receive task
-2. plan steps
-3. for each step, check if tool exists
-4. if not, trigger tool generation pipeline
-5. execute step
-6. return result
+when the agent encounters a task it can't complete with existing tools, it triggers a synthesis pipeline
 
-the tool registry is backed by pgvector for semantic search. when the agent needs to find a tool, it embeds the task description and retrieves the closest matches. this means tools get reused across tasks without exact string matching.
+1. **capability detection** logs the gap and generates a tool specification with function signature, parameters, return types
+2. **test generation** writes unit tests covering expected inputs, edge cases, failure modes
+3. **code generation** using gpt-4, writes the python implementation following strict function signatures and docstrings
+4. **sandboxed execution** tests run in an ephemeral docker container. no access to host filesystem. network isolated. 30-second timeout
+5. **promotion logic** if all tests pass, the tool is added to the agent's registry. if not, it logs the failure and retries with the error message as context
 
-**learnings**
+**the architecture**
+
+the core loop is simple. receive task. plan steps. for each step, check if tool exists. if not, trigger tool generation pipeline. execute step. return result.
+
+the interesting parts are in the supporting systems
+
+- **semantic search** the tool registry is backed by pgvector. when the agent needs to find a tool, it embeds the task description and retrieves the closest matches by meaning, not keywords. "analyze csv" and "examine spreadsheet" find the same tool
+- **conversational memory** maintains context across multi-turn interactions so users can reference previous results naturally
+- **reflection engine** when tools fail in production, it analyzes the error, generates a fix, verifies in sandbox, and updates the tool automatically
+- **workflow patterns** detects when tools are used in consistent sequences and can promote these patterns to composite tools
+
+**security model**
+
+ai-generated code is inherently untrusted, so the sandbox is aggressive. each execution runs in a fresh docker container that's destroyed after. network completely disabled. filesystem read-only except /tmp. cpu and memory hard-capped. 30-second timeout. containers run as non-root with no sudo access. the ~2 second container startup overhead is acceptable for the isolation guarantee.
+
+**what i learned**
+
 - llms are surprisingly good at writing focused, single-purpose functions
 - the hard part is the test harness, not the generation
-- docker overhead is real (~2s per execution), but acceptable for the safety guarantees
-- tool descriptions matter more than implementations for retrieval
+- docker overhead is real but worth it for safety
+- tool descriptions matter more than implementations for retrieval. the embedding of "calculate profit margin from csv" is what enables semantic discovery
+- tdd works even better for ai than for humans because tests provide unambiguous success criteria
 
-**stack:** python, docker sdk, openai api, pgvector, fastapi
-`,
+**stack** python, docker sdk, openai api, pgvector, fastapi, flask, supabase`,
   },
   {
     id: "project-navier-stokes",
