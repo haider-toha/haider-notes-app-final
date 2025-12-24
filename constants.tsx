@@ -230,57 +230,63 @@ the code is messy (academic code always is), but the experience shaped how i thi
   },
   {
     id: "project-fpl-moneyball",
-    slug: "fpl-moneyball",
-    title: "project: fpl moneyball",
+    slug: "fpl-analyser",
+    title: "project: fpl analyser",
     category: "projects",
     folder: "projects",
     public: true,
     session_id: "",
     created_at: "2025-07-22T09:15:00.000Z",
-    content: `i wanted to see if optimisation could beat intuition in fantasy premier league.
+    content: `an advanced fantasy premier league analytics platform that combines machine learning, monte carlo simulations, and mathematical optimisation. what started as a simple optimiser evolved into a full-stack application with real-time data, probabilistic forecasting, and a proper ui.
 
-**the game**
-in fpl, you have a £100m budget to pick 15 players. each gameweek, you field 11 and they earn points based on real-life performance (goals, assists, clean sheets, etc.). simple rules, complex strategy.
+[live site](https://fpl-analyser-frontend.onrender.com/) • [github](https://github.com/haider-toha/fpl-analyser)
 
-**the approach**
-i framed squad selection as an integer linear program (ilp). let $x_i \\in \\{0,1\\}$ indicate whether player $i$ is in the squad and $y_i \\in \\{0,1\\}$ whether they're in the starting 11:
+**the problem**
+fpl is a game of decision-making under uncertainty. you have £100m to pick 15 players. each gameweek, you field 11 and they earn points based on real-life performance. traditional approaches rely on intuition and basic statistics. i wanted to take a quantitative approach and solve three fundamental challenges:
 
-$$\\max \\sum_{i=1}^{n} \\mathbb{E}[\\text{pts}_i] \\cdot y_i$$
+1. **prediction:** estimating how many points each player will score, accounting for form, fixture difficulty, xG, and playing time
+2. **optimisation:** finding the mathematically optimal squad that maximises expected returns while respecting all constraints
+3. **risk assessment:** understanding uncertainty through probability distributions rather than single point estimates
+
+**the expected points model**
+i built a gradient boosting model (xgboost) trained on historical gameweek data. input features include form metrics (recent points, minutes, goals over last 5 gameweeks), underlying statistics (xG, xA, shots, key passes), fixture context (home/away, opponent strength, days since last match), and availability signals (injury news, chance of playing percentage).
+
+separate models for each position group capture position-specific patterns. the model updates as new gameweek data becomes available throughout the season.
+
+**integer linear programming**
+squad selection is formulated as an ilp. let $x_i \\in \\{0,1\\}$ indicate whether player $i$ is selected:
+
+$$\\max \\sum_{i=1}^{n} \\mathbb{E}[\\text{pts}_i] \\cdot x_i$$
 
 subject to:
 
 $$\\sum_{i=1}^{n} c_i \\cdot x_i \\leq 100 \\quad \\text{(budget)}$$
 
-$$\\sum_{i \\in T_j} x_i \\leq 3 \\quad \\forall j \\quad \\text{(max 3 per team)}$$
+$$\\sum_{i \\in T_j} x_i \\leq 3 \\quad \\forall j \\quad \\text{(max 3 per club)}$$
 
-$$y_i \\leq x_i \\quad \\forall i \\quad \\text{(can only start if in squad)}$$
+plus position constraints (2 gk, 5 def, 5 mid, 3 fwd). the pulp library with cbc solver finds optimal solutions in under one second for the full ~700 player pool. unlike heuristics, ilp guarantees the mathematically best squad.
 
-plus positional constraints (1 gk, 3-5 def, 2-5 mid, 1-3 fwd).
+**monte carlo simulation engine**
+point predictions are inherently uncertain. a player expected to score 6 might score anywhere from 0 to 20. the simulation engine runs 10,000 gameweeks, sampling each player's points from a negative binomial distribution (captures the over-dispersion typical in fpl points where variance exceeds the mean).
 
-**data pipeline**
-- scraped historical player data from the fpl api (goals, xG, xA, minutes, fixtures)
-- built an expected points model:
+distribution parameters are derived from expected points (sets the mean), historical variance (gameweek-to-gameweek volatility), and contextual adjustments (higher variance for attackers in high-scoring matches). simulations run in parallel using numpy vectorisation, completing in under 2 seconds.
 
-$$\\mathbb{E}[\\text{pts}_i] = \\alpha \\cdot \\text{form}_i + \\beta \\cdot \\text{fdr}_i + \\gamma \\cdot \\text{hist}_i$$
+the output includes probability distributions, 90% confidence intervals, upside/downside risk, and side-by-side captain comparisons. this helps understand not just what's likely, but the full range of possible outcomes.
 
-where $\\text{fdr}$ is fixture difficulty rating (inverted so easier fixtures score higher) and coefficients were tuned via cross-validation on historical gameweeks
-- updated weekly via aws lambda + eventbridge cron
+**architecture**
+decoupled backend (fastapi) and frontend (next.js) communicating via rest api. the backend handles all fpl api data fetching with caching, runs the ml models, executes optimisation, and performs simulations. the frontend provides a responsive interface with interactive charts (recharts), data fetching managed by tanstack query for caching and background refetching.
 
-**solver**
-used pulp (python linear programming library) with the cbc backend. solves in <1s for the full player pool (~700 players).
-
-**extensions i added**
-- **transfer planning:** multi-week lookahead to account for fixture swings. when to hold, when to sell
-- **captain optimisation:** not just who to pick, but who to captain (double points)
-- **chip timing:** when to play wildcards, bench boost, triple captain based on fixture clusters
-- **differential picks:** added constraints to avoid template teams. sometimes the optimal move is to zig when others zag
+**features beyond the core**
+- **live gameweek tracking:** real-time scores, bonus point predictions from bps standings, fixture status
+- **mini-league analytics:** standings, manager comparison, rank projections based on remaining fixtures
+- **value over replacement rankings:** measures how many more points a player scores vs replacement-level at their position
+- **fixture difficulty analysis:** aggregate fdr over multiple gameweeks to identify favorable runs
+- **chip strategy recommendations:** when to use bench boost, triple captain, free hit, wildcard based on fixture patterns and dgws
 
 **results**
-- consistently finished top 100k (out of ~10m players) without spending hours on team selection
-- beat my manual decisions in 75% of gameweeks
-- the edge comes from discipline because the model doesn't get attached to players or chase last week's haul
+consistently finished top 100k (out of ~10m players) without spending hours on team selection. the edge comes from discipline—the model doesn't get attached to players or chase last week's haul. beat my manual decisions in 75% of gameweeks.
 
-**stack:** python, pulp, pandas, aws lambda, s3, the fpl api`,
+**stack:** python, fastapi, xgboost, pulp, numpy, next.js, typescript, tailwind, tanstack query, recharts, render`,
   },
   {
     id: "project-sentiment-engine",
