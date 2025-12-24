@@ -27,13 +27,13 @@ london, uk
 
 founding engineer at sammy labs (yc w25). i write code across the stack, from typescript on the frontend to python on the backend with postgres underneath. most of my time goes into building features end-to-end, designing the interface, writing the api, optimising the queries and making sure it holds up in production.
 
-my background is aeronautics (imperial college). designing systems that can't afford to fail taught me to think about failure modes first, asking what breaks, when, and how you recover gracefully. i’ve since worked at goldman sachs (scale, process, reliability) and built my own ventures from zero (speed, scrappiness, shipping daily). both shaped how i write code.
+my background is aeronautics (imperial college). designing systems that can't afford to fail taught me to think about failure modes first, asking what breaks, when and how you recover gracefully. i’ve since worked at goldman sachs (scale, process, reliability) and built my own ventures from zero (speed, scrappiness, shipping daily). both shaped how i write code.
 
 i spend about a third of my time with customers, on calls, debugging their issues live, understanding what's actually blocking them vs what they say is blocking them. the best features i've shipped came from watching someone struggle with the product.
 
-what i care about is clean abstractions, fast feedback loops, and code that's easy to delete. i'd rather ship something small that works than something ambitious that doesn't.
+what i care about is clean abstractions, fast feedback loops and code that's easy to delete. i'd rather ship something small that works than something ambitious that doesn't.
 
-outside of work i'm usually at the gym, playing cricket, or on late-night walks through hyde park when i need to think. i coach my local kids football team, which is the most grounding thing i do each week. recently started gliding and working towards my pilot’s licence.
+outside of work i'm usually at the gym, playing cricket or on late-night walks through hyde park when i need to think. i coach my local kids football team, which is the most grounding thing i do each week. recently started gliding and working towards my pilot’s licence.
 
 i read too much. mostly history, philosophy and whatever rabbit hole has me that week.`,
   },
@@ -49,7 +49,7 @@ i read too much. mostly history, philosophy and whatever rabbit hole has me that
     content: `
 
 **ai evals**
-obsessed with how we actually measure whether models work. most eval suites test the wrong thing or test the right thing badly. i've been building harnesses that catch regressions before they ship, using synthetic datasets designed to probe specific failure modes. the interesting question isn't "is this model good" but "good enough for what, and how would we know?" the gap between impressive demo and production-reliable is almost always an eval problem nobody bothered to define properly.
+obsessed with how we actually measure whether models work. most eval suites test the wrong thing or test the right thing badly. i've been building harnesses that catch regressions before they ship, using synthetic datasets designed to probe specific failure modes. the interesting question isn't "is this model good" but "good enough for what and how would we know?" the gap between impressive demo and production-reliable is almost always an eval problem nobody bothered to define properly.
 
 **browser agents**
 trying to make browser automation less brittle. the dom is hostile, sites mutate constantly and linear scripts shatter on first contact. i'm modelling navigation as graph traversal where each node is a page state and edges are actions with verification conditions. the agent maintains a belief state and can backtrack or replan when something breaks. still early but it's already more robust than anything i've used off the shelf.
@@ -237,19 +237,19 @@ the code is messy (academic code always is), but the experience shaped how i thi
     public: true,
     session_id: "",
     created_at: "2025-07-22T09:15:00.000Z",
-    content: `an advanced fantasy premier league analytics platform that combines machine learning, monte carlo simulations, and mathematical optimisation. what started as a simple optimiser evolved into a full-stack application with real-time data, probabilistic forecasting, and a proper ui.
+    content: `an advanced fantasy premier league analytics platform that combines machine learning, monte carlo simulations and mathematical optimisation. what started as a simple optimiser evolved into a full-stack application with real-time data, probabilistic forecasting and a proper ui.
 
 [live site](https://fpl-analyser-frontend.onrender.com/) • [github](https://github.com/haider-toha/fpl-analyser)
 
 **the problem**
 fpl is a game of decision-making under uncertainty. you have £100m to pick 15 players. each gameweek, you field 11 and they earn points based on real-life performance. traditional approaches rely on intuition and basic statistics. i wanted to take a quantitative approach and solve three fundamental challenges:
 
-1. **prediction:** estimating how many points each player will score, accounting for form, fixture difficulty, xG, and playing time
+1. **prediction:** estimating how many points each player will score, accounting for form, fixture difficulty, xG and playing time
 2. **optimisation:** finding the mathematically optimal squad that maximises expected returns while respecting all constraints
 3. **risk assessment:** understanding uncertainty through probability distributions rather than single point estimates
 
 **the expected points model**
-i built a gradient boosting model (xgboost) trained on historical gameweek data. input features include form metrics (recent points, minutes, goals over last 5 gameweeks), underlying statistics (xG, xA, shots, key passes), fixture context (home/away, opponent strength, days since last match), and availability signals (injury news, chance of playing percentage).
+i built a gradient boosting model (xgboost) trained on historical gameweek data. input features include form metrics (recent points, minutes, goals over last 5 gameweeks), underlying statistics (xG, xA, shots, key passes), fixture context (home/away, opponent strength, days since last match) and availability signals (injury news, chance of playing percentage).
 
 separate models for each position group capture position-specific patterns. the model updates as new gameweek data becomes available throughout the season.
 
@@ -269,12 +269,12 @@ plus position constraints (2 gk, 5 def, 5 mid, 3 fwd). the pulp library with cbc
 **monte carlo simulation engine**
 point predictions are inherently uncertain. a player expected to score 6 might score anywhere from 0 to 20. the simulation engine runs 10,000 gameweeks, sampling each player's points from a negative binomial distribution (captures the over-dispersion typical in fpl points where variance exceeds the mean).
 
-distribution parameters are derived from expected points (sets the mean), historical variance (gameweek-to-gameweek volatility), and contextual adjustments (higher variance for attackers in high-scoring matches). simulations run in parallel using numpy vectorisation, completing in under 2 seconds.
+distribution parameters are derived from expected points (sets the mean), historical variance (gameweek-to-gameweek volatility) and contextual adjustments (higher variance for attackers in high-scoring matches). simulations run in parallel using numpy vectorisation, completing in under 2 seconds.
 
-the output includes probability distributions, 90% confidence intervals, upside/downside risk, and side-by-side captain comparisons. this helps understand not just what's likely, but the full range of possible outcomes.
+the output includes probability distributions, 90% confidence intervals, upside/downside risk and side-by-side captain comparisons. this helps understand not just what's likely, but the full range of possible outcomes.
 
 **architecture**
-decoupled backend (fastapi) and frontend (next.js) communicating via rest api. the backend handles all fpl api data fetching with caching, runs the ml models, executes optimisation, and performs simulations. the frontend provides a responsive interface with interactive charts (recharts), data fetching managed by tanstack query for caching and background refetching.
+decoupled backend (fastapi) and frontend (next.js) communicating via rest api. the backend handles all fpl api data fetching with caching, runs the ml models, executes optimisation and performs simulations. the frontend provides a responsive interface with interactive charts (recharts), data fetching managed by tanstack query for caching and background refetching.
 
 **features beyond the core**
 - **live gameweek tracking:** real-time scores, bonus point predictions from bps standings, fixture status
@@ -284,7 +284,7 @@ decoupled backend (fastapi) and frontend (next.js) communicating via rest api. t
 - **chip strategy recommendations:** when to use bench boost, triple captain, free hit, wildcard based on fixture patterns and dgws
 
 **results**
-consistently finished top 100k (out of ~10m players) without spending hours on team selection. the edge comes from discipline—the model doesn't get attached to players or chase last week's haul. beat my manual decisions in 75% of gameweeks.
+consistently finished top 100k (out of ~10m players) without spending hours on team selection. the edge comes from discipline: the model doesn't get attached to players or chase last week's haul. beat my manual decisions in 75% of gameweeks.
 
 **stack:** python, fastapi, xgboost, pulp, numpy, next.js, typescript, tailwind, tanstack query, recharts, render`,
   },
@@ -355,7 +355,7 @@ i wanted to build something visually striking that also required solid backend e
     content: `a knowledge graph that maps the relationships between recipes, showing which dishes influenced which, what ingredients they share and how culinary traditions evolve.
 
 **origin**
-i was reading about the history of biryani, how it has mughal, persian and south indian roots, and wondered if you could map these influences computationally. not just for biryani, but for thousands of recipes across cuisines.
+i was reading about the history of biryani, how it has mughal, persian and south indian roots and wondered if you could map these influences computationally. not just for biryani, but for thousands of recipes across cuisines.
 
 **approach**
 
@@ -668,7 +668,7 @@ we are witnessing the transition from processing discrete symbols to reasoning i
     created_at: "2025-08-03T14:47:00.000Z",
     content: `if you have been following the breathless hype cycles of ai, you are likely exhausted. i know i am. but what happened in australia this year is different. openai and google deepmind achieved scores equivalent to a imo gold medal, solving problems that stump the smartest 18-year-olds on the planet [1].
 
-but here is the catch, and it is the subject of today's deep dive. they completely face-planted on problem 6.
+but here is the catch and it is the subject of today's deep dive. they completely face-planted on problem 6.
 
 this dichotomy (perfection on five problems and a "hard zero" on the sixth) is the most important signal we have regarding the current state of artificial intelligence. it reveals exactly where the "cognitive threshold" lies. in this post, i am going to tear down the architecture that got us here, rigorously derive the math behind the problem that stumped the machine and map this all back to what it means for us in software engineering.
 
