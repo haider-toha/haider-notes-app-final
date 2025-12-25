@@ -12,12 +12,28 @@ import katex from "katex";
 import "katex/dist/katex.min.css";
 import mermaid from "mermaid";
 
-// Initialize mermaid with dark/light theme support
+// Initialize mermaid with dark theme
 mermaid.initialize({
   startOnLoad: false,
-  theme: "neutral",
+  theme: "base",
   securityLevel: "loose",
   fontFamily: "inherit",
+  themeVariables: {
+    primaryColor: "#1a1a1a",
+    primaryTextColor: "#ffffff",
+    primaryBorderColor: "#333333",
+    lineColor: "#444444",
+    secondaryColor: "#2a2a2a",
+    tertiaryColor: "#1a1a1a",
+    background: "#0a0a0a",
+    mainBkg: "#1a1a1a",
+    secondBkg: "#2a2a2a",
+    nodeBorder: "#444444",
+    clusterBkg: "#1a1a1a",
+    clusterBorder: "#333333",
+    titleColor: "#ffffff",
+    edgeLabelBackground: "#1a1a1a",
+  },
 });
 
 interface MainContentProps {
@@ -38,16 +54,31 @@ const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) 
       if (!containerRef.current) return;
       
       try {
-        // Check if dark mode is active
-        const isDark = document.documentElement.classList.contains("dark");
+        // Use dark/black theme for diagrams
         mermaid.initialize({
           startOnLoad: false,
-          theme: isDark ? "dark" : "neutral",
+          theme: "base",
           securityLevel: "loose",
           fontFamily: "inherit",
           flowchart: {
             htmlLabels: true,
             curve: "basis",
+          },
+          themeVariables: {
+            primaryColor: "#1a1a1a",
+            primaryTextColor: "#ffffff",
+            primaryBorderColor: "#333333",
+            lineColor: "#444444",
+            secondaryColor: "#2a2a2a",
+            tertiaryColor: "#1a1a1a",
+            background: "#0a0a0a",
+            mainBkg: "#1a1a1a",
+            secondBkg: "#2a2a2a",
+            nodeBorder: "#444444",
+            clusterBkg: "#1a1a1a",
+            clusterBorder: "#333333",
+            titleColor: "#ffffff",
+            edgeLabelBackground: "#1a1a1a",
           },
         });
 
