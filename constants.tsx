@@ -145,7 +145,7 @@ built an ai tutoring product from scratch and grew it to 50+ paying customers. h
 
 **the idea**
 
-not just calling tools, but detecting when it needs a capability it doesn't have, generating the implementation, validating it, and only then using it. the key insight was using test-driven development. by generating tests first, the agent has an unambiguous specification of what the code must do. code either passes or fails. no subjective quality judgments.
+not just calling tools, but detecting when it needs a capability it doesn't have, generating the implementation, validating it and only then using it. the key insight was using test-driven development. by generating tests first, the agent has an unambiguous specification of what the code must do. code either passes or fails. no subjective quality judgments.
 
 **how it works**
 
@@ -165,7 +165,7 @@ the interesting parts are in the supporting systems
 
 - **semantic search** the tool registry is backed by pgvector. when the agent needs to find a tool, it embeds the task description and retrieves the closest matches by meaning, not keywords. "analyze csv" and "examine spreadsheet" find the same tool
 - **conversational memory** maintains context across multi-turn interactions so users can reference previous results naturally
-- **reflection engine** when tools fail in production, it analyzes the error, generates a fix, verifies in sandbox, and updates the tool automatically
+- **reflection engine** when tools fail in production, it analyzes the error, generates a fix, verifies in sandbox and updates the tool automatically
 - **workflow patterns** detects when tools are used in consistent sequences and can promote these patterns to composite tools
 
 **security model**
@@ -253,11 +253,11 @@ the code is messy (academic code always is), but the experience shaped how i thi
 [live site](https://fpl-analyser-frontend.onrender.com/) • [github](https://github.com/haider-toha/fpl-analyser)
 
 **the problem**
-fpl is a game of decision-making under uncertainty. you have £100m to pick 15 players. each gameweek, you field 11 and they earn points based on real-life performance. traditional approaches rely on intuition and basic statistics. i wanted to take a quantitative approach and solve three fundamental challenges:
+fpl is a game of decision-making under uncertainty. you have £100m to pick 15 players. each gameweek, you field 11 and they earn points based on real-life performance. traditional approaches rely on intuition and basic statistics. i wanted to take a quantitative approach and solve three fundamental challenges
 
-1. **prediction:** estimating how many points each player will score, accounting for form, fixture difficulty, xG and playing time
-2. **optimisation:** finding the mathematically optimal squad that maximises expected returns while respecting all constraints
-3. **risk assessment:** understanding uncertainty through probability distributions rather than single point estimates
+1. **prediction** estimating how many points each player will score, accounting for form, fixture difficulty, xG and playing time
+2. **optimisation** finding the mathematically optimal squad that maximises expected returns while respecting all constraints
+3. **risk assessment** understanding uncertainty through probability distributions rather than single point estimates
 
 **the expected points model**
 i built a gradient boosting model (xgboost) trained on historical gameweek data. input features include form metrics (recent points, minutes, goals over last 5 gameweeks), underlying statistics (xG, xA, shots, key passes), fixture context (home/away, opponent strength, days since last match) and availability signals (injury news, chance of playing percentage).
@@ -265,11 +265,11 @@ i built a gradient boosting model (xgboost) trained on historical gameweek data.
 separate models for each position group capture position-specific patterns. the model updates as new gameweek data becomes available throughout the season.
 
 **integer linear programming**
-squad selection is formulated as an ilp. let $x_i \\in \\{0,1\\}$ indicate whether player $i$ is selected:
+squad selection is formulated as an ilp. let $x_i \\in \\{0,1\\}$ indicate whether player $i$ is selected
 
 $$\\max \\sum_{i=1}^{n} \\mathbb{E}[\\text{pts}_i] \\cdot x_i$$
 
-subject to:
+subject to
 
 $$\\sum_{i=1}^{n} c_i \\cdot x_i \\leq 100 \\quad \\text{(budget)}$$
 
@@ -287,17 +287,25 @@ the output includes probability distributions, 90% confidence intervals, upside/
 **architecture**
 decoupled backend (fastapi) and frontend (next.js) communicating via rest api. the backend handles all fpl api data fetching with caching, runs the ml models, executes optimisation and performs simulations. the frontend provides a responsive interface with interactive charts (recharts), data fetching managed by tanstack query for caching and background refetching.
 
+**transfer predictions**
+multi-gameweek fixture analysis that generates actionable transfer recommendations
+
+- **fixture swing analysis** identifies teams whose fixtures are improving or worsening, highlighting when to buy into easy runs and sell before difficult schedules
+- **transfer recommendations** generates suggestions with urgency levels (immediate, soon, plan ahead), expected point gains and reasoning based on fixture context
+- **rotation pairs** finds player pairs at each position who complement each other's fixtures, enabling smart bench rotation
+- **fixture-based differentials** surfaces low-ownership players with favorable upcoming fixtures for differential opportunities
+
 **features beyond the core**
-- **live gameweek tracking:** real-time scores, bonus point predictions from bps standings, fixture status
-- **mini-league analytics:** standings, manager comparison, rank projections based on remaining fixtures
-- **value over replacement rankings:** measures how many more points a player scores vs replacement-level at their position
-- **fixture difficulty analysis:** aggregate fdr over multiple gameweeks to identify favorable runs
-- **chip strategy recommendations:** when to use bench boost, triple captain, free hit, wildcard based on fixture patterns and dgws
+- **live gameweek tracking** real-time scores, bonus point predictions from bps standings, fixture status
+- **mini-league analytics** standings, manager comparison, rank projections based on remaining fixtures
+- **value over replacement rankings** measures how many more points a player scores vs replacement-level at their position
+- **fixture difficulty analysis** aggregate fdr over multiple gameweeks to identify favorable runs
+- **chip strategy recommendations** when to use bench boost, triple captain, free hit, wildcard based on fixture patterns and dgws
 
 **results**
 consistently finished top 100k (out of ~10m players) without spending hours on team selection. the edge comes from discipline so the model doesn't get attached to players or chase last week's haul. beat my manual decisions in 75% of gameweeks.
 
-**stack:** python, fastapi, xgboost, pulp, numpy, next.js, typescript, tailwind, tanstack query, recharts, render`,
+**stack** python, fastapi, pydantic, xgboost, pulp, numpy, httpx, next.js, react, typescript, tailwind, tanstack query, recharts, radix ui, render`,
   },
   {
     id: "project-sentiment-engine",
