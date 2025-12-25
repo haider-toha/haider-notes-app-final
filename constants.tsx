@@ -930,6 +930,155 @@ database growth averages ~2kb per article, 1000-3000 articles per hour, 50-150mb
 **stack:** python 3.10+, fastapi, uvicorn, sqlalchemy 2.0, apscheduler, pytorch 2.0, transformers 4.37+, httpx | next.js 14, react three fiber, three.js, tailwindcss 3.4, swr, typescript 5`,
   },
   {
+    id: "project-merkle-sync",
+    slug: "merkle-sync",
+    title: "project: merkle sync, a peer-to-peer file synchronization protocol",
+    category: "projects",
+    folder: "projects",
+    public: true,
+    session_id: "",
+    created_at: "2025-05-03T11:45:00.000Z",
+    content: `a decentralized file synchronization engine built from scratch. no http, no rest, no json, no central server. just raw tcp, udp multicast and merkle trees - the same cryptographic data structure that powers git and bitcoin.
+
+[github](https://github.com/haider-toha/merkle-sync)
+
+---
+
+**why build this**
+
+every sync tool felt like magic. dropbox, syncthing, rsync - they just work. but i wanted to understand the primitives. how do you verify a terabyte of data by comparing a single 32-byte hash? how do peers discover each other without a central server? what happens when a connection dies halfway through a file transfer?
+
+this project answers those questions by building a sync engine from first principles.
+
+---
+
+**the core idea**
+
+a merkle tree is a hash tree where every file gets hashed, then folders get hashed from their children's hashes, bubbling up to a single root hash. the key property is that changing one byte in one file changes the root hash.
+
+\`\`\`mermaid
+flowchart TB
+    subgraph Before["BEFORE"]
+        R1["root = a3f2..."]
+        D1["docs/ = 7b1c..."]
+        D2["src/ = e4d9..."]
+        F1["readme.md"]
+        F2["notes.txt = 9c3e..."]
+        F3["main.go"]
+        R1 --> D1 & D2
+        D1 --> F1 & F2
+        D2 --> F3
+    end
+    
+    subgraph After["AFTER editing notes.txt"]
+        R2["root = f7b1... CHANGED"]
+        D3["docs/ = 4e2a... CHANGED"]
+        D4["src/ = e4d9... unchanged"]
+        F4["readme.md"]
+        F5["notes.txt = c8d2... CHANGED"]
+        F6["main.go"]
+        R2 --> D3 & D4
+        D3 --> F4 & F5
+        D4 --> F6
+    end
+\`\`\`
+
+to find what changed between two machines, compare root hashes. if they match, you are done. if they differ, compare children. recurse only into mismatching branches until you find the exact files that differ.
+
+this gives you $O(\\log n)$ verification. for 10,000 files, you compare maybe 50 hashes instead of reading 10,000 files. for a terabyte of data, two peers can confirm they are in sync by exchanging 32 bytes.
+
+---
+
+**the four layers**
+
+\`\`\`mermaid
+flowchart LR
+    subgraph D["1. DISCOVERY"]
+        UDP["UDP multicast"]
+        Peers["peer registry"]
+    end
+    subgraph S["2. STATE"]
+        Watch["file watcher"]
+        Tree["merkle tree"]
+    end
+    subgraph T["3. TRANSPORT"]
+        TCP["tcp + binary framing"]
+        Proto["custom protocol"]
+    end
+    subgraph R["4. RECONCILIATION"]
+        Diff["tree diff"]
+        Stream["chunk streaming"]
+    end
+    D --> T
+    S --> R
+    T --> R
+\`\`\`
+
+**discovery** - peers broadcast their presence via udp multicast every 5 seconds. no configuration needed. any machine on the local network automatically discovers others. if a peer goes silent for 30 seconds, it gets evicted from the registry.
+
+**state** - a file watcher monitors the synced folder. any change triggers a tree rebuild, updating hashes from the changed file up to the root. the new root hash gets broadcast to connected peers.
+
+**transport** - a custom binary protocol over tcp. each message is just \`[4-byte length][1-byte type][payload]\` with no http headers, no json parsing, no overhead. seven message types handle everything.
+
+**reconciliation** - when root hashes differ, the diff algorithm walks both trees in parallel, drilling into mismatching branches until it identifies the exact files to transfer. files stream in 32kb chunks (never loaded fully into memory) and write to a temp file that gets atomically renamed on completion.
+
+---
+
+**the hard parts**
+
+building a sync engine is easy until things break. the interesting work is handling failure modes.
+
+| failure | solution |
+|---------|----------|
+| file changes during sync | rwmutex on tree separating readers (sync) from writers (watcher) |
+| connection dies mid-transfer | write to temp file, atomic rename on success, delete temp on failure |
+| sync loop (A syncs B syncs A...) | only trigger sync if local hash actually changed |
+| large files exhaust memory | 32kb streaming chunks, never buffer whole file |
+| peer disappears | 30-second heartbeat timeout, automatic eviction |
+
+the invariant that prevents infinite sync loops is subtle but critical. a peer only broadcasts its hash after a local change. receiving a file from someone else does not count as a local change until the transfer completes and the tree rebuilds with the new file.
+
+---
+
+**performance**
+
+| metric | value |
+|--------|-------|
+| tree build | ~2s for 10k files |
+| verification | $O(\\log n)$ hash comparisons |
+| throughput | saturates gigabit ethernet |
+| memory | ~50 bytes per file in tree |
+| discovery | 0-5 seconds |
+
+the bandwidth savings are dramatic. to verify 100,000 files totaling 1tb, a naive approach reads every byte. merkle sync exchanges maybe 100 hashes (3.2kb) to identify what differs, then transfers only changed files.
+
+---
+
+**design choices**
+
+*why go?* goroutines map naturally to concurrent listeners (udp discovery, tcp connections, filesystem watcher). the standard library has everything needed with no external dependencies except fsnotify for cross-platform file watching.
+
+*why not grpc?* seven message types do not justify a code generator and runtime. hand-rolled binary framing is ~200 lines.
+
+*why sha256 over faster hashes?* security by default. if peers do not fully trust each other, a fast non-cryptographic hash like xxhash could be spoofed. optimize later if needed.
+
+*why udp multicast over mdns?* simplicity. mdns requires implementing dns-sd. multicast is 50 lines and works on any local network.
+
+---
+
+**what i learned**
+
+- **tcp is bytes, not messages.** you must frame your own message boundaries. off-by-one in length parsing corrupts everything downstream.
+
+- **merkle trees are everywhere.** git uses them for commits, bitcoin for block verification, certificate transparency for audit logs. once you build one, you see them everywhere.
+
+- **failure handling is the real work.** the happy path is 20% of the code. the other 80% is what happens when connections drop, files change mid-sync, or memory runs low.
+
+- **binary protocols are not scary.** http hides complexity but adds overhead. for internal protocols, rolling your own is simpler than it sounds.
+
+**stack** - go, net (tcp/udp), crypto/sha256, encoding/gob, sync, fsnotify`,
+  },
+  {
     id: "blog-minimax-m2",
     slug: "minimax-m2-paradigm",
     title: "blog: minimax m2  - 230b params, 10b cost, agents finally make sense",
