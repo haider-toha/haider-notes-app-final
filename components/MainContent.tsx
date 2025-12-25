@@ -154,17 +154,17 @@ const DiagramModal: React.FC<{
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      {/* Close button */}
+      {/* Close button - positioned below the fixed header (h-12 = 48px) */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+        className="absolute top-16 right-4 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
         title="Close (Esc)"
       >
         <X className="w-6 h-6" />
       </button>
 
       {/* Zoom indicator */}
-      <div className="absolute top-4 left-4 z-[110] text-white/50 text-sm bg-black/50 px-3 py-1.5 rounded-full">
+      <div className="absolute top-16 left-4 z-[110] text-white/50 text-sm bg-black/50 px-3 py-1.5 rounded-full">
         {Math.round(scale * 100)}%
       </div>
 
@@ -172,7 +172,7 @@ const DiagramModal: React.FC<{
       {(scale !== 1 || position.x !== 0 || position.y !== 0) && (
         <button
           onClick={handleReset}
-          className="absolute top-4 left-20 z-[110] text-white/50 hover:text-white text-sm bg-black/50 hover:bg-black/70 px-3 py-1.5 rounded-full transition-colors"
+          className="absolute top-16 left-20 z-[110] text-white/50 hover:text-white text-sm bg-black/50 hover:bg-black/70 px-3 py-1.5 rounded-full transition-colors"
         >
           Reset
         </button>
