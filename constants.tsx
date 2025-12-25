@@ -930,55 +930,6 @@ database growth averages ~2kb per article, 1000-3000 articles per hour, 50-150mb
 **stack:** python 3.10+, fastapi, uvicorn, sqlalchemy 2.0, apscheduler, pytorch 2.0, transformers 4.37+, httpx | next.js 14, react three fiber, three.js, tailwindcss 3.4, swr, typescript 5`,
   },
   {
-    id: "project-recipe-ancestry",
-    slug: "recipe-ancestry-graph",
-    title: "project: recipe ancestry graph",
-    category: "projects",
-    folder: "projects",
-    public: true,
-    session_id: "",
-    created_at: "2025-05-01T11:45:00.000Z",
-    content: `a knowledge graph that maps the relationships between recipes, showing which dishes influenced which, what ingredients they share and how culinary traditions evolve.
-
-**origin**
-i was reading about the history of biryani, how it has mughal, persian and south indian roots and wondered if you could map these influences computationally. not just for biryani, but for thousands of recipes across cuisines.
-
-**approach**
-
-*data collection*
-- scraped ~50k recipes from allrecipes, bbc good food and regional cooking sites
-- used selenium for javascript-heavy sites, beautifulsoup for static ones
-- normalised ingredient names (chicken breast, breast of chicken, boneless chicken → chicken)
-
-*entity extraction*
-- trained a spacy ner model to extract ingredients, techniques and cuisine markers
-- custom entity labels: INGREDIENT, TECHNIQUE, REGION, DISH_TYPE
-- f1 score of 0.89 on a hand-labelled test set of 500 recipes
-
-*graph construction*
-- nodes: recipes, ingredients, techniques, cuisines
-- edges: recipe-contains-ingredient, recipe-uses-technique, recipe-belongs-to-cuisine, recipe-inspired-by-recipe
-- "inspired by" edges are inferred from ingredient and technique overlap + historical data
-
-*similarity scoring*
-- jaccard similarity on ingredient sets as a baseline
-- tf-idf weighted similarity for better precision (common ingredients like salt matter less)
-- graph-based similarity using node2vec embeddings for capturing multi-hop relationships
-
-**visualisation**
-- d3.js force-directed graph for exploration
-- click a recipe to see its ancestors and descendants
-- filter by cuisine, ingredient or time period
-- fastapi backend for search and graph traversal queries
-
-**interesting findings**
-- many "national dishes" have surprising foreign roots (e.g., japanese curry via british navy via india)
-- techniques travel faster than ingredients (fermentation, smoking, frying appear across unconnected cuisines)
-- fusion cuisines cluster predictably (indo-chinese, tex-mex) but sometimes reveal unexpected bridges
-
-**stack:** python, spacy, networkx, d3.js, fastapi, beautifulsoup, selenium`,
-  },
-  {
     id: "blog-minimax-m2",
     slug: "minimax-m2-paradigm",
     title: "blog: minimax m2  - 230b params, 10b cost, agents finally make sense",
