@@ -13,28 +13,10 @@ import katex from "katex";
 import "katex/dist/katex.min.css";
 import mermaid from "mermaid";
 
-// Initialize mermaid with dark theme
+// Initialize mermaid (theme is set dynamically in MermaidDiagram component)
 mermaid.initialize({
   startOnLoad: false,
-  theme: "base",
   securityLevel: "loose",
-  fontFamily: "inherit",
-  themeVariables: {
-    primaryColor: "#1a1a1a",
-    primaryTextColor: "#ffffff",
-    primaryBorderColor: "#333333",
-    lineColor: "#444444",
-    secondaryColor: "#2a2a2a",
-    tertiaryColor: "#1a1a1a",
-    background: "#0a0a0a",
-    mainBkg: "#1a1a1a",
-    secondBkg: "#2a2a2a",
-    nodeBorder: "#444444",
-    clusterBkg: "#1a1a1a",
-    clusterBorder: "#333333",
-    titleColor: "#ffffff",
-    edgeLabelBackground: "#1a1a1a",
-  },
 });
 
 interface MainContentProps {
@@ -204,18 +186,68 @@ const DiagramModal: React.FC<{
   );
 };
 
+// Theme variables for Mermaid diagrams
+const darkThemeVariables = {
+  primaryColor: "#1a1a1a",
+  primaryTextColor: "#ffffff",
+  primaryBorderColor: "#333333",
+  lineColor: "#444444",
+  secondaryColor: "#2a2a2a",
+  tertiaryColor: "#1a1a1a",
+  background: "#0a0a0a",
+  mainBkg: "#1a1a1a",
+  secondBkg: "#2a2a2a",
+  nodeBorder: "#444444",
+  clusterBkg: "#1a1a1a",
+  clusterBorder: "#333333",
+  titleColor: "#ffffff",
+  edgeLabelBackground: "#1a1a1a",
+};
+
+const lightThemeVariables = {
+  primaryColor: "#f5f5f5",
+  primaryTextColor: "#1a1a1a",
+  primaryBorderColor: "#cccccc",
+  lineColor: "#888888",
+  secondaryColor: "#e8e8e8",
+  tertiaryColor: "#f0f0f0",
+  background: "#ffffff",
+  mainBkg: "#f5f5f5",
+  secondBkg: "#e8e8e8",
+  nodeBorder: "#999999",
+  clusterBkg: "#f8f8f8",
+  clusterBorder: "#cccccc",
+  titleColor: "#1a1a1a",
+  edgeLabelBackground: "#ffffff",
+};
+
 // Mermaid Diagram Component
 const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: string) => void }> = ({ chart, id, onExpand }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
+
+  // Listen for theme changes
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === "class") {
+          setIsDark(document.documentElement.classList.contains("dark"));
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const renderDiagram = async () => {
       if (!containerRef.current) return;
       
       try {
-        // Use dark/black theme for diagrams
+        // Use theme-aware colors for diagrams
         mermaid.initialize({
           startOnLoad: false,
           theme: "base",
@@ -225,25 +257,10 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
             htmlLabels: true,
             curve: "basis",
           },
-          themeVariables: {
-            primaryColor: "#1a1a1a",
-            primaryTextColor: "#ffffff",
-            primaryBorderColor: "#333333",
-            lineColor: "#444444",
-            secondaryColor: "#2a2a2a",
-            tertiaryColor: "#1a1a1a",
-            background: "#0a0a0a",
-            mainBkg: "#1a1a1a",
-            secondBkg: "#2a2a2a",
-            nodeBorder: "#444444",
-            clusterBkg: "#1a1a1a",
-            clusterBorder: "#333333",
-            titleColor: "#ffffff",
-            edgeLabelBackground: "#1a1a1a",
-          },
+          themeVariables: isDark ? darkThemeVariables : lightThemeVariables,
         });
 
-        const { svg } = await mermaid.render(`mermaid-${id}`, chart);
+        const { svg } = await mermaid.render(`mermaid-${id}-${isDark ? 'dark' : 'light'}`, chart);
         setSvg(svg);
         setError(null);
       } catch (err) {
@@ -253,7 +270,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
     };
 
     renderDiagram();
-  }, [chart, id]);
+  }, [chart, id, isDark]);
 
   if (error) {
     return (
