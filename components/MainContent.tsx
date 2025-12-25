@@ -67,11 +67,11 @@ const DiagramModal: React.FC<{
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center"
+      className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center"
       onClick={onClose}
     >
       {/* Controls */}
-      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-[110]">
         <span className="text-white/50 text-sm mr-2">{Math.round(scale * 100)}%</span>
         <button
           onClick={(e) => {
