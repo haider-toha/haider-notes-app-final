@@ -162,7 +162,7 @@ flowchart LR
     end
 \`\`\`
 
-this process typically takes hours to days per new capability. for organizations needing dozens of specialized tools, this becomes unsustainable.
+this process typically takes hours to days per new capability. for organizations needing dozens of specialised tools, this becomes unsustainable.
 
 | factor | traditional approach | self-engineering |
 |--------|---------------------|------------------|
@@ -513,7 +513,7 @@ flowchart TB
 
 **data pipeline**
 
-the fpl api provides all player, team and fixture data. the pipeline ingests raw json, normalizes types and foreign keys, calculates derived metrics via ml models, caches with ttl-based expiration and serves via json responses.
+the fpl api provides all player, team and fixture data. the pipeline ingests raw json, normalises types and foreign keys, calculates derived metrics via ml models, caches with ttl-based expiration and serves via json responses.
 
 | endpoint | data | update frequency | cache ttl |
 |----------|------|------------------|-----------|
@@ -708,7 +708,7 @@ consistently finished top 100k (out of ~10m players) without spending hours on t
     public: true,
     session_id: "",
     created_at: "2025-06-10T16:30:00.000Z",
-    content: `a real-time nlp pipeline that ingests multilingual news and social content from 150+ countries, performs gpu-accelerated transformer-based sentiment analysis, aggregates results by country and time and visualizes global emotional state on an interactive webgl 3d globe.
+    content: `a real-time nlp pipeline that ingests multilingual news and social content from 150+ countries, performs gpu-accelerated transformer-based sentiment analysis, aggregates results by country and time and visualises global emotional state on an interactive webgl 3d globe.
 
 [github](https://github.com/haider-toha/sentiment-engine) • [live site](https://sentiment-engine-frontend.onrender.com/)
 
@@ -725,20 +725,20 @@ flowchart TB
         HN["Hacker News"]
         Bluesky["Bluesky<br/>AT Proto"]
         Lemmy["Lemmy<br/>API"]
-        Normalizer["Article Normalizer<br/>Dedup, Country Detect"]
+        Normaliser["Article Normaliser<br/>Dedup, Country Detect"]
         
-        RSS --> Normalizer
-        Reddit --> Normalizer
-        Mastodon --> Normalizer
-        HN --> Normalizer
-        Bluesky --> Normalizer
-        Lemmy --> Normalizer
+        RSS --> Normaliser
+        Reddit --> Normaliser
+        Mastodon --> Normaliser
+        HN --> Normaliser
+        Bluesky --> Normaliser
+        Lemmy --> Normaliser
     end
     
     subgraph Processing["PROCESSING LAYER"]
         Cleaner["Text Cleaner<br/>URL, HTML, whitespace"]
         Model["XLM-RoBERTa<br/>278M params, CUDA/CPU"]
-        LabelNorm["Label Normalizer<br/>-1.0 to +1.0 scale"]
+        LabelNorm["Label Normaliser<br/>-1.0 to +1.0 scale"]
         Aggregation["Aggregation Engine<br/>Hourly rollups<br/>Weighted averaging<br/>Top articles"]
         
         Cleaner --> Model --> LabelNorm --> Aggregation
@@ -756,7 +756,7 @@ flowchart TB
         Frontend["Next.js 14 + React Three Fiber<br/>3D Globe, Country Panel<br/>Headlines, Stats Bar"]
     end
     
-    Normalizer --> Cleaner
+    Normaliser --> Cleaner
     Aggregation --> DB
     DB --> FastAPI
     FastAPI --> Frontend
@@ -803,7 +803,7 @@ flowchart TB
 - remove urls (https?://\\S+)
 - strip html tags
 - remove hashtags/mentions
-- normalize whitespace
+- normalise whitespace
 - preserve unicode (multilingual support)
 - truncate to 512 tokens (model max context)
 
@@ -817,7 +817,7 @@ flowchart TB
 | prosusai/finbert | 110m | english | financial news |
 | siebert/sentiment-roberta-large-english | 355m | english | maximum accuracy |
 
-the inference pipeline runs through huggingface with cuda acceleration when available. model outputs are normalized to a -1.0 to +1.0 scale regardless of the underlying label format. "LABEL_0" with 0.85 confidence becomes score: -0.85, label: "negative". "5 stars" with 0.91 confidence becomes score: +0.91, label: "positive".
+the inference pipeline runs through huggingface with cuda acceleration when available. model outputs are normalised to a -1.0 to +1.0 scale regardless of the underlying label format. "LABEL_0" with 0.85 confidence becomes score: -0.85, label: "negative". "5 stars" with 0.91 confidence becomes score: +0.91, label: "positive".
 
 *batch processing:*
 
@@ -932,13 +932,13 @@ database growth averages ~2kb per article, 1000-3000 articles per hour, 50-150mb
   {
     id: "project-merkle-sync",
     slug: "merkle-sync",
-    title: "project: merkle sync, a peer-to-peer file synchronisation protocol",
+    title: "project: merkle sync",
     category: "projects",
     folder: "projects",
     public: true,
     session_id: "",
     created_at: "2025-05-03T11:45:00.000Z",
-    content: `a decentralized file synchronisation engine built from scratch. no http, no rest, no json, no central server. just raw tcp, udp multicast and merkle trees, the same cryptographic data structure that powers git and bitcoin.
+    content: `a decentralised file synchronisation engine built from scratch. no http, no rest, no json, no central server. just raw tcp, udp multicast and merkle trees, the same cryptographic data structure that powers git and bitcoin.
 
 ---
 
