@@ -710,7 +710,7 @@ consistently finished top 100k (out of ~10m players) without spending hours on t
     created_at: "2025-06-10T16:30:00.000Z",
     content: `a real-time nlp pipeline that ingests multilingual news and social content from 150+ countries, performs gpu-accelerated transformer-based sentiment analysis, aggregates results by country and time and visualizes global emotional state on an interactive webgl 3d globe.
 
-**links:** [github](https://github.com/haider-toha/sentiment-engine) • [live demo](https://sentiment-engine-frontend.onrender.com/)
+[github](https://github.com/haider-toha/sentiment-engine) • [live site](https://sentiment-engine-frontend.onrender.com/)
 
 ---
 
