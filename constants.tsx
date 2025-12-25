@@ -248,64 +248,282 @@ the code is messy (academic code always is), but the experience shaped how i thi
     public: true,
     session_id: "",
     created_at: "2025-07-22T09:15:00.000Z",
-    content: `an advanced fantasy premier league analytics platform that combines machine learning, monte carlo simulations and mathematical optimisation. what started as a simple optimiser evolved into a full-stack application with real-time data, probabilistic forecasting and a proper ui.
+    content: `an advanced fantasy premier league analytics platform combining machine learning, monte carlo simulations and mathematical optimization for data-driven fpl decisions.
 
 [live site](https://fpl-analyser-frontend.onrender.com/) • [github](https://github.com/haider-toha/fpl-analyser)
 
+---
+
 **the problem**
-fpl is a game of decision-making under uncertainty. you have £100m to pick 15 players. each gameweek, you field 11 and they earn points based on real-life performance. traditional approaches rely on intuition and basic statistics. i wanted to take a quantitative approach and solve three fundamental challenges
 
-1. **prediction** estimating how many points each player will score, accounting for form, fixture difficulty, xG and playing time
-2. **optimisation** finding the mathematically optimal squad that maximises expected returns while respecting all constraints
-3. **risk assessment** understanding uncertainty through probability distributions rather than single point estimates
+fantasy premier league presents a multi-period stochastic optimization problem. you have £100m to pick 15 players. each gameweek, you field 11 and they earn points based on real-life performance. traditional approaches rely on intuition and basic statistics. i wanted to take a quantitative approach and solve three fundamental challenges:
 
-**the expected points model**
-i built a gradient boosting model (xgboost) trained on historical gameweek data. input features include form metrics (recent points, minutes, goals over last 5 gameweeks), underlying statistics (xG, xA, shots, key passes), fixture context (home/away, opponent strength, days since last match) and availability signals (injury news, chance of playing percentage).
+| traditional approach | fpl analyser approach |
+|---------------------|----------------------|
+| "this player looks good" | expected points model with 50+ features |
+| pick players you like | ilp solver guarantees mathematical optimum |
+| gut feel on transfers | multi-gameweek rolling horizon planning |
+| hope for the best | probability distributions and confidence intervals |
 
-separate models for each position group capture position-specific patterns. the model updates as new gameweek data becomes available throughout the season.
+\`\`\`
+┌──────────────────────────────────────────────────────────────────────────┐
+│                        THE THREE CORE CHALLENGES                         │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐ │
+│  │    PREDICTION      │  │   OPTIMIZATION     │  │  RISK ASSESSMENT   │ │
+│  │                    │  │                    │  │                    │ │
+│  │  How many points   │  │  Which 15 players  │  │  What's the range  │ │
+│  │  will each player  │  │  maximize returns  │  │  of outcomes, not  │ │
+│  │  score next GW?    │  │  under constraints?│  │  just the average? │ │
+│  │                    │  │                    │  │                    │ │
+│  │  ┌──────────────┐  │  │  ┌──────────────┐  │  │  ┌──────────────┐  │ │
+│  │  │ ML Models    │  │  │  │ Integer LP   │  │  │  │ Monte Carlo  │  │ │
+│  │  │ xG, Form,    │  │  │  │ CBC Solver   │  │  │  │ 10,000 sims  │  │ │
+│  │  │ Fixtures     │  │  │  │ <1 sec solve │  │  │  │ distributions│  │ │
+│  │  └──────────────┘  │  │  └──────────────┘  │  │  └──────────────┘  │ │
+│  └────────────────────┘  └────────────────────┘  └────────────────────┘ │
+└──────────────────────────────────────────────────────────────────────────┘
+\`\`\`
+
+---
+
+**system architecture**
+
+\`\`\`
+                            ┌───────────────────┐
+                            │   Next.js App     │
+                            │   (Frontend)      │
+                            └─────────┬─────────┘
+                                      │ REST API
+                            ┌─────────▼─────────┐
+                            │   FastAPI         │
+                            │   (Backend)       │
+                            └─────────┬─────────┘
+                                      │
+              ┌───────────────────────┼───────────────────────┐
+              │                       │                       │
+    ┌─────────▼─────────┐   ┌─────────▼─────────┐   ┌─────────▼─────────┐
+    │   ML Module       │   │   Optimizer       │   │   Simulator       │
+    │ • Expected Points │   │ • Squad ILP       │   │ • Monte Carlo     │
+    │ • Bayesian Models │   │ • Transfer Plan   │   │ • Distributions   │
+    │ • Fixture Rating  │   │ • Captain Pick    │   │ • Risk Analysis   │
+    └───────────────────┘   └───────────────────┘   └───────────────────┘
+                                      │
+                            ┌─────────▼─────────┐
+                            │   Data Layer      │
+                            │ • Async Fetching  │
+                            │ • TTL Caching     │
+                            │ • Rate Limiting   │
+                            └─────────┬─────────┘
+                                      │
+                            ┌─────────▼─────────┐
+                            │   Official FPL    │
+                            │   API             │
+                            └───────────────────┘
+\`\`\`
+
+---
+
+**data pipeline**
+
+the fpl api provides all player, team and fixture data. the pipeline ingests raw json, normalizes types and foreign keys, calculates derived metrics via ml models, caches with ttl-based expiration and serves via json responses.
+
+| endpoint | data | update frequency | cache ttl |
+|----------|------|------------------|-----------|
+| bootstrap-static | all players, teams, gws | daily | 15-30 min |
+| element-summary/{id} | player history and fixtures | daily | 30 min |
+| fixtures | match schedule and results | daily | 15 min |
+| event/{gw}/live | live scores | every few min | 60 sec |
+| entry/{id} | manager squad and history | on request | 5 min |
+
+caching uses request deduplication (concurrent requests coalesce), conditional fetching with etags and tiered ttl (live data = short, static data = long).
+
+---
+
+**expected points model**
+
+\`\`\`
+                              INPUT FEATURES (~50-80)
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐       │
+    │  │   FORM    │  │UNDERLYING │  │  FIXTURE  │  │AVAILABILITY│       │
+    │  │           │  │   STATS   │  │  CONTEXT  │  │           │       │
+    │  ├───────────┤  ├───────────┤  ├───────────┤  ├───────────┤       │
+    │  │ Points/5  │  │ xG, xA    │  │ Home/Away │  │ Injury %  │       │
+    │  │ Goals/5   │  │ xGI       │  │ Opp str.  │  │ Minutes   │       │
+    │  │ Assists/5 │  │ Shots     │  │ Days rest │  │ trend     │       │
+    │  │ Minutes/5 │  │ Key passes│  │ FDR       │  │ News      │       │
+    │  └───────────┘  └───────────┘  └───────────┘  └───────────┘       │
+    └──────────────────────────────┬──────────────────────────────────────┘
+                                   ▼
+                     POSITION-SPECIFIC XGBOOST MODELS
+                                   │
+    ┌──────────┬───────────────────┼───────────────────┬──────────┐
+    │   GKP    │       DEF         │        MID        │   FWD    │
+    │ Saves,   │  CS, Tackles,     │  Goals, Assists,  │ Goals,   │
+    │ Pen Save │  BPS              │  Chance creation  │ Assists  │
+    └──────────┴───────────────────┴───────────────────┴──────────┘
+                                   │
+                                   ▼
+                         CALIBRATION LAYER
+              (Platt scaling ensures probabilistic validity)
+                                   │
+                                   ▼
+                    Expected Points per Player per GW
+\`\`\`
+
+the model uses gradient boosting (xgboost) with 100-200 trees, max depth 4-6, l1/l2 regularization to prevent overfitting and learning rate decay. cross-validation tunes hyperparameters. separate models for each position capture position-specific patterns (goalkeepers score via saves and clean sheets, forwards via goals).
+
+---
+
+**bayesian player modeling**
+
+early in the season, limited data means high uncertainty. bayesian updating shrinks estimates toward position averages (priors), then progressively trusts individual performance as more gameweeks accumulate.
+
+\`\`\`
+    Early Season (GW 1-5)          Mid-Season (GW 10-20)         Late Season (GW 30+)
+    
+    ┌─────────────┐               ┌─────────────┐               ┌─────────────┐
+    │   Wide      │               │   Narrower  │               │   Tight     │
+    │   Prior     │   ────────►   │   Posterior │   ────────►   │   Posterior │
+    │    ╱╲       │   Bayesian    │     ╱╲      │   Bayesian    │      │      │
+    │   ╱  ╲      │    Update     │    ╱  ╲     │    Update     │     ╱╲      │
+    │  ╱    ╲     │               │   ╱    ╲    │               │    ╱  ╲     │
+    └─────────────┘               └─────────────┘               └─────────────┘
+    
+    High uncertainty               Moderate uncertainty          Low uncertainty
+    → Shrink toward                → Individual data             → Trust observed
+      position average               starts to dominate            performance
+\`\`\`
+
+hierarchical pooling: league average informs position priors, which inform individual player estimates.
+
+---
+
+**fixture difficulty rating**
+
+fdr combines attack difficulty (how hard to score against this team) and defense difficulty (how likely opponent will score). metrics include goals conceded/scored per game, xG conceded/created, shot volume and quality, with home/away splits.
+
+multi-gameweek aggregation uses geometric mean with time discounting. near fixtures weighted more heavily (gw+1 gets weight 1.0, gw+6 gets weight 0.75). this identifies favorable fixture runs for transfer targeting.
+
+---
 
 **integer linear programming**
-squad selection is formulated as an ilp. let $x_i \\in \\{0,1\\}$ indicate whether player $i$ is selected
+
+squad selection is formulated as an ilp. let $x_i \\in \\{0,1\\}$ indicate whether player $i$ is selected:
 
 $$\\max \\sum_{i=1}^{n} \\mathbb{E}[\\text{pts}_i] \\cdot x_i$$
 
-subject to
+subject to:
 
 $$\\sum_{i=1}^{n} c_i \\cdot x_i \\leq 100 \\quad \\text{(budget)}$$
 
 $$\\sum_{i \\in T_j} x_i \\leq 3 \\quad \\forall j \\quad \\text{(max 3 per club)}$$
 
-plus position constraints (2 gk, 5 def, 5 mid, 3 fwd). the pulp library with cbc solver finds optimal solutions in under one second for the full ~700 player pool. unlike heuristics, ilp guarantees the mathematically best squad.
+plus position constraints (2 gk, 5 def, 5 mid, 3 fwd). the solution space is astronomical: C(700, 15) = 10^30+ possibilities. brute force is impossible.
 
-**monte carlo simulation engine**
-point predictions are inherently uncertain. a player expected to score 6 might score anywhere from 0 to 20. the simulation engine runs 10,000 gameweeks, sampling each player's points from a negative binomial distribution (captures the over-dispersion typical in fpl points where variance exceeds the mean).
+ilp constraints define a convex polytope. lp relaxation + branch and bound finds the mathematically optimal solution in under 1 second. the pulp library with cbc solver handles the full ~700 player pool. unlike heuristics, ilp guarantees the best squad.
 
-distribution parameters are derived from expected points (sets the mean), historical variance (gameweek-to-gameweek volatility) and contextual adjustments (higher variance for attackers in high-scoring matches). simulations run in parallel using numpy vectorisation, completing in under 2 seconds.
+---
 
-the output includes probability distributions, 90% confidence intervals, upside/downside risk and side-by-side captain comparisons. this helps understand not just what's likely, but the full range of possible outcomes.
+**transfer planning (multi-period)**
 
-**architecture**
-decoupled backend (fastapi) and frontend (next.js) communicating via rest api. the backend handles all fpl api data fetching with caching, runs the ml models, executes optimisation and performs simulations. the frontend provides a responsive interface with interactive charts (recharts), data fetching managed by tanstack query for caching and background refetching.
+rolling horizon optimization plans transfers across 4-8 gameweeks. the objective maximizes total points minus transfer costs (4 points per extra transfer):
 
-**transfer predictions**
-multi-gameweek fixture analysis that generates actionable transfer recommendations
+$$\\max \\sum_{gw} (\\text{points}[gw] - 4 \\times \\text{extra\\_transfers}[gw])$$
 
-- **fixture swing analysis** identifies teams whose fixtures are improving or worsening, highlighting when to buy into easy runs and sell before difficult schedules
-- **transfer recommendations** generates suggestions with urgency levels (immediate, soon, plan ahead), expected point gains and reasoning based on fixture context
-- **rotation pairs** finds player pairs at each position who complement each other's fixtures, enabling smart bench rotation
-- **fixture-based differentials** surfaces low-ownership players with favorable upcoming fixtures for differential opportunities
+subject to squad validity each gameweek, transfer continuity between gameweeks and free transfer accumulation (max 2). output is an optimal transfer sequence: "gw 20: hold (bank transfer), gw 21: salah → saka, watkins → haaland (2 ft), gw 22: hold..."
 
-**features beyond the core**
-- **live gameweek tracking** real-time scores, bonus point predictions from bps standings, fixture status
-- **mini-league analytics** standings, manager comparison, rank projections based on remaining fixtures
-- **value over replacement rankings** measures how many more points a player scores vs replacement-level at their position
-- **fixture difficulty analysis** aggregate fdr over multiple gameweeks to identify favorable runs
-- **chip strategy recommendations** when to use bench boost, triple captain, free hit, wildcard based on fixture patterns and dgws
+---
+
+**monte carlo simulation**
+
+point predictions are uncertain. a player expected to score 6 might score anywhere from 0 to 20. the simulation engine runs 10,000 gameweeks:
+
+\`\`\`
+FOR iteration = 1 to 10,000:
+    For each player:
+        sample points from player's distribution
+    Apply captain multiplier (2x)
+    Sum starting XI points
+    Handle auto-substitutions
+    Record: total_points[iteration]
+
+AGGREGATE:
+    • Mean (expected points)
+    • Median
+    • Standard deviation
+    • 5th/95th percentiles (90% CI)
+    • Full histogram
+\`\`\`
+
+**why negative binomial distribution?**
+
+| normal distribution | negative binomial (actual) |
+|--------------------|-----------------------------|
+| symmetric | right-skewed |
+| allows negative points | non-negative |
+| thin tails | heavy tails (hauls) |
+
+fpl points exhibit over-dispersion (variance exceeds mean) and heavy right tails (occasional 15+ point hauls). negative binomial captures this better than normal or poisson.
+
+**performance:** naive python loops take ~30 seconds. numpy vectorization completes 10,000 simulations in ~0.1 seconds (300x speedup).
+
+---
+
+**value over replacement (vor)**
+
+traditional view: "haaland: 8 pts/game, watkins: 5 pts/game, haaland is 3 pts better."
+
+vor view considers opportunity cost. bench fwd averages 3 pts. haaland vor: 8 - 3 = 5. watkins vor: 5 - 3 = 2. per-million efficiency: haaland (14m) = 0.36 vor/m, watkins (8m) = 0.25 vor/m. haaland is more efficient despite the higher price.
+
+---
+
+**core features**
+
+| feature | ml model | optimizer | simulator | live data |
+|---------|:--------:|:---------:|:---------:|:---------:|
+| player analysis | ✓ | | | ✓ |
+| squad optimizer | ✓ | ✓ | | |
+| transfer planner | ✓ | ✓ | | |
+| captain picker | ✓ | | ✓ | |
+| gameweek sim | ✓ | | ✓ | |
+| live tracking | | | | ✓ |
+| league analysis | | | | ✓ |
+| chip strategy | ✓ | ✓ | ✓ | |
+| vor rankings | ✓ | | | |
+| fixture analysis | ✓ | | | |
+
+**transfer predictions:** fixture swing analysis identifies teams whose fixtures are improving or worsening. transfer recommendations include urgency levels (immediate, soon, plan ahead), expected point gains and reasoning. rotation pairs find players who complement each other's fixtures for smart bench rotation.
+
+**live gameweek:** real-time scores, bonus point predictions from bps standings, fixture status. polling every 60 seconds during active matches.
+
+**chip strategy:** when to use bench boost, triple captain, free hit, wildcard based on fixture patterns and double gameweeks.
+
+---
+
+**performance**
+
+| operation | target | typical | method |
+|-----------|--------|---------|--------|
+| player list | < 200ms | ~100ms | cached data |
+| player detail | < 200ms | ~150ms | cached + computed |
+| squad optimization | < 1s | ~300ms | ilp solver |
+| simulation (10k) | < 3s | ~1.5s | vectorized numpy |
+| live scores | < 500ms | ~200ms | short-ttl cache |
+
+async event loop handles concurrent requests without blocking on network i/o. cpu-bound work (optimization, simulation) uses concurrency limiting to prevent overload.
+
+---
 
 **results**
-consistently finished top 100k (out of ~10m players) without spending hours on team selection. the edge comes from discipline so the model doesn't get attached to players or chase last week's haul. beat my manual decisions in 75% of gameweeks.
 
-**stack** python, fastapi, pydantic, xgboost, pulp, numpy, httpx, next.js, react, typescript, tailwind, tanstack query, recharts, radix ui, render`,
+consistently finished top 100k (out of ~10m players) without spending hours on team selection. the edge comes from discipline: the model doesn't get attached to players or chase last week's haul. beat my manual decisions in 75% of gameweeks.
+
+---
+
+**stack:** python 3.11, fastapi, pydantic, pulp + cbc, xgboost, numpy, httpx, uvicorn | next.js 14, react 18, typescript, tailwindcss, tanstack query, recharts, radix ui | render`,
   },
   {
     id: "project-sentiment-engine",
@@ -316,51 +534,247 @@ consistently finished top 100k (out of ~10m players) without spending hours on t
     public: true,
     session_id: "",
     created_at: "2025-06-10T16:30:00.000Z",
-    content: `a real-time pipeline that ingests news and social data, runs sentiment analysis and visualises the emotional state of the world on a 3d globe.
+    content: `a real-time nlp pipeline that ingests multilingual news and social content from 150+ countries, performs gpu-accelerated transformer-based sentiment analysis, aggregates results by country and time and visualizes global emotional state on an interactive webgl 3d globe.
 
-**motivation**
-i wanted to build something visually striking that also required solid backend engineering. sentiment analysis is a solved problem, so the interesting part is the plumbing, getting data in, processing it reliably and rendering it beautifully.
+---
 
-**architecture**
+**system architecture**
 
-*data ingestion*
-- newsapi for headlines from 50+ countries
-- twitter/x streaming api (filtered by geolocation and keywords)
-- rss feeds from major publications
-- ~10k articles/day, ~50k tweets/day
+\`\`\`
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                DATA COLLECTION LAYER                             │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
+│  │   RSS    │ │  Reddit  │ │ Mastodon │ │  Hacker  │ │ Bluesky  │ │  Lemmy   │ │
+│  │ 300+feeds│ │   PRAW   │ │   API    │ │   News   │ │  AT Proto│ │   API    │ │
+│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ │
+│       └────────────┴────────────┴─────┬──────┴────────────┴────────────┘        │
+│                                       ▼                                          │
+│                          ┌─────────────────────────┐                            │
+│                          │   Article Normalizer    │                            │
+│                          │  (Dedup, Country Detect)│                            │
+│                          └───────────┬─────────────┘                            │
+└──────────────────────────────────────┼──────────────────────────────────────────┘
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              PROCESSING LAYER                                    │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │                        Sentiment Analyzer                                │    │
+│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │    │
+│  │  │  Text Cleaner   │─▶│  XLM-RoBERTa    │─▶│  Label Normalizer       │  │    │
+│  │  │  (URL, HTML,    │  │  (278M params)  │  │  (→ -1.0 to +1.0 scale) │  │    │
+│  │  │   whitespace)   │  │  CUDA/CPU       │  │                         │  │    │
+│  │  └─────────────────┘  └─────────────────┘  └─────────────────────────┘  │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+│                                       │                                          │
+│                                       ▼                                          │
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │                        Aggregation Engine                                │    │
+│  │  • Hourly rollups by country                                             │    │
+│  │  • Weighted averaging (source credibility)                               │    │
+│  │  • Top positive/negative article tracking                                │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────┼──────────────────────────────────────────┘
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                               STORAGE LAYER                                      │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│         SQLite / PostgreSQL with articles + country_sentiment tables            │
+│         URL-based deduplication, country/time indexing, 30-day retention        │
+└──────────────────────────────────────┼──────────────────────────────────────────┘
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                 API LAYER                                        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  FastAPI async endpoints: /sentiment/global, /sentiment/{country}, /headlines   │
+│  /trends (hourly aggregates), /sources (per-source stats), /health              │
+└──────────────────────────────────────┼──────────────────────────────────────────┘
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              PRESENTATION LAYER                                  │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  Next.js 14 + React Three Fiber: 3D Globe, Country Panel with Sparklines,       │
+│  Headlines List with sentiment badges, Stats Bar + Color Legend                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+\`\`\`
 
-*queueing*
-- redis streams for message passing
-- consumer groups for parallel processing
-- backpressure handling so that if consumers fall behind, producers slow down
+---
 
-*sentiment analysis*
-- hugging face transformers (distilbert fine-tuned on financial news)
-- batch inference for efficiency (128 texts per batch)
-- outputs: sentiment score (-1 to 1), confidence, detected entities
+**data collection**
 
-*storage*
-- timescaledb for time-series sentiment data
-- aggregated by country, topic and hour with source credibility weighting
-- 30-day retention with downsampling for older data
+the pipeline ingests from 300+ rss feeds and multiple social platforms. all collectors implement a common interface ensuring consistent data normalization with source type, source name, title, url (used for deduplication), content, country code and publication timestamp.
 
-*visualisation*
-- next.js frontend with react-three-fiber
-- 3d globe with countries coloured by sentiment (red = negative, green = positive)
-- click a country to see top headlines and trend sparklines
-- websocket connection for live updates
+*rss feed coverage:*
 
-**challenges**
-- rate limits everywhere. had to implement exponential backoff and request pooling
-- model latency: gpu inference is fast, but cold starts kill p99. solution: keep the model warm with periodic dummy requests
-- timezone hell, because normalising timestamps from global sources is harder than it sounds
+- **wire services (4):** reuters, ap, afp, euronews
+- **north america (17):** npr, pbs, nbc, cbs, abc, usa today, washington post, cbc, ctv, toronto star, national post, milenio, el universal mx...
+- **europe western (45):** bbc, guardian, sky, telegraph, france 24, le monde, deutsche welle, der spiegel, ansa, la repubblica, el pais, nos, rtbf, swi, orf, rte...
+- **europe nordic (18):** svt, aftonbladet, nrk, vg, dr, tv2 dk, yle, helsinki times, iceland monitor...
+- **europe eastern (30):** tvn24, gazeta wyborcza, hungary today, romania insider, ekathimerini, kyiv independent, moscow times, n1 serbia/croatia/bosnia...
+- **asia (65):** nhk, japan times, yonhap, cgtn, scmp, cna, straits times, jakarta post, bangkok post, times of india, ndtv, dawn...
+- **middle east & africa (55):** al jazeera, arab news, haaretz, jerusalem post, gulf news, daily sabah, news24 sa, punch nigeria...
+- **americas (40):** folha, clarin, el mercurio, el tiempo, jamaica observer...
+- **oceania (15):** abc australia, nz herald, fiji times, rnz pacific...
 
-**observability**
-- structured logging with correlation ids
-- prometheus metrics for queue depth, inference latency, error rates
-- grafana dashboards for at-a-glance health
+*country detection pipeline:*
 
-**stack:** next.js, react-three-fiber, redis, hugging face transformers, timescaledb, docker, vercel`,
+\`\`\`
+Article Text
+     │
+     ▼
+┌─────────────────────────────────────────────────┐
+│           Source-Based Attribution               │
+│  (If source has known country → assign directly) │
+└─────────────────────────┬───────────────────────┘
+                          │ No match
+                          ▼
+┌─────────────────────────────────────────────────┐
+│            Text-Based Detection                  │
+│  1. Extract all country mentions                 │
+│  2. Match against 200+ variations:               │
+│     - Official names ("United States")           │
+│     - Common names ("America")                   │
+│     - Demonyms ("American", "Japanese")          │
+│     - Major cities ("Tokyo" → JP)                │
+│     - Local names ("Deutschland" → DE)           │
+│  3. Count frequency, return most mentioned       │
+└─────────────────────────────────────────────────┘
+\`\`\`
+
+---
+
+**sentiment analysis pipeline**
+
+*text preprocessing:*
+- remove urls (https?://\\S+)
+- strip html tags
+- remove hashtags/mentions
+- normalize whitespace
+- preserve unicode (multilingual support)
+- truncate to 512 tokens (model max context)
+
+*supported models:*
+
+| model | parameters | languages | use case |
+|-------|------------|-----------|----------|
+| cardiffnlp/twitter-xlm-roberta-base-sentiment | 278m | 100+ | default, multilingual news |
+| cardiffnlp/twitter-roberta-base-sentiment-latest | 125m | english | high-accuracy english |
+| nlptown/bert-base-multilingual-uncased-sentiment | 110m | 6 | nuanced 1-5 star rating |
+| prosusai/finbert | 110m | english | financial news |
+| siebert/sentiment-roberta-large-english | 355m | english | maximum accuracy |
+
+the inference pipeline runs through huggingface with cuda acceleration when available. model outputs are normalized to a -1.0 to +1.0 scale regardless of the underlying label format. "LABEL_0" with 0.85 confidence becomes score: -0.85, label: "negative". "5 stars" with 0.91 confidence becomes score: +0.91, label: "positive".
+
+*batch processing:*
+
+single inference is inefficient. the system batches articles for gpu parallelization. articles are grouped into batches of 32, filtered for minimum length (10 chars), padded to max length in batch and processed in a single forward pass. results are mapped back to original articles.
+
+---
+
+**aggregation and weighting**
+
+not all sources are equal. credibility weights:
+
+| source type | weight | rationale |
+|-------------|--------|-----------|
+| rss | 1.0 | established news outlets |
+| scraper | 0.9 | direct news site extraction |
+| hacker news | 0.8 | curated tech community |
+| reddit | 0.6 | mixed user-generated content |
+| mastodon | 0.5 | social media, lower signal |
+
+weighted sentiment calculation:
+
+$$\\text{Weighted Average} = \\frac{\\sum (\\text{sentiment\\_score} \\times \\text{source\\_weight})}{\\sum \\text{source\\_weight}}$$
+
+hourly aggregates track country code, hour, simple mean, weighted mean, article count and foreign keys to the top positive/negative articles for that period.
+
+---
+
+**globe visualization**
+
+the frontend uses react three fiber for declarative threejs. the globe component includes an earth sphere with texture, country markers positioned by sentiment and orbitcontrols for user interaction.
+
+*lat/long to 3d position:*
+
+$$\\phi = (90 - \\text{lat}) \\times (\\pi/180)$$
+$$\\theta = (\\text{lon} + 180) \\times (\\pi/180)$$
+$$x = -r \\sin(\\phi) \\cos(\\theta), \\quad y = r \\cos(\\phi), \\quad z = r \\sin(\\phi) \\sin(\\theta)$$
+
+*sentiment to color:*
+
+| score range | color |
+|-------------|-------|
+| < -0.3 | #ef4444 (red) |
+| -0.3 to 0.0 | interpolate red → amber |
+| 0.0 | #f59e0b (amber) |
+| 0.0 to 0.3 | interpolate amber → green |
+| >= 0.3 | #22c55e (green) |
+
+each country marker uses meshstandardmaterial with emissive properties that intensify on hover (0.3 → 0.6). data fetching uses swr with 60-second refresh intervals, deduplication and automatic revalidation on focus.
+
+---
+
+**performance characteristics**
+
+| operation | gpu (rtx 5070) | cpu (12-core) |
+|-----------|----------------|---------------|
+| single inference | 15ms | 150ms |
+| batch (32 articles) | 80ms | 2400ms |
+| effective rate | ~400 articles/sec | ~13 articles/sec |
+
+| source | typical duration | articles |
+|--------|------------------|----------|
+| rss (300+ feeds) | 2-5 minutes | 2000-5000 |
+| reddit | 30-60 seconds | 100-500 |
+| hacker news | 10-20 seconds | 50-100 |
+| total cycle | 3-7 minutes | 2000-6000 |
+
+| resource | idle | collection | inference |
+|----------|------|------------|-----------|
+| cpu | <5% | 20-40% | 10-30% |
+| ram | 1.2gb | 1.5gb | 1.8gb |
+| gpu memory | 500mb | 500mb | 800mb |
+
+database growth averages ~2kb per article, 1000-3000 articles per hour, 50-150mb daily storage with 30-day retention.
+
+---
+
+**error handling and fallbacks**
+
+*collection failures:*
+- per-source isolation: one source failure doesn't stop the job
+- automatic retry: 3 attempts with exponential backoff
+- timeout: 30 seconds per source
+
+*inference failures:*
+- text too short (<10 chars): return none, skip article
+- model exception: log error, return none for article
+- batch failure: fall back to individual processing
+- oom: reduce batch size dynamically
+
+*graceful degradation:*
+- postgresql credentials missing → falls back to sqlite
+- reddit/mastodon credentials missing → skip those collectors
+- gpu unavailable → falls back to cpu inference
+- model load fails → api returns degraded status
+
+---
+
+**limitations**
+
+- **model accuracy:** ~85% on standard benchmarks; sarcasm and cultural context remain challenging
+- **language coverage:** while xlm-roberta supports 100+ languages, accuracy varies; best for high-resource languages
+- **real-time latency:** 1-hour collection interval; breaking news delayed up to 60 minutes
+- **geographic granularity:** country-level only; no city or region subdivision
+- **source availability:** rss feeds may block, rate-limit or discontinue without notice
+- **attribution ambiguity:** articles covering multiple countries assigned to most-mentioned
+- **bias propagation:** model inherits biases from training data
+
+---
+
+**stack:** python 3.10+, fastapi, uvicorn, sqlalchemy 2.0, apscheduler, pytorch 2.0, transformers 4.37+, httpx | next.js 14, react three fiber, three.js, tailwindcss 3.4, swr, typescript 5`,
   },
   {
     id: "project-recipe-ancestry",
