@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Note } from "../types";
 import {
   ChevronLeft,
@@ -10,6 +10,15 @@ import {
 } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
+import mermaid from "mermaid";
+
+// Initialize mermaid with dark/light theme support
+mermaid.initialize({
+  startOnLoad: false,
+  theme: "neutral",
+  securityLevel: "loose",
+  fontFamily: "inherit",
+});
 
 interface MainContentProps {
   note: Note | undefined;
@@ -17,6 +26,59 @@ interface MainContentProps {
   isMobile: boolean;
   onShare: () => void;
 }
+
+// Mermaid Diagram Component
+const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [svg, setSvg] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const renderDiagram = async () => {
+      if (!containerRef.current) return;
+      
+      try {
+        // Check if dark mode is active
+        const isDark = document.documentElement.classList.contains("dark");
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: isDark ? "dark" : "neutral",
+          securityLevel: "loose",
+          fontFamily: "inherit",
+          flowchart: {
+            htmlLabels: true,
+            curve: "basis",
+          },
+        });
+
+        const { svg } = await mermaid.render(`mermaid-${id}`, chart);
+        setSvg(svg);
+        setError(null);
+      } catch (err) {
+        console.error("Mermaid rendering error:", err);
+        setError("Failed to render diagram");
+      }
+    };
+
+    renderDiagram();
+  }, [chart, id]);
+
+  if (error) {
+    return (
+      <div className="my-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+        {error}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="my-6 flex justify-center overflow-x-auto"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+};
 
 // Image Modal Component for full-screen view
 const ImageModal: React.FC<{
@@ -261,7 +323,26 @@ const MainContent: React.FC<MainContentProps> = ({
     return /^\|[\s\-:|]+\|$/.test(trimmed);
   };
 
-  // Content Renderer with image and table support
+  // Helper to render code blocks
+  const renderCodeBlock = (code: string, language: string, key: number) => {
+    // Check if this is a mermaid diagram
+    if (language === "mermaid") {
+      return <MermaidDiagram key={key} chart={code} id={`diagram-${key}`} />;
+    }
+
+    // Regular code block
+    return (
+      <div key={key} className="my-4">
+        <pre className="bg-black/5 dark:bg-white/5 rounded-lg p-4 overflow-x-auto">
+          <code className="text-[13px] md:text-[14px] font-mono text-black/80 dark:text-white/80 whitespace-pre">
+            {code}
+          </code>
+        </pre>
+      </div>
+    );
+  };
+
+  // Content Renderer with image, table, and code block support
   const renderContent = (content: string) => {
     const lines = content.split("\n");
     const elements: React.ReactNode[] = [];
@@ -269,6 +350,24 @@ const MainContent: React.FC<MainContentProps> = ({
 
     while (i < lines.length) {
       const line = lines[i];
+
+      // Check for code block start (```)
+      if (line.trim().startsWith("```")) {
+        const language = line.trim().slice(3).trim().toLowerCase();
+        const codeLines: string[] = [];
+        let j = i + 1;
+        
+        // Collect code block content until closing ```
+        while (j < lines.length && !lines[j].trim().startsWith("```")) {
+          codeLines.push(lines[j]);
+          j++;
+        }
+        
+        const code = codeLines.join("\n");
+        elements.push(renderCodeBlock(code, language, i));
+        i = j + 1; // Skip past the closing ```
+        continue;
+      }
 
       // Check for table start
       if (

@@ -265,62 +265,45 @@ fantasy premier league presents a multi-period stochastic optimization problem. 
 | gut feel on transfers | multi-gameweek rolling horizon planning |
 | hope for the best | probability distributions and confidence intervals |
 
-\`\`\`
-┌──────────────────────────────────────────────────────────────────────────┐
-│                        THE THREE CORE CHALLENGES                         │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ┌────────────────────┐  ┌────────────────────┐  ┌────────────────────┐ │
-│  │    PREDICTION      │  │   OPTIMIZATION     │  │  RISK ASSESSMENT   │ │
-│  │                    │  │                    │  │                    │ │
-│  │  How many points   │  │  Which 15 players  │  │  What's the range  │ │
-│  │  will each player  │  │  maximize returns  │  │  of outcomes, not  │ │
-│  │  score next GW?    │  │  under constraints?│  │  just the average? │ │
-│  │                    │  │                    │  │                    │ │
-│  │  ┌──────────────┐  │  │  ┌──────────────┐  │  │  ┌──────────────┐  │ │
-│  │  │ ML Models    │  │  │  │ Integer LP   │  │  │  │ Monte Carlo  │  │ │
-│  │  │ xG, Form,    │  │  │  │ CBC Solver   │  │  │  │ 10,000 sims  │  │ │
-│  │  │ Fixtures     │  │  │  │ <1 sec solve │  │  │  │ distributions│  │ │
-│  │  └──────────────┘  │  │  └──────────────┘  │  │  └──────────────┘  │ │
-│  └────────────────────┘  └────────────────────┘  └────────────────────┘ │
-└──────────────────────────────────────────────────────────────────────────┘
+\`\`\`mermaid
+flowchart LR
+    subgraph PREDICTION["1. PREDICTION"]
+        P1["How many points will each player score?"]
+        P2["ML Models: xG, Form, Fixtures"]
+    end
+    subgraph OPTIMIZATION["2. OPTIMIZATION"]
+        O1["Which 15 players maximize returns?"]
+        O2["Integer LP, CBC Solver, <1 sec"]
+    end
+    subgraph RISK["3. RISK ASSESSMENT"]
+        R1["What's the range of outcomes?"]
+        R2["Monte Carlo, 10k sims, distributions"]
+    end
+    PREDICTION --> OPTIMIZATION --> RISK
 \`\`\`
 
 ---
 
 **system architecture**
 
-\`\`\`
-                            ┌───────────────────┐
-                            │   Next.js App     │
-                            │   (Frontend)      │
-                            └─────────┬─────────┘
-                                      │ REST API
-                            ┌─────────▼─────────┐
-                            │   FastAPI         │
-                            │   (Backend)       │
-                            └─────────┬─────────┘
-                                      │
-              ┌───────────────────────┼───────────────────────┐
-              │                       │                       │
-    ┌─────────▼─────────┐   ┌─────────▼─────────┐   ┌─────────▼─────────┐
-    │   ML Module       │   │   Optimizer       │   │   Simulator       │
-    │ • Expected Points │   │ • Squad ILP       │   │ • Monte Carlo     │
-    │ • Bayesian Models │   │ • Transfer Plan   │   │ • Distributions   │
-    │ • Fixture Rating  │   │ • Captain Pick    │   │ • Risk Analysis   │
-    └───────────────────┘   └───────────────────┘   └───────────────────┘
-                                      │
-                            ┌─────────▼─────────┐
-                            │   Data Layer      │
-                            │ • Async Fetching  │
-                            │ • TTL Caching     │
-                            │ • Rate Limiting   │
-                            └─────────┬─────────┘
-                                      │
-                            ┌─────────▼─────────┐
-                            │   Official FPL    │
-                            │   API             │
-                            └───────────────────┘
+\`\`\`mermaid
+flowchart TB
+    Frontend["Next.js App<br/>(Frontend)"]
+    Backend["FastAPI<br/>(Backend)"]
+    ML["ML Module<br/>Expected Points<br/>Bayesian Models<br/>Fixture Rating"]
+    Optimizer["Optimizer<br/>Squad ILP<br/>Transfer Plan<br/>Captain Pick"]
+    Simulator["Simulator<br/>Monte Carlo<br/>Distributions<br/>Risk Analysis"]
+    DataLayer["Data Layer<br/>Async Fetching<br/>TTL Caching<br/>Rate Limiting"]
+    FPLAPI["Official FPL API"]
+
+    Frontend -->|REST API| Backend
+    Backend --> ML
+    Backend --> Optimizer
+    Backend --> Simulator
+    ML --> DataLayer
+    Optimizer --> DataLayer
+    Simulator --> DataLayer
+    DataLayer --> FPLAPI
 \`\`\`
 
 ---
@@ -343,34 +326,28 @@ caching uses request deduplication (concurrent requests coalesce), conditional f
 
 **expected points model**
 
-\`\`\`
-                              INPUT FEATURES (~50-80)
-    ┌─────────────────────────────────────────────────────────────────────┐
-    │  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐       │
-    │  │   FORM    │  │UNDERLYING │  │  FIXTURE  │  │AVAILABILITY│       │
-    │  │           │  │   STATS   │  │  CONTEXT  │  │           │       │
-    │  ├───────────┤  ├───────────┤  ├───────────┤  ├───────────┤       │
-    │  │ Points/5  │  │ xG, xA    │  │ Home/Away │  │ Injury %  │       │
-    │  │ Goals/5   │  │ xGI       │  │ Opp str.  │  │ Minutes   │       │
-    │  │ Assists/5 │  │ Shots     │  │ Days rest │  │ trend     │       │
-    │  │ Minutes/5 │  │ Key passes│  │ FDR       │  │ News      │       │
-    │  └───────────┘  └───────────┘  └───────────┘  └───────────┘       │
-    └──────────────────────────────┬──────────────────────────────────────┘
-                                   ▼
-                     POSITION-SPECIFIC XGBOOST MODELS
-                                   │
-    ┌──────────┬───────────────────┼───────────────────┬──────────┐
-    │   GKP    │       DEF         │        MID        │   FWD    │
-    │ Saves,   │  CS, Tackles,     │  Goals, Assists,  │ Goals,   │
-    │ Pen Save │  BPS              │  Chance creation  │ Assists  │
-    └──────────┴───────────────────┴───────────────────┴──────────┘
-                                   │
-                                   ▼
-                         CALIBRATION LAYER
-              (Platt scaling ensures probabilistic validity)
-                                   │
-                                   ▼
-                    Expected Points per Player per GW
+\`\`\`mermaid
+flowchart TB
+    subgraph Features["INPUT FEATURES (~50-80)"]
+        Form["FORM<br/>Points/5, Goals/5<br/>Assists/5, Minutes/5"]
+        Stats["UNDERLYING STATS<br/>xG, xA, xGI<br/>Shots, Key passes"]
+        Fixture["FIXTURE CONTEXT<br/>Home/Away, Opp str.<br/>Days rest, FDR"]
+        Avail["AVAILABILITY<br/>Injury %, Minutes<br/>trend, News"]
+    end
+    
+    subgraph Models["POSITION-SPECIFIC XGBOOST"]
+        GKP["GKP<br/>Saves, Pen Save"]
+        DEF["DEF<br/>CS, Tackles, BPS"]
+        MID["MID<br/>Goals, Assists<br/>Chance creation"]
+        FWD["FWD<br/>Goals, Assists"]
+    end
+    
+    Calibration["CALIBRATION LAYER<br/>Platt scaling"]
+    Output["Expected Points<br/>per Player per GW"]
+    
+    Features --> Models
+    Models --> Calibration
+    Calibration --> Output
 \`\`\`
 
 the model uses gradient boosting (xgboost) with 100-200 trees, max depth 4-6, l1/l2 regularization to prevent overfitting and learning rate decay. cross-validation tunes hyperparameters. separate models for each position capture position-specific patterns (goalkeepers score via saves and clean sheets, forwards via goals).
@@ -381,20 +358,14 @@ the model uses gradient boosting (xgboost) with 100-200 trees, max depth 4-6, l1
 
 early in the season, limited data means high uncertainty. bayesian updating shrinks estimates toward position averages (priors), then progressively trusts individual performance as more gameweeks accumulate.
 
-\`\`\`
-    Early Season (GW 1-5)          Mid-Season (GW 10-20)         Late Season (GW 30+)
+\`\`\`mermaid
+flowchart LR
+    Early["Early Season<br/>GW 1-5<br/>Wide Prior<br/>High uncertainty"]
+    Mid["Mid-Season<br/>GW 10-20<br/>Narrower Posterior<br/>Moderate uncertainty"]
+    Late["Late Season<br/>GW 30+<br/>Tight Posterior<br/>Low uncertainty"]
     
-    ┌─────────────┐               ┌─────────────┐               ┌─────────────┐
-    │   Wide      │               │   Narrower  │               │   Tight     │
-    │   Prior     │   ────────►   │   Posterior │   ────────►   │   Posterior │
-    │    ╱╲       │   Bayesian    │     ╱╲      │   Bayesian    │      │      │
-    │   ╱  ╲      │    Update     │    ╱  ╲     │    Update     │     ╱╲      │
-    │  ╱    ╲     │               │   ╱    ╲    │               │    ╱  ╲     │
-    └─────────────┘               └─────────────┘               └─────────────┘
-    
-    High uncertainty               Moderate uncertainty          Low uncertainty
-    → Shrink toward                → Individual data             → Trust observed
-      position average               starts to dominate            performance
+    Early -->|Bayesian Update| Mid
+    Mid -->|Bayesian Update| Late
 \`\`\`
 
 hierarchical pooling: league average informs position priors, which inform individual player estimates.
@@ -540,63 +511,50 @@ consistently finished top 100k (out of ~10m players) without spending hours on t
 
 **system architecture**
 
-\`\`\`
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                DATA COLLECTION LAYER                             │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ │
-│  │   RSS    │ │  Reddit  │ │ Mastodon │ │  Hacker  │ │ Bluesky  │ │  Lemmy   │ │
-│  │ 300+feeds│ │   PRAW   │ │   API    │ │   News   │ │  AT Proto│ │   API    │ │
-│  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ │
-│       └────────────┴────────────┴─────┬──────┴────────────┴────────────┘        │
-│                                       ▼                                          │
-│                          ┌─────────────────────────┐                            │
-│                          │   Article Normalizer    │                            │
-│                          │  (Dedup, Country Detect)│                            │
-│                          └───────────┬─────────────┘                            │
-└──────────────────────────────────────┼──────────────────────────────────────────┘
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              PROCESSING LAYER                                    │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │                        Sentiment Analyzer                                │    │
-│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │    │
-│  │  │  Text Cleaner   │─▶│  XLM-RoBERTa    │─▶│  Label Normalizer       │  │    │
-│  │  │  (URL, HTML,    │  │  (278M params)  │  │  (→ -1.0 to +1.0 scale) │  │    │
-│  │  │   whitespace)   │  │  CUDA/CPU       │  │                         │  │    │
-│  │  └─────────────────┘  └─────────────────┘  └─────────────────────────┘  │    │
-│  └─────────────────────────────────────────────────────────────────────────┘    │
-│                                       │                                          │
-│                                       ▼                                          │
-│  ┌─────────────────────────────────────────────────────────────────────────┐    │
-│  │                        Aggregation Engine                                │    │
-│  │  • Hourly rollups by country                                             │    │
-│  │  • Weighted averaging (source credibility)                               │    │
-│  │  • Top positive/negative article tracking                                │    │
-│  └─────────────────────────────────────────────────────────────────────────┘    │
-└──────────────────────────────────────┼──────────────────────────────────────────┘
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                               STORAGE LAYER                                      │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│         SQLite / PostgreSQL with articles + country_sentiment tables            │
-│         URL-based deduplication, country/time indexing, 30-day retention        │
-└──────────────────────────────────────┼──────────────────────────────────────────┘
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                 API LAYER                                        │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│  FastAPI async endpoints: /sentiment/global, /sentiment/{country}, /headlines   │
-│  /trends (hourly aggregates), /sources (per-source stats), /health              │
-└──────────────────────────────────────┼──────────────────────────────────────────┘
-                                       ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              PRESENTATION LAYER                                  │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│  Next.js 14 + React Three Fiber: 3D Globe, Country Panel with Sparklines,       │
-│  Headlines List with sentiment badges, Stats Bar + Color Legend                  │
-└─────────────────────────────────────────────────────────────────────────────────┘
+\`\`\`mermaid
+flowchart TB
+    subgraph Collection["DATA COLLECTION LAYER"]
+        RSS["RSS<br/>300+ feeds"]
+        Reddit["Reddit<br/>PRAW"]
+        Mastodon["Mastodon<br/>API"]
+        HN["Hacker News"]
+        Bluesky["Bluesky<br/>AT Proto"]
+        Lemmy["Lemmy<br/>API"]
+        Normalizer["Article Normalizer<br/>Dedup, Country Detect"]
+        
+        RSS --> Normalizer
+        Reddit --> Normalizer
+        Mastodon --> Normalizer
+        HN --> Normalizer
+        Bluesky --> Normalizer
+        Lemmy --> Normalizer
+    end
+    
+    subgraph Processing["PROCESSING LAYER"]
+        Cleaner["Text Cleaner<br/>URL, HTML, whitespace"]
+        Model["XLM-RoBERTa<br/>278M params, CUDA/CPU"]
+        LabelNorm["Label Normalizer<br/>-1.0 to +1.0 scale"]
+        Aggregation["Aggregation Engine<br/>Hourly rollups<br/>Weighted averaging<br/>Top articles"]
+        
+        Cleaner --> Model --> LabelNorm --> Aggregation
+    end
+    
+    subgraph Storage["STORAGE LAYER"]
+        DB["SQLite / PostgreSQL<br/>articles + country_sentiment<br/>30-day retention"]
+    end
+    
+    subgraph API["API LAYER"]
+        FastAPI["FastAPI async<br/>/sentiment/global<br/>/sentiment/country<br/>/headlines, /trends"]
+    end
+    
+    subgraph Presentation["PRESENTATION LAYER"]
+        Frontend["Next.js 14 + React Three Fiber<br/>3D Globe, Country Panel<br/>Headlines, Stats Bar"]
+    end
+    
+    Normalizer --> Cleaner
+    Aggregation --> DB
+    DB --> FastAPI
+    FastAPI --> Frontend
 \`\`\`
 
 ---
@@ -619,27 +577,17 @@ the pipeline ingests from 300+ rss feeds and multiple social platforms. all coll
 
 *country detection pipeline:*
 
-\`\`\`
-Article Text
-     │
-     ▼
-┌─────────────────────────────────────────────────┐
-│           Source-Based Attribution               │
-│  (If source has known country → assign directly) │
-└─────────────────────────┬───────────────────────┘
-                          │ No match
-                          ▼
-┌─────────────────────────────────────────────────┐
-│            Text-Based Detection                  │
-│  1. Extract all country mentions                 │
-│  2. Match against 200+ variations:               │
-│     - Official names ("United States")           │
-│     - Common names ("America")                   │
-│     - Demonyms ("American", "Japanese")          │
-│     - Major cities ("Tokyo" → JP)                │
-│     - Local names ("Deutschland" → DE)           │
-│  3. Count frequency, return most mentioned       │
-└─────────────────────────────────────────────────┘
+\`\`\`mermaid
+flowchart TB
+    Input["Article Text"]
+    SourceAttr["Source-Based Attribution<br/>If source has known country → assign directly"]
+    TextDetect["Text-Based Detection<br/>1. Extract country mentions<br/>2. Match 200+ variations:<br/>Official names, Common names<br/>Demonyms, Major cities, Local names<br/>3. Return most mentioned"]
+    Output["Country Code"]
+    
+    Input --> SourceAttr
+    SourceAttr -->|Match found| Output
+    SourceAttr -->|No match| TextDetect
+    TextDetect --> Output
 \`\`\`
 
 ---
