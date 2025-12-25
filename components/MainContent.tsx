@@ -44,75 +44,161 @@ interface MainContentProps {
   onShare: () => void;
 }
 
-// Diagram Modal Component for full-screen view
+// Diagram Modal Component for full-screen view with pinch/scroll zoom
 const DiagramModal: React.FC<{
   svg: string;
   onClose: () => void;
 }> = ({ svg, onClose }) => {
   const [scale, setScale] = useState(1);
-
-  const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.25, 4));
-  const handleZoomOut = () => setScale((prev) => Math.max(prev - 0.25, 0.5));
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lastTouchDistance = useRef<number | null>(null);
 
   // Handle keyboard events
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-      if (e.key === "+" || e.key === "=") handleZoomIn();
-      if (e.key === "-") handleZoomOut();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  // Handle mouse wheel zoom
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setScale((prev) => Math.min(Math.max(prev + delta, 0.25), 5));
+  }, []);
+
+  // Handle touch events for pinch zoom
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const distance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      lastTouchDistance.current = distance;
+    } else if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.touches[0].clientX - position.x,
+        y: e.touches[0].clientY - position.y,
+      });
+    }
+  }, [position]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && lastTouchDistance.current !== null) {
+      e.preventDefault();
+      const distance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const delta = (distance - lastTouchDistance.current) * 0.01;
+      setScale((prev) => Math.min(Math.max(prev + delta, 0.25), 5));
+      lastTouchDistance.current = distance;
+    } else if (e.touches.length === 1 && isDragging) {
+      setPosition({
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y,
+      });
+    }
+  }, [isDragging, dragStart]);
+
+  const handleTouchEnd = useCallback(() => {
+    lastTouchDistance.current = null;
+    setIsDragging(false);
+  }, []);
+
+  // Handle mouse drag for panning
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 0) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      });
+    }
+  }, [position]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  }, [isDragging, dragStart]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Reset position and scale
+  const handleReset = useCallback(() => {
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+  }, []);
+
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center"
-      onClick={onClose}
+      ref={containerRef}
+      className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl overflow-hidden touch-none"
+      onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
     >
-      {/* Controls */}
-      <div className="absolute top-4 right-4 flex items-center gap-2 z-[110]">
-        <span className="text-white/50 text-sm mr-2">{Math.round(scale * 100)}%</span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleZoomOut();
-          }}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-          title="Zoom out (-)"
-        >
-          <ZoomOut className="w-5 h-5" />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleZoomIn();
-          }}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-          title="Zoom in (+)"
-        >
-          <ZoomIn className="w-5 h-5" />
-        </button>
-        <button
-          onClick={onClose}
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-          title="Close (Esc)"
-        >
-          <X className="w-5 h-5" />
-        </button>
+      {/* Close button */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+        title="Close (Esc)"
+      >
+        <X className="w-6 h-6" />
+      </button>
+
+      {/* Zoom indicator */}
+      <div className="absolute top-4 left-4 z-[110] text-white/50 text-sm bg-black/50 px-3 py-1.5 rounded-full">
+        {Math.round(scale * 100)}%
       </div>
 
-      {/* Diagram */}
+      {/* Reset button */}
+      {(scale !== 1 || position.x !== 0 || position.y !== 0) && (
+        <button
+          onClick={handleReset}
+          className="absolute top-4 left-20 z-[110] text-white/50 hover:text-white text-sm bg-black/50 hover:bg-black/70 px-3 py-1.5 rounded-full transition-colors"
+        >
+          Reset
+        </button>
+      )}
+
+      {/* Diagram container */}
       <div
-        onClick={(e) => e.stopPropagation()}
-        style={{ transform: `scale(${scale})` }}
-        className="transition-transform duration-200 [&_svg]:max-w-[90vw] [&_svg]:max-h-[85vh]"
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
+        className="w-full h-full flex items-center justify-center"
+        style={{
+          cursor: isDragging ? "grabbing" : "grab",
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        <div
+          style={{
+            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transformOrigin: "center center",
+          }}
+          className="transition-transform duration-75 [&_svg]:max-w-none [&_svg]:max-h-none"
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
+      </div>
 
       {/* Hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-sm bg-black/50 px-4 py-2 rounded-full">
-        scroll or use +/- to zoom • esc to close
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[110] text-white/40 text-sm bg-black/50 px-4 py-2 rounded-full pointer-events-none">
+        scroll to zoom • drag to pan • esc to close
       </div>
     </div>
   );
