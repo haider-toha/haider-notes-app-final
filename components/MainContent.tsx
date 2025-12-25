@@ -7,6 +7,7 @@ import {
   X,
   ZoomIn,
   ZoomOut,
+  Maximize2,
 } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
@@ -43,8 +44,82 @@ interface MainContentProps {
   onShare: () => void;
 }
 
+// Diagram Modal Component for full-screen view
+const DiagramModal: React.FC<{
+  svg: string;
+  onClose: () => void;
+}> = ({ svg, onClose }) => {
+  const [scale, setScale] = useState(1);
+
+  const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.25, 4));
+  const handleZoomOut = () => setScale((prev) => Math.max(prev - 0.25, 0.5));
+
+  // Handle keyboard events
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "+" || e.key === "=") handleZoomIn();
+      if (e.key === "-") handleZoomOut();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center"
+      onClick={onClose}
+    >
+      {/* Controls */}
+      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
+        <span className="text-white/50 text-sm mr-2">{Math.round(scale * 100)}%</span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleZoomOut();
+          }}
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          title="Zoom out (-)"
+        >
+          <ZoomOut className="w-5 h-5" />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleZoomIn();
+          }}
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          title="Zoom in (+)"
+        >
+          <ZoomIn className="w-5 h-5" />
+        </button>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          title="Close (Esc)"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Diagram */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ transform: `scale(${scale})` }}
+        className="transition-transform duration-200 [&_svg]:max-w-[90vw] [&_svg]:max-h-[85vh]"
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+
+      {/* Hint */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-sm bg-black/50 px-4 py-2 rounded-full">
+        scroll or use +/- to zoom • esc to close
+      </div>
+    </div>
+  );
+};
+
 // Mermaid Diagram Component
-const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) => {
+const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: string) => void }> = ({ chart, id, onExpand }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
@@ -105,9 +180,23 @@ const MermaidDiagram: React.FC<{ chart: string; id: string }> = ({ chart, id }) 
   return (
     <div
       ref={containerRef}
-      className="my-6 flex justify-center overflow-x-auto"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+      className="my-6 relative group"
+    >
+      {/* Expand button */}
+      <button
+        onClick={() => onExpand(svg)}
+        className="absolute top-2 right-2 p-2 rounded-lg bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        title="Expand diagram"
+      >
+        <Maximize2 className="w-4 h-4" />
+      </button>
+      {/* Diagram */}
+      <div 
+        className="flex justify-center overflow-x-auto cursor-pointer"
+        onClick={() => onExpand(svg)}
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+    </div>
   );
 };
 
@@ -185,6 +274,7 @@ const MainContent: React.FC<MainContentProps> = ({
     src: string;
     alt: string;
   } | null>(null);
+  const [modalDiagram, setModalDiagram] = useState<string | null>(null);
 
   // Scroll to top when note changes
   useEffect(() => {
@@ -358,7 +448,7 @@ const MainContent: React.FC<MainContentProps> = ({
   const renderCodeBlock = (code: string, language: string, key: number) => {
     // Check if this is a mermaid diagram
     if (language === "mermaid") {
-      return <MermaidDiagram key={key} chart={code} id={`diagram-${key}`} />;
+      return <MermaidDiagram key={key} chart={code} id={`diagram-${key}`} onExpand={setModalDiagram} />;
     }
 
     // Regular code block
@@ -607,6 +697,14 @@ const MainContent: React.FC<MainContentProps> = ({
           src={modalImage.src}
           alt={modalImage.alt}
           onClose={() => setModalImage(null)}
+        />
+      )}
+
+      {/* Diagram Modal */}
+      {modalDiagram && (
+        <DiagramModal
+          svg={modalDiagram}
+          onClose={() => setModalDiagram(null)}
         />
       )}
 
