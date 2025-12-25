@@ -932,15 +932,13 @@ database growth averages ~2kb per article, 1000-3000 articles per hour, 50-150mb
   {
     id: "project-merkle-sync",
     slug: "merkle-sync",
-    title: "project: merkle sync, a peer-to-peer file synchronization protocol",
+    title: "project: merkle sync, a peer-to-peer file synchronisation protocol",
     category: "projects",
     folder: "projects",
     public: true,
     session_id: "",
     created_at: "2025-05-03T11:45:00.000Z",
-    content: `a decentralized file synchronization engine built from scratch. no http, no rest, no json, no central server. just raw tcp, udp multicast and merkle trees - the same cryptographic data structure that powers git and bitcoin.
-
-[github](https://github.com/haider-toha/merkle-sync)
+    content: `a decentralized file synchronisation engine built from scratch. no http, no rest, no json, no central server. just raw tcp, udp multicast and merkle trees, the same cryptographic data structure that powers git and bitcoin.
 
 ---
 
