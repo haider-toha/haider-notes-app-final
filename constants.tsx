@@ -162,14 +162,7 @@ flowchart LR
     end
 \`\`\`
 
-this process typically takes hours to days per new capability. for organizations needing dozens of specialised tools, this becomes unsustainable.
-
-| factor | traditional approach | self-engineering |
-|--------|---------------------|------------------|
-| initial development | 400+ developer hours | near-zero |
-| testing effort | 100+ hours | automatic |
-| maintenance (annual) | 200+ hours | self-healing |
-| time to new capability | days to weeks | seconds |
+this process typically takes hours to days per new capability. for organisations needing dozens of specialised tools, this becomes unsustainable.
 
 ---
 
