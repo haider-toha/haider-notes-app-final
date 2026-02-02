@@ -163,7 +163,7 @@ flowchart LR
 \`\`\`
 
 this process typically takes hours to days per new capability. for organisations needing dozens of specialised tools, this becomes unsustainable.
-
+ 
 ---
 
 **the solution: self-engineering agents**
