@@ -46,19 +46,17 @@ i read too much. mostly history, philosophy and whatever rabbit hole has me that
     public: true,
     session_id: "",
     created_at: "2025-12-18T16:42:00.000Z",
-    content: `
+    content: `**queueing theory**
+there's real math under backend performance, things like little's law, m/m/c models and the way rising utilisation feeds tail latency. most engineers still size their connection pools and set timeouts by feel even though the right numbers are completely computable. once you actually compute them it becomes clear that wait time climbs fast as soon as a pool pushes past ~70% utilisation, which is where a lot of the "random" incidents you run into really come from. it's an old field that has barely been touched in web infra.
 
-**ai evals**
-obsessed with how we actually measure whether models work. most eval suites test the wrong thing or test the right thing badly. i've been building harnesses that catch regressions before they ship, using synthetic datasets designed to probe specific failure modes. the interesting question isn't "is this model good" but "good enough for what and how would we know?" the gap between impressive demo and production-reliable is almost always an eval problem nobody bothered to define properly.
+**deterministic simulation testing**
+this is the approach foundationdb pioneered and that antithesis, warpstream and tigerbeetle have been productionising, where you write your code against an abstract clock and network and then run it inside a simulator that owns time, packet order, disk faults and process restarts. because everything runs off a single seed, one run replays the same billion years of synthetic chaos deterministically, so the consistency bugs that would normally take months to surface in production tend to fall out within minutes. still working out how much of this you can retrofit onto an existing codebase and how much of it has to be there from the start.
 
-**browser agents**
-trying to make browser automation less brittle. the dom is hostile, sites mutate constantly and linear scripts shatter on first contact. i'm modelling navigation as graph traversal where each node is a page state and edges are actions with verification conditions. the agent maintains a belief state and can backtrack or replan when something breaks. still early but it's already more robust than anything i've used off the shelf.
+**durable execution**
+the temporal, restate, dbos paradigm lets you write business logic as plain code while the runtime gives you crash-safe, resumable workflows underneath, with the event sourcing handled for you and kept invisible at the point where you actually call it. it's a good fit for anything stateful that reaches across external apis like payments, onboarding or integrations, where a failure halfway through is expensive and retrying is ambiguous because you can't always tell what already ran. the usual worry of what happens if the server dies mid-function stops being something you have to design around, since the runtime tracks progress and resumes from wherever it left off. it reads like boring infrastructure and in practice it ends up mattering far more than it looks.
 
-**local inference**
-experimenting with running models entirely on-device. quantised inference through llama.cpp, optimising for latency on apple silicon. also building local-first rag pipelines where your embeddings and vector store never leave your machine. no api calls, no telemetry, sub-100ms retrieval. the goal is to make privacy the default without sacrificing usability.
-
-**structured reasoning**
-interested in how llms can reason over structured data rather than just text. working on pipelines that extract entities and relations into knowledge graphs, then use graph traversal to ground the model's responses in verified facts. the dream is retrieval that understands schema, not just similarity. early experiments with neo4j and custom entity linkers.`,
+**multi-armed bandits**
+bandits are about moving past fixed-split a/b testing into adaptive allocation, where instead of cutting traffic 50/50 and waiting the way a classic experiment does, algorithms like thompson sampling and ucb keep shifting exposure toward the better variants as results come in and balance exploration against exploitation the whole time. that makes them genuinely useful when your sample sizes are small or your feedback loops are fast. what interests me is the engineering as much as the statistics, in particular how you run bandits across a whole product surface while attributing outcomes honestly and not overfitting to noise.`,
   },
   {
     id: "profile-toolbox",
@@ -133,7 +131,7 @@ built an ai tutoring product from scratch and grew it to 50+ paying customers. h
   {
     id: "project-self-engineering-agent",
     slug: "self-engineering-agent",
-    title: "project: self-engineering agent",
+    title: "self-engineering agent",
     category: "projects",
     folder: "projects",
     public: true,
@@ -381,7 +379,7 @@ practical workflows require remembering context. without memory, "now filter tha
   {
     id: "project-navier-stokes",
     slug: "parallel-navier-stokes",
-    title: "project: parallel navier-stokes solver",
+    title: "parallel navier-stokes solver",
     category: "projects",
     folder: "projects",
     public: true,
@@ -438,7 +436,7 @@ the code is messy (academic code always is), but the experience shaped how i thi
   {
     id: "project-fpl-moneyball",
     slug: "fpl-analyser",
-    title: "project: fpl analyser",
+    title: "fpl analyser",
     category: "projects",
     folder: "projects",
     public: true,
@@ -695,7 +693,7 @@ consistently finished top 100k (out of ~10m players) without spending hours on t
   {
     id: "project-sentiment-engine",
     slug: "global-sentiment-engine",
-    title: "project: global sentiment engine",
+    title: "global sentiment engine",
     category: "projects",
     folder: "projects",
     public: true,
@@ -925,13 +923,13 @@ database growth averages ~2kb per article, 1000-3000 articles per hour, 50-150mb
   {
     id: "project-merkle-sync",
     slug: "merkle-sync",
-    title: "project: merkle sync",
+    title: "merkle sync",
     category: "projects",
     folder: "projects",
     public: true,
     session_id: "",
     created_at: "2025-05-03T11:45:00.000Z",
-    content: `a decentralised file synchronisation engine built from scratch. no http, no rest, no json, no central server. just raw tcp, udp multicast and merkle trees, the same cryptographic data structure that powers git and bitcoin.
+    content: `a decentralised file synchronisation engine built from scratch. without http, rest, json or a central server. rather only using raw tcp, udp multicast and merkle trees, the same cryptographic data structure that powers git and bitcoin.
 
 ---
 
@@ -1072,7 +1070,7 @@ the bandwidth savings are dramatic. to verify 100,000 files totaling 1tb, a naiv
   {
     id: "blog-minimax-m2",
     slug: "minimax-m2-paradigm",
-    title: "blog: minimax m2  - 230b params, 10b cost, agents finally make sense",
+    title: "the $10b shortcut",
     category: "writing",
     folder: "blog",
     public: true,
@@ -1201,7 +1199,7 @@ in the intelligence vs. price quadrant, m2 stands alone. it is the best bang for
   {
     id: "blog-deepseek-ocr",
     slug: "death-of-tokeniser-deepseek-ocr",
-    title: "blog: deepseek-ocr  - why pictures are cheaper than words",
+    title: "reading without reading",
     category: "writing",
     folder: "blog",
     public: true,
@@ -1337,7 +1335,7 @@ we are witnessing the transition from processing discrete symbols to reasoning i
   {
     id: "blog-imo-2025",
     slug: "cognitive-threshold-imo-2025",
-    title: "blog: ai at imo 2025  - gold medal, one critical failure",
+    title: "gold medal, one blind spot",
     category: "writing",
     folder: "blog",
     public: true,
@@ -1547,7 +1545,7 @@ for us, the strategy is clear. use these new "reasoning models" to solve the har
   {
     id: "blog-kimi-k2",
     slug: "silicon-curtain-kimi-k2",
-    title: "blog: kimi k2  - $4.6m to beat gpt-5, sanctions failed",
+    title: "the moonshot that leaked",
     category: "writing",
     folder: "blog",
     public: true,
@@ -1688,7 +1686,7 @@ if you are building in this space, stop assuming that "bigger is better." the ga
   {
     id: "writing-desire",
     slug: "two-faces-of-desire",
-    title: "blog: desire  - when wanting less is wisdom vs. when it's defeat",
+    title: "two faces of desire",
     category: "writing",
     folder: "blog",
     public: true,
@@ -1729,7 +1727,7 @@ the conclusion is subtle yet profound. the problem is never the quantity of desi
 thus, the question of desire becomes not merely psychological but spiritual. the challenge is to discern which quiet we are living in; is it the quiet of fulfillment or the quiet of neglect.`,
   },
   {
-    id: "food adventures",
+    id: "finds-food-adventures",
     slug: "food-adventures",
     title: "food adventures",
     category: "favourites",
@@ -1971,80 +1969,5 @@ i don't expect to resolve most of these. but they're useful to carry.`,
 *now:* there's no arrival. just different games with different stakes. peace comes from the process, not the outcome.
 
 this list will keep growing. that's the point.`,
-  },
-  {
-    id: "writing-curves",
-    slug: "curves-of-the-mind",
-    title: "blog: from shepherds to gödel  - mathematics as human story",
-    category: "writing",
-    folder: "blog",
-    public: true,
-    session_id: "",
-    created_at: "2025-05-09T10:36:00.000Z",
-    content: `mathematics is not a cold kingdom of eternal truths set apart from the world. it is a living river, flowing through cultures, carrying with it the sediments of survival and the light of transcendence. ubiratan d'ambrosio calls this current ethnomathematics, for mathematics is always shaped by the human hand, always marked by the earth from which it springs. the *ethno* gives us the soil and the sky, the *mathema* gives us that which is learned and the *tics* gives us the techniques by which we survive and dream. in this view, mathematics is not a ladder dropped from heaven but a rope we weave ourselves, strand by strand, to climb beyond our limits.
-
----
-
-at its dawn, mathematics was a matter of necessity. the shepherd who placed a stone for every sheep was already discovering bijection, though he had no name for it. his practice embodies the truth that a function $f: S \\to P$ may be injective and surjective, a pairing where nothing is lost and nothing is left unmatched.
-
-in time, the act of counting became number itself and from number, arithmetic was born. peano would later capture this in axioms such that zero is a number, each number has a successor and addition arises by recursion:
-
-$$m + 0 = m$$
-
-$$m + S(n) = S(m + n)$$
-
-what began with sheep and stones has become a pure, infinite ladder, climbing ever upward, rung by rung.
-
----
-
-cultures across the earth gave different voices to this truth. the babylonians wrote in base sixty, the mayans in base twenty, the romans in rigid numerals. in the house of wisdom in baghdad, al-khwarizmi gave birth to algebra. he named it *al-jabr*, the art of restoration, balancing what is unknown until it is revealed.
-
-to solve $x^2 + 10x = 39$, he completed the square:
-
-$$x^2 + 10x + 25 = 64$$
-
-so that $x + 5 = 8$ and $x = 3$.
-
-what began as a method of solving practical problems has become a universal language of relations. his algorithms, with his very name giving us the word, seeded the logic of the machines that now hum in every corner of our lives. and his introduction of the hindu-arabic numerals and zero was a revolution beyond reckoning, for zero allowed us not only to count but to imagine the void as number, the infinite as countable.
-
----
-
-geometry, too, was carried forward in these lands. omar khayyam, both poet and mathematician, sought to untangle euclid's parallel postulate, long a thorn in the side of geometry. he studied its hidden structure and in doing so touched the very threshold of non-euclidean spaces centuries before bolyai or lobachevsky.
-
-khayyam also solved cubic equations using conic sections, drawing a parabola and a circle whose intersection revealed the solution. the equation
-
-$$x^3 + 200x = 20x^2 + 2000$$
-
-was not abstract to him but a curve in space, its truth discovered where shapes meet. he saw algebra and geometry as two halves of one harmony, much as his poetry saw the earthly and the eternal as two reflections of the same light.
-
----
-
-other voices carried the story further. al-kindi, philosopher of the arabs, spoke of numbers as keys to the harmony of the cosmos, a music heard not with the ears but with the intellect. ibn sina, physician and metaphysician, wove logic and mathematics into his vision of being itself, treating number and magnitude as the scaffolding upon which the edifice of knowledge must rise.
-
-nasir al-din al-tusi, working in maragha, refined euclidean geometry and studied the motion of planets, creating the tusi couple, a geometric construction that generates linear motion from two circles. centuries later, this very device appeared in copernicus' *de revolutionibus*, a quiet testament to the transmission of ideas across cultures.
-
-ibn al-haytham, in his *book of optics*, treated light not only as a physical phenomenon but as a problem in geometry and algebra. his method of controlled experimentation and his analyses of reflection and refraction carried the seeds of what we now call the scientific method. for him, geometry was not only the measure of space but the language of vision itself.
-
----
-
-the rhythm of survival and transcendence beat again in the invention of calculus. newton and leibniz, grappling with the mystery of motion, invoked infinitesimals, quantities smaller than any number yet greater than zero. they were ghosts, but ghosts with power. berkeley mocked them as phantoms, but planets traced their orbits under their spell.
-
-it was cauchy and weierstrass who gave them clarity, defining limits with precision. to say $\\lim_{x \\to a} f(x) = L$ is to bind the elusive word "approaches" with the language of $\\varepsilon$ and $\\delta$:
-
-$$\\forall \\varepsilon > 0, \\exists \\delta > 0 : |x - a| < \\delta \\Rightarrow |f(x) - L| < \\varepsilon$$
-
-from this, the derivative and the integral arise, rigorous, unshakable, yet still rooted in that ancient desire to capture change itself.
-
----
-
-and yet, mathematics also encounters its own horizons. in the twentieth century, gödel showed that any system rich enough to contain arithmetic will harbor truths it cannot prove. his incompleteness theorems revealed mathematics to be inexhaustible, forever incomplete. far from diminishing it, this gave mathematics its most profound transcendence, for it revealed that the human quest for knowledge is infinite.
-
----
-
-to gather sheep with stones, to solve quadratics by completing the square, to trace the path of a planet with a circle within a circle, to define rigour with $\\varepsilon$ and $\\delta$, to discover that truth itself will always exceed our grasp, these are not separate acts but one story.
-
-they are the human story of mathematics, rising from survival into transcendence. al-khwarizmi's equations, khayyam's curves, al-tusi's couples, ibn al-haytham's rays, peano's axioms, weierstrass's limits and gödel's theorems are chapters in a single book we are still writing.
-
-to study mathematics is to walk this path, to trace the footprints of shepherds, philosophers and poets and to add our own. it is to glimpse, in the language of number and proof, the unending effort of a species not content to survive but always reaching beyond, seeking in the finite symbols of mathematics a reflection of the infinite.`,
-  },
+  }
 ];

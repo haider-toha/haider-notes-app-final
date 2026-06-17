@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import MainContent from "./components/MainContent";
@@ -7,169 +7,146 @@ import { Theme } from "./types";
 import { Moon, Sun, PanelLeft, Share } from "lucide-react";
 import { Analytics } from "@vercel/analytics/react";
 
+const isValidFolder = (id: string | undefined) =>
+  !!id && folders.some((f) => f.id === id);
+
+// Resolve the note for the current URL. Prefers an exact folder+slug match, then
+// falls back to a slug-only match so links like /blog/about-me (wrong folder),
+// /badfolder/about-me (invalid folder) or /all/about-me still resolve. A separate
+// effect rewrites the address bar to the canonical /<folder>/<slug>.
+const getNoteFromParams = (
+  folderParam: string | undefined,
+  slugParam: string | undefined,
+) => {
+  if (!slugParam) {
+    // No slug: only the "all" landing page auto-selects the first note.
+    return folderParam === "all" ? portfolioNotes[0] ?? null : null;
+  }
+  if (folderParam && folderParam !== "all") {
+    const exact = portfolioNotes.find(
+      (n) => n.folder === folderParam && n.slug === slugParam,
+    );
+    if (exact) return exact;
+  }
+  return portfolioNotes.find((n) => n.slug === slugParam) ?? null;
+};
+
 const App: React.FC = () => {
-  const { folder: folderParam, slug } = useParams<{ folder?: string; slug?: string }>();
+  const { folder: folderParam, slug } = useParams<{
+    folder?: string;
+    slug?: string;
+  }>();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if the folder param is a valid folder
-  const isValidFolder = (id: string | undefined) => {
-    if (!id) return false;
-    return folders.some((f) => f.id === id);
-  };
-
-  // Find note by folder and slug
-  const getNoteFromParams = (folderParam: string | undefined, slugParam: string | undefined) => {
-    if (!folderParam) return null;
-    
-    // Special handling for "all" folder - search all notes by slug only
-    if (folderParam === "all") {
-      if (slugParam) {
-        return portfolioNotes.find((n) => n.slug === slugParam) || null;
-      }
-      // Return first note if no slug specified (only for "all" as landing page)
-      return portfolioNotes[0] || null;
-    }
-    
-    // If we have both folder and slug, find the specific note
-    if (slugParam) {
-      return portfolioNotes.find((n) => n.folder === folderParam && n.slug === slugParam) || null;
-    }
-    
-    // For other folders without a slug, don't auto-select a note
-    return null;
-  };
-
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth < 768;
-    }
-    return false;
-  });
+  const [isMobile, setIsMobile] = useState<boolean>(
+    () => typeof window !== "undefined" && window.innerWidth < 768,
+  );
   const [showSidebar, setShowSidebar] = useState<boolean>(() => {
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      return !slug && !folderParam;
-    }
+    if (typeof window !== "undefined" && window.innerWidth < 768) return !slug;
     return true;
   });
   const [theme, setTheme] = useState<Theme>("light");
+  const prevIsMobile = useRef(isMobile);
 
-  // Get selected folder from URL param
-  const selectedFolderId = isValidFolder(folderParam) ? folderParam! : "all";
-
-  // Get selected note from URL
   const selectedNote = getNoteFromParams(folderParam, slug);
-  const selectedNoteId = selectedNote?.id || null;
+  const selectedNoteId = selectedNote?.id ?? null;
+  // Highlight the URL folder when it's valid; "all" stays "all"; otherwise follow
+  // the resolved note's real folder so the sidebar selection never lies.
+  const selectedFolderId =
+    folderParam === "all"
+      ? "all"
+      : isValidFolder(folderParam)
+        ? folderParam!
+        : selectedNote?.folder ?? "all";
 
-  // Handle initial load - redirect to first note on desktop if at root
+  // Track viewport → mobile/desktop.
   useEffect(() => {
-    if (location.pathname === "/" && !isMobile) {
-      const firstNote = portfolioNotes[0];
-      navigate(`/all/${firstNote.slug}`, { replace: true });
-    }
-  }, [location.pathname, isMobile, navigate]);
-
-  // Determine mobile state on resize
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      const wasMobile = isMobile;
-      setIsMobile(mobile);
-
-      if (mobile) {
-        if (location.pathname === "/") {
-          setShowSidebar(true);
-        }
-      } else {
-        setShowSidebar(true);
-        if (location.pathname === "/" && wasMobile) {
-          const firstNote = portfolioNotes[0];
-          navigate(`/all/${firstNote.slug}`, { replace: true });
-        }
-      }
-    };
-
-    handleResize();
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Desktop opens the first note when landing on "/" (Apple auto-selects a note).
+  useEffect(() => {
+    if (!isMobile && location.pathname === "/" && portfolioNotes[0]) {
+      navigate(`/all/${portfolioNotes[0].slug}`, { replace: true });
+    }
   }, [isMobile, location.pathname, navigate]);
 
-  // Theme Toggle Effect
+  // Rewrite non-canonical note URLs (wrong / invalid folder) to the note's folder.
   useEffect(() => {
     if (
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
+      slug &&
+      selectedNote &&
+      folderParam !== "all" &&
+      folderParam !== selectedNote.folder
     ) {
+      navigate(`/${selectedNote.folder}/${selectedNote.slug}`, {
+        replace: true,
+      });
+    }
+  }, [slug, selectedNote, folderParam, navigate]);
+
+  // Keep sidebar visibility coherent with viewport + selection.
+  useEffect(() => {
+    const wasMobile = prevIsMobile.current;
+    prevIsMobile.current = isMobile;
+    if (!isMobile) {
+      // mobile → desktop: reveal the sidebar. In steady-state desktop the toolbar
+      // toggle owns this state, so don't clobber it on unrelated re-renders.
+      if (wasMobile) setShowSidebar(true);
+    } else {
+      // Mobile: show the list when nothing is open, hide it while reading a note.
+      setShowSidebar(!slug);
+    }
+  }, [isMobile, slug]);
+
+  // Initialize theme from the system preference.
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) {
       setTheme("dark");
     }
   }, []);
 
   useEffect(() => {
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
-
-  // Update sidebar visibility when route changes to a note
-  useEffect(() => {
-    if (isMobile && slug) {
-      setShowSidebar(false);
-    }
-  }, [slug, isMobile]);
 
   const handleSelectNote = (id: string) => {
     const note = portfolioNotes.find((n) => n.id === id);
-    if (note) {
-      // Preserve current folder context - if viewing "all", stay in "all"
-      const currentFolder = selectedFolderId === "all" ? "all" : note.folder;
-      navigate(`/${currentFolder}/${note.slug}`);
-      if (isMobile) {
-        setShowSidebar(false);
-      }
-    }
+    if (!note) return;
+    // Preserve the current folder context — if viewing "all", stay in "all".
+    const currentFolder = selectedFolderId === "all" ? "all" : note.folder;
+    navigate(`/${currentFolder}/${note.slug}`);
+    if (isMobile) setShowSidebar(false);
   };
 
   const handleSelectFolder = (folderId: string) => {
     if (folderId === "all") {
-      // For "all", navigate to /all with the first note (landing page behavior)
-      const firstNote = portfolioNotes[0];
-      if (isMobile) {
-        navigate("/all");
-      } else {
-        navigate(`/all/${firstNote.slug}`);
-      }
+      // "all" is the landing page: open the first note on desktop, list on mobile.
+      if (isMobile) navigate("/all");
+      else if (portfolioNotes[0]) navigate(`/all/${portfolioNotes[0].slug}`);
     } else {
-      // For other folders, just navigate to the folder without selecting a note
       navigate(`/${folderId}`);
     }
   };
 
-  const handleBack = () => {
-    // Simply show the sidebar, keep the current note selected
-    setShowSidebar(true);
-  };
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-  };
-
+  const handleBack = () => setShowSidebar(true);
+  const toggleTheme = () => setTheme((p) => (p === "light" ? "dark" : "light"));
   const toggleDesktopSidebar = () => {
-    if (!isMobile) setShowSidebar((prev) => !prev);
+    if (!isMobile) setShowSidebar((p) => !p);
   };
 
   const handleShare = async () => {
     if (!selectedNote) return;
-
+    // Always share the canonical /<folder>/<slug> link so it resolves anywhere.
     const shareUrl = `${window.location.origin}/${selectedNote.folder}/${selectedNote.slug}`;
-
     const shareData = {
       title: selectedNote.title,
       text: selectedNote.content.substring(0, 200) + "...",
       url: shareUrl,
     };
-
     try {
       if (navigator.share) {
         await navigator.share(shareData);
@@ -177,46 +154,49 @@ const App: React.FC = () => {
         await navigator.clipboard.writeText(shareUrl);
         alert("link copied to clipboard");
       }
-    } catch (err) {
-      console.error("error sharing:", err);
+    } catch {
+      // user dismissed the share sheet, or clipboard was denied — non-fatal
     }
   };
 
   return (
     <>
       <Analytics />
-      <div className="h-screen w-screen flex flex-col bg-apple-bgLight dark:bg-black overflow-hidden font-sans transition-colors duration-200">
-        {/* Desktop Toolbar */}
+      <div className="h-full w-full flex flex-col bg-apple-bgLight dark:bg-black overflow-hidden font-sans transition-colors duration-200">
+        {/* Desktop Toolbar — unified, translucent, monochrome glyphs (macOS Notes) */}
         {!isMobile && (
-          <div className="h-12 bg-apple-sidebarLight/70 dark:bg-apple-sidebarDark/60 backdrop-blur-xl flex items-center justify-between px-4 border-b border-black/10 dark:border-white/10 shrink-0 z-20 select-none">
-            <div className="flex items-center space-x-5">
+          <div className="h-[52px] bg-apple-sidebarLight/80 dark:bg-apple-sidebarDark/70 backdrop-blur-xl flex items-center justify-between px-4 border-b border-black/[0.07] dark:border-white/[0.08] shrink-0 z-20 select-none">
+            <div className="flex items-center">
               <button
                 onClick={toggleDesktopSidebar}
-                className={`hover:opacity-70 transition-opacity ${!showSidebar ? "text-apple-textGray" : "text-apple-yellow"}`}
-                title="toggle sidebar"
+                aria-label="Toggle sidebar"
+                title="Toggle sidebar"
+                className="p-1.5 -ml-1.5 rounded-md text-apple-textGray hover:text-black/75 dark:hover:text-white/75 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               >
-                <PanelLeft className="w-5 h-5 stroke-[2]" />
+                <PanelLeft className="w-[18px] h-[18px] stroke-[1.8]" />
               </button>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-0.5">
               <button
                 onClick={handleShare}
-                className="text-apple-textGray hover:opacity-60 transition-opacity"
-                title="share"
+                aria-label="Share note"
+                title="Share"
+                className="p-1.5 rounded-md text-apple-textGray hover:text-black/75 dark:hover:text-white/75 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               >
-                <Share className="w-4 h-4 stroke-[2]" />
+                <Share className="w-[17px] h-[17px] stroke-[1.8]" />
               </button>
-              <div className="w-px h-4 bg-apple-separatorLight dark:bg-apple-separatorDark mx-2"></div>
+              <div className="w-px h-5 bg-apple-separatorLight dark:bg-apple-separatorDark mx-1.5" />
               <button
                 onClick={toggleTheme}
-                className="p-1 rounded-full text-apple-textGray hover:text-apple-yellow transition-colors"
-                aria-label="toggle theme"
+                aria-label="Toggle dark mode"
+                title="Toggle appearance"
+                className="p-1.5 rounded-md text-apple-textGray hover:text-black/75 dark:hover:text-white/75 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
               >
                 {theme === "light" ? (
-                  <Moon className="w-4 h-4 stroke-[2]" />
+                  <Moon className="w-[17px] h-[17px] stroke-[1.8]" />
                 ) : (
-                  <Sun className="w-4 h-4 stroke-[2]" />
+                  <Sun className="w-[17px] h-[17px] stroke-[1.8]" />
                 )}
               </button>
             </div>
@@ -225,36 +205,38 @@ const App: React.FC = () => {
 
         {/* Main Split View */}
         <div className="flex-1 flex overflow-hidden relative">
-          {/* Sidebar Column */}
+          {/* Sidebar Column.
+              Mobile: slides over the content (transform). Desktop: collapses by
+              animating width so the editor smoothly reclaims the space (macOS). */}
           <div
             className={`
-            ${isMobile ? "absolute inset-0 z-30" : "relative"}
-            ${showSidebar ? "translate-x-0" : "-translate-x-full"}
-            transition-transform duration-300 ease-[cubic-bezier(0.2,0,0,1)]
-            w-full md:w-[440px] lg:w-[480px] shrink-0 h-full
-            bg-apple-sidebarLight dark:bg-apple-sidebarDark
-            border-r border-apple-separatorLight dark:border-apple-separatorDark
-            ${!showSidebar && !isMobile ? "w-0" : ""} 
-          `}
-            style={
-              !showSidebar && !isMobile ? { width: 0, border: "none" } : {}
+            shrink-0 h-full bg-apple-sidebarLight dark:bg-apple-sidebarDark
+            ease-[cubic-bezier(0.42,0,0.58,1)] duration-[250ms]
+            ${
+              isMobile
+                ? `absolute inset-0 z-30 w-full transition-transform ${showSidebar ? "translate-x-0" : "-translate-x-full"}`
+                : `relative overflow-hidden transition-[width] ${showSidebar ? "w-[480px] lg:w-[520px]" : "w-0"}`
             }
+            ${showSidebar ? "border-r border-apple-separatorLight dark:border-apple-separatorDark" : ""}
+          `}
           >
-            <Sidebar
-              notes={portfolioNotes}
-              folders={folders}
-              selectedNoteId={selectedNoteId}
-              selectedFolderId={selectedFolderId}
-              onSelectNote={handleSelectNote}
-              onSelectFolder={handleSelectFolder}
-              isMobile={isMobile}
-            />
+            <div className="h-full w-full md:w-[480px] lg:w-[520px]">
+              <Sidebar
+                notes={portfolioNotes}
+                folders={folders}
+                selectedNoteId={selectedNoteId}
+                selectedFolderId={selectedFolderId}
+                onSelectNote={handleSelectNote}
+                onSelectFolder={handleSelectFolder}
+                isMobile={isMobile}
+              />
+            </div>
           </div>
 
           {/* Main Content Column */}
           <div className="flex-1 h-full bg-apple-bgLight dark:bg-apple-bgDark relative z-10 w-full min-w-0">
             <MainContent
-              note={selectedNote}
+              note={selectedNote ?? undefined}
               onBack={handleBack}
               isMobile={isMobile}
               onShare={handleShare}

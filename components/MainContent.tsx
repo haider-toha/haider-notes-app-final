@@ -38,20 +38,34 @@ const DiagramModal: React.FC<{
   const containerRef = useRef<HTMLDivElement>(null);
   const lastTouchDistance = useRef<number | null>(null);
 
-  // Handle keyboard events
+  // Keyboard (Esc to close) + lock body scroll while the modal is open.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [onClose]);
 
-  // Handle mouse wheel zoom
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setScale((prev) => Math.min(Math.max(prev + delta, 0.25), 5));
+  // Wheel-zoom needs a NON-passive listener: React 19 attaches onWheel passively,
+  // so preventDefault() there is ignored and the page scrolls behind the modal.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.1 : 0.1;
+      setScale((prev) => Math.min(Math.max(prev + delta, 0.25), 5));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
   // Handle touch events for pinch zoom
@@ -128,7 +142,6 @@ const DiagramModal: React.FC<{
     <div
       ref={containerRef}
       className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl overflow-hidden touch-none"
-      onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -139,6 +152,7 @@ const DiagramModal: React.FC<{
       {/* Close button - positioned below the fixed header (h-12 = 48px) */}
       <button
         onClick={onClose}
+        aria-label="Close diagram"
         className="absolute top-16 right-4 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
         title="Close (Esc)"
       >
@@ -221,6 +235,40 @@ const lightThemeVariables = {
   edgeLabelBackground: "#ffffff",
 };
 
+// Mermaid renders against shared global state (a single sandbox + global config),
+// so firing many renders at once — one per diagram on a page — makes them clobber
+// each other and some silently produce no SVG. That's why diagrams vanished in
+// light mode: unlike dark mode, light mode never triggered the second render pass
+// (from the theme-class flip) that happened to mask the race. Serialize every
+// render through one queue and give each a unique id so they can't collide.
+let mermaidRenderChain: Promise<unknown> = Promise.resolve();
+let mermaidRenderSeq = 0;
+
+const renderMermaid = (chart: string, isDark: boolean): Promise<string> => {
+  const run = mermaidRenderChain.then(async () => {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "base",
+      securityLevel: "loose",
+      fontFamily: "inherit",
+      flowchart: {
+        htmlLabels: true,
+        curve: "basis",
+      },
+      themeVariables: isDark ? darkThemeVariables : lightThemeVariables,
+    });
+    const { svg } = await mermaid.render(
+      `mermaid-render-${isDark ? "dark" : "light"}-${++mermaidRenderSeq}`,
+      chart,
+    );
+    return svg;
+  });
+  // Keep the queue alive even if one render rejects, so a single failure
+  // doesn't stall every diagram behind it.
+  mermaidRenderChain = run.catch(() => {});
+  return run;
+};
+
 // Mermaid Diagram Component
 const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: string) => void }> = ({ chart, id, onExpand }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -243,33 +291,25 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
   }, []);
 
   useEffect(() => {
-    const renderDiagram = async () => {
-      if (!containerRef.current) return;
-      
-      try {
-        // Use theme-aware colors for diagrams
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: "base",
-          securityLevel: "loose",
-          fontFamily: "inherit",
-          flowchart: {
-            htmlLabels: true,
-            curve: "basis",
-          },
-          themeVariables: isDark ? darkThemeVariables : lightThemeVariables,
-        });
+    let cancelled = false;
 
-        const { svg } = await mermaid.render(`mermaid-${id}-${isDark ? 'dark' : 'light'}`, chart);
-        setSvg(svg);
+    renderMermaid(chart, isDark)
+      .then((rendered) => {
+        if (cancelled) return;
+        setSvg(rendered);
         setError(null);
-      } catch (err) {
+      })
+      .catch((err) => {
+        if (cancelled) return;
         console.error("Mermaid rendering error:", err);
         setError("Failed to render diagram");
-      }
-    };
+      });
 
-    renderDiagram();
+    // If the diagram unmounts or re-renders (e.g. theme flip) before this render
+    // resolves, drop the stale result so it can't overwrite a newer one.
+    return () => {
+      cancelled = true;
+    };
   }, [chart, id, isDark]);
 
   if (error) {
@@ -314,6 +354,20 @@ const ImageModal: React.FC<{
   const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.5, 3));
   const handleZoomOut = () => setScale((prev) => Math.max(prev - 0.5, 0.5));
 
+  // Esc to close + lock body scroll while open (parity with DiagramModal).
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
   return (
     <div
       className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center"
@@ -326,6 +380,7 @@ const ImageModal: React.FC<{
             e.stopPropagation();
             handleZoomOut();
           }}
+          aria-label="Zoom out"
           className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
         >
           <ZoomOut className="w-5 h-5" />
@@ -335,12 +390,14 @@ const ImageModal: React.FC<{
             e.stopPropagation();
             handleZoomIn();
           }}
+          aria-label="Zoom in"
           className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
         >
           <ZoomIn className="w-5 h-5" />
         </button>
         <button
           onClick={onClose}
+          aria-label="Close image"
           className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
         >
           <X className="w-5 h-5" />
@@ -388,11 +445,13 @@ const MainContent: React.FC<MainContentProps> = ({
 
   if (!note) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-apple-bgLight dark:bg-apple-bgDark text-apple-textGray">
-        <div className="opacity-20 mb-4">
-          <PenSquare className="w-16 h-16" />
+      <div className="h-full flex flex-col items-center justify-center bg-apple-bgLight dark:bg-apple-bgDark text-apple-textGray select-none">
+        <div className="opacity-15 mb-4">
+          <PenSquare className="w-14 h-14 stroke-[1.5]" />
         </div>
-        <span className="text-xl font-medium">no selection</span>
+        <span className="text-[17px] font-medium text-apple-textGray/80">
+          no note selected
+        </span>
       </div>
     );
   }
@@ -460,14 +519,17 @@ const MainContent: React.FC<MainContentProps> = ({
           loading="lazy"
           className="w-full max-w-full h-auto rounded-xl shadow-sm group-hover:shadow-md transition-all duration-200 group-hover:scale-[1.01]"
           onError={(e) => {
-            // Fallback for broken images
+            // Fallback for broken images. Guard parentElement: the node may have
+            // unmounted if the user navigated away before the load failed.
             const target = e.target as HTMLImageElement;
             target.style.display = "none";
-            target.parentElement!.innerHTML = `
+            if (target.parentElement) {
+              target.parentElement.innerHTML = `
               <div class="flex items-center justify-center py-8 text-apple-textGray text-sm">
                 <span>image could not be loaded</span>
               </div>
             `;
+            }
           }}
         />
         {/* Hover overlay */}
@@ -481,23 +543,30 @@ const MainContent: React.FC<MainContentProps> = ({
     </div>
   );
 
-  // Helper to render markdown tables
-  const renderTable = (tableLines: string[], startIndex: number) => {
-    // Parse header row
-    const headerRow = tableLines[0]
+  // Split a "| a | b | c |" row into trimmed cells. Strip ONLY the outer pipes —
+  // filtering every empty cell (the old behaviour) deletes intentionally-blank
+  // interior cells and shifts every later column left, misaligning the table.
+  const parseTableRow = (line: string) =>
+    line
+      .trim()
+      .replace(/^\|/, "")
+      .replace(/\|$/, "")
       .split("|")
-      .filter((cell) => cell.trim() !== "")
       .map((cell) => cell.trim());
 
-    // Skip separator row (index 1)
+  // Helper to render markdown tables
+  const renderTable = (tableLines: string[], startIndex: number) => {
+    // Parse header row (defines the column count)
+    const headerRow = parseTableRow(tableLines[0]);
+    const colCount = headerRow.length;
 
-    // Parse data rows
-    const dataRows = tableLines.slice(2).map((line) =>
-      line
-        .split("|")
-        .filter((cell) => cell.trim() !== "")
-        .map((cell) => cell.trim()),
-    );
+    // Skip separator row (index 1). Parse data rows, padding/truncating each to
+    // the header width so blank cells keep their column position.
+    const dataRows = tableLines.slice(2).map((line) => {
+      const cells = parseTableRow(line);
+      while (cells.length < colCount) cells.push("");
+      return cells.slice(0, colCount);
+    });
 
     return (
       <div key={startIndex} className="my-4 overflow-x-auto">
@@ -580,17 +649,46 @@ const MainContent: React.FC<MainContentProps> = ({
         const language = line.trim().slice(3).trim().toLowerCase();
         const codeLines: string[] = [];
         let j = i + 1;
-        
-        // Collect code block content until closing ```
-        while (j < lines.length && !lines[j].trim().startsWith("```")) {
+        let closed = false;
+
+        // Collect code block content until the closing ```
+        while (j < lines.length) {
+          if (lines[j].trim().startsWith("```")) {
+            closed = true;
+            break;
+          }
           codeLines.push(lines[j]);
           j++;
         }
-        
-        const code = codeLines.join("\n");
-        elements.push(renderCodeBlock(code, language, i));
+
+        // Guard: an unclosed fence shouldn't swallow the rest of the note. If we
+        // hit EOF without a closing ```, render this line as text and move on.
+        if (!closed) {
+          elements.push(renderLine(line, i));
+          i++;
+          continue;
+        }
+
+        elements.push(renderCodeBlock(codeLines.join("\n"), language, i));
         i = j + 1; // Skip past the closing ```
         continue;
+      }
+
+      // Standalone block math: a line that is exactly "$$" opens a display-math
+      // block that runs until the next line that is exactly "$$".
+      if (line.trim() === "$$") {
+        const mathLines: string[] = [];
+        let j = i + 1;
+        while (j < lines.length && lines[j].trim() !== "$$") {
+          mathLines.push(lines[j]);
+          j++;
+        }
+        if (j < lines.length) {
+          elements.push(renderMath(mathLines.join("\n"), true, `blockmath-${i}`));
+          i = j + 1;
+          continue;
+        }
+        // No closing "$$": fall through and treat the line as ordinary text.
       }
 
       // Check for table start
@@ -673,16 +771,58 @@ const MainContent: React.FC<MainContentProps> = ({
       return <div key={index}>{parts}</div>;
     }
 
-    // Regular line without images
+    // ATX headings: "# " … "###### "
+    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
+    if (headingMatch) {
+      const level = headingMatch[1].length;
+      const sizeByLevel = [
+        "text-[23px] md:text-[25px]",
+        "text-[20px] md:text-[21px]",
+        "text-[18px] md:text-[19px]",
+        "text-[17px]",
+        "text-[16px]",
+        "text-[15px]",
+      ];
+      return (
+        <div
+          key={index}
+          className={`font-bold text-black dark:text-white tracking-[-0.015em] mt-4 mb-1 leading-snug ${sizeByLevel[level - 1]}`}
+        >
+          {renderTextWithFormatting(headingMatch[2])}
+        </div>
+      );
+    }
+
+    // Numbered list: "1. text", "2. text", … Cap at 3 digits so a paragraph that
+    // happens to start with a 4-digit year ("2024. ...") isn't treated as a list.
+    const orderedMatch = line.match(/^(\s*)(\d{1,3})\.\s+(.*)$/);
+    if (orderedMatch) {
+      return (
+        <div key={index} className="pl-6 relative min-h-[1.5em]">
+          <span className="absolute left-0 tabular-nums text-black/80 dark:text-white/80">
+            {orderedMatch[2]}.
+          </span>
+          <span className="break-words">
+            {renderTextWithFormatting(orderedMatch[3])}
+          </span>
+        </div>
+      );
+    }
+
+    // Bulleted list: "- text"
     const isBullet = line.trim().startsWith("- ");
     const content = isBullet ? line.trim().substring(2) : line;
 
     return (
       <div
         key={index}
-        className={`min-h-[1.5em] ${isBullet ? "pl-4 flex relative" : ""}`}
+        className={`min-h-[1.5em] ${isBullet ? "pl-5 flex relative" : ""}`}
       >
-        {isBullet && <span className="mr-2 absolute left-0">•</span>}
+        {isBullet && (
+          <span className="absolute left-1 text-black/70 dark:text-white/70">
+            •
+          </span>
+        )}
         <span className="break-words w-full">
           {renderTextWithFormatting(content)}
         </span>
@@ -715,34 +855,45 @@ const MainContent: React.FC<MainContentProps> = ({
     }
   };
 
-  // Helper to render text with bold, italic, links and math
+  // Helper to render text with inline code, bold, italic, links and math
   const renderTextWithFormatting = (content: string): React.ReactNode[] => {
-    // First, handle block math ($$...$$)
-    const blockMathRegex = /\$\$([\s\S]*?)\$\$/g;
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-    let match;
-    let keyCounter = 0;
-
-    // Check for block math
+    // Stash block math ($$...$$) behind a sentinel so the splitter treats it as
+    // one opaque token.
     const contentWithBlockMath = content.replace(
-      blockMathRegex,
+      /\$\$([\s\S]*?)\$\$/g,
       (_, latex) => `\x00BLOCKMATH:${latex}\x00`,
     );
 
-    // Split by inline math and other formatting
+    // Split into tokens. Inline code comes first so backticked spans are never
+    // re-parsed as bold/italic/etc. No regex lookbehind (older Safari support);
+    // space-padding is validated in the handlers below.
     const segments = contentWithBlockMath.split(
-      /(\x00BLOCKMATH:[\s\S]*?\x00|\$[^$\n]+\$|\*\*.*?\*\*|\*.*?\*|\[.*?\]\(.*?\))/g,
+      /(\x00BLOCKMATH:[\s\S]*?\x00|`[^`\n]+`|\$[^$\n]+?\$|\*\*[^\n]*?\*\*|\*[^*\n]+?\*|\[.*?\]\(.*?\))/g,
     );
+
+    // True when s has no leading/trailing whitespace just inside the delimiters —
+    // used to reject prose like "$5 to $10" or "a * b *" that isn't really math/italic.
+    const tight = (s: string) => s.length > 0 && !/^\s|\s$/.test(s);
 
     return segments.map((part, j) => {
       // Block math
       if (part.startsWith("\x00BLOCKMATH:") && part.endsWith("\x00")) {
-        const latex = part.slice(11, -1);
-        return renderMath(latex, true, `block-math-${j}`);
+        return renderMath(part.slice(11, -1), true, `block-math-${j}`);
       }
 
-      // Inline math ($...$) - but not block math ($$...$$)
+      // Inline code `…`
+      if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
+        return (
+          <code
+            key={j}
+            className="px-1.5 py-0.5 mx-px rounded-md bg-black/[0.07] dark:bg-white/[0.1] font-mono text-[0.85em] text-black/85 dark:text-white/85"
+          >
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+
+      // Inline math $…$ (not $$…$$, and not a prose dollar amount)
       if (
         part.startsWith("$") &&
         part.endsWith("$") &&
@@ -750,10 +901,11 @@ const MainContent: React.FC<MainContentProps> = ({
         part.length > 2
       ) {
         const latex = part.slice(1, -1);
-        return renderMath(latex, false, `inline-math-${j}`);
+        if (tight(latex)) return renderMath(latex, false, `inline-math-${j}`);
+        return <span key={j}>{part}</span>;
       }
 
-      if (part.startsWith("**") && part.endsWith("**")) {
+      if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
         return (
           <strong key={j} className="font-bold">
             {part.slice(2, -2)}
@@ -766,24 +918,31 @@ const MainContent: React.FC<MainContentProps> = ({
         part.length > 2 &&
         !part.startsWith("**")
       ) {
-        return (
-          <em key={j} className="italic text-apple-textGray">
-            {part.slice(1, -1)}
-          </em>
-        );
+        const inner = part.slice(1, -1);
+        if (tight(inner)) {
+          return (
+            <em key={j} className="italic text-apple-textGray">
+              {inner}
+            </em>
+          );
+        }
+        return <span key={j}>{part}</span>;
       }
       if (part.startsWith("[") && part.includes("](") && part.endsWith(")")) {
-        const match = part.match(/\[(.*?)\]\((.*?)\)/);
-        if (match) {
+        const linkMatch = part.match(/\[(.*?)\]\((.*?)\)/);
+        if (linkMatch) {
+          // Only http(s) links open in a new tab; mailto:/relative open in place.
+          const isExternal = /^https?:\/\//i.test(linkMatch[2]);
           return (
             <a
               key={j}
-              href={match[2]}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={linkMatch[2]}
+              {...(isExternal
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               className="text-apple-yellow hover:underline cursor-pointer"
             >
-              {match[1]}
+              {linkMatch[1]}
             </a>
           );
         }
@@ -817,6 +976,7 @@ const MainContent: React.FC<MainContentProps> = ({
           <div className="h-12 flex items-center justify-between px-2 shrink-0 bg-apple-bgLight/80 dark:bg-apple-bgDark/70 backdrop-blur-xl border-b border-black/5 dark:border-white/10 z-20">
             <button
               onClick={onBack}
+              aria-label="Back to notes"
               className="flex items-center text-apple-yellow hover:opacity-70 transition-opacity"
             >
               <ChevronLeft className="w-7 h-7" />
@@ -828,6 +988,7 @@ const MainContent: React.FC<MainContentProps> = ({
             <div className="flex items-center space-x-4 pr-2">
               <button
                 onClick={onShare}
+                aria-label="Share note"
                 className="text-apple-yellow hover:opacity-70"
               >
                 <Share className="w-5 h-5" />
@@ -841,15 +1002,15 @@ const MainContent: React.FC<MainContentProps> = ({
           ref={scrollContainerRef}
           className="flex-1 overflow-y-auto no-scrollbar"
         >
-          <div className="max-w-[760px] mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-8 min-h-full">
-            {/* Date Header */}
-            <div className="text-center mb-4 md:mb-6 select-none">
-              <span className="text-[12px] md:text-[13px] text-apple-textGray font-semibold tracking-[-0.01em]">
+          <div className="max-w-[720px] mx-auto px-4 sm:px-6 md:px-12 py-5 md:py-7 min-h-full">
+            {/* Date Header — centered, gray, regular weight (Apple Notes) */}
+            <div className="text-center mb-3 md:mb-5 select-none">
+              <span className="text-[12px] md:text-[13px] text-apple-textGray tracking-[-0.005em]">
                 {fullDate}
               </span>
             </div>
             {/* Note Title */}
-            <h1 className="text-[28px] md:text-[34px] font-bold tracking-[-0.03em] text-black dark:text-white mb-4 md:mb-6 leading-[1.12] outline-none">
+            <h1 className="text-[27px] md:text-[31px] font-bold tracking-[-0.025em] text-black dark:text-white mb-3 md:mb-5 leading-[1.14] outline-none">
               {note.title}
             </h1>
             {/* Blog metadata - dynamic word count */}

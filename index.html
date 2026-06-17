@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Haider Toha</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="alternate icon" href="/favicon.svg">
@@ -16,22 +16,28 @@
           extend: {
             colors: {
               apple: {
-                yellow: '#F0C000',
+                // Accent (folder icons, links, mobile bar buttons). Apple systemYellow
+                // is #FFCC00/#FFD60A; we use a slightly deeper gold so link text on
+                // white stays legible while still reading as Apple Notes gold.
+                yellow: '#EAB000',
                 yellowDark: '#FFD60A',
-                sidebarLight: '#F2F2F7', 
+                // Selected note/folder row — Apple Notes "Gangster Gold" (#FFD52E) with
+                // DARK text in both modes. This is the signature Notes look.
+                selectionLight: '#FFD426',
+                selectionDark: '#E0A93A',
+                sidebarLight: '#F4F4F6',
                 sidebarDark: '#1C1C1E',
                 bgLight: '#FFFFFF',
                 bgDark: '#000000',
-                separatorLight: '#C6C6C8',
+                editorDark: '#1C1C1E',
+                separatorLight: '#D6D6DA',
                 separatorDark: '#38383A',
                 textGray: '#8E8E93',
                 textDark: '#FFFFFF',
-                searchLight: '#E3E3E8',
+                searchLight: '#E4E4E9',
                 searchDark: '#2C2C2E',
-                selectionLight: '#E0B039',
-                selectionDark: '#DCA226',
-                hoverLight: 'rgba(0,0,0,0.05)',
-                hoverDark: 'rgba(255,255,255,0.1)',
+                hoverLight: 'rgba(0,0,0,0.045)',
+                hoverDark: 'rgba(255,255,255,0.06)',
               }
             },
             fontFamily: {
@@ -71,18 +77,19 @@
         overscroll-behavior-y: none; /* Prevent bounce on mobile */
       }
       html, body {
-        height: 100%;
+        height: 100vh;  /* fallback for browsers without dvh support */
+        height: 100dvh; /* dynamic viewport height so mobile browser chrome doesn't clip the bottom of the content */
       }
       /* Slightly more "native" focus ring behavior */
       :focus-visible {
-        outline: 2px solid rgba(240, 192, 0, 0.55);
+        outline: 2px solid rgba(255, 212, 38, 0.6);
         outline-offset: 2px;
-        border-radius: 10px;
+        border-radius: 8px;
       }
-      /* Custom selection color */
+      /* Apple Notes text-selection: a translucent yellow highlight that keeps the
+         underlying text color (matches the macOS/iOS yellow accent highlight). */
       ::selection {
-        background-color: #E0B039; /* Apple Yellow */
-        color: white;
+        background-color: rgba(255, 212, 38, 0.38);
       }
 
       /*
@@ -99,7 +106,7 @@
       }
     </style>
 </head>
-  <body class="bg-apple-bgLight dark:bg-apple-bgDark text-black dark:text-white h-screen overflow-hidden selection:bg-apple-yellow selection:text-white">
+  <body class="bg-apple-bgLight dark:bg-apple-bgDark text-black dark:text-white overflow-hidden">
     <div id="root" class="h-full w-full"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
