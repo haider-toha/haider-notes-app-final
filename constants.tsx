@@ -1734,14 +1734,14 @@ thus, the question of desire becomes not merely psychological but spiritual. the
     folder: "finds",
     public: true,
     session_id: "",
-    created_at: "2025-07-09T18:00:00.000Z",
+    created_at: "2025-07-09T18:17:00.000Z",
     content: `a running list of the matches and moments i find myself going back to, the ones that stuck with me long after the result stopped mattering.
 
 **football**
 - *messi's last-minute winner against iran, 2014 world cup.* iran had frustrated argentina for ninety minutes and looked set to hold out for a draw, then messi took one touch twenty yards out and bent it into the far corner in stoppage time as if the previous hour and a half had just been him waiting. it is the most messi thing imaginable, a whole game settled in one second of something nobody else on the pitch could do.
-- *tioté's equaliser in newcastle 4-4 arsenal, 2011.* arsenal were four goals up at half time and newcastle somehow hauled the whole thing back, with cheick tioté smashing in the leveller near the end for the only goal he would ever score in his time at the club. it means a good deal more now that he died so suddenly in 2017, and it is still the wildest comeback i have watched in the league.
+- *tioté's equaliser in newcastle 4-4 arsenal, 2011.* arsenal were four goals up at half time and newcastle somehow hauled the whole thing back, with cheick tioté smashing in the leveller near the end for the only goal he would ever score in his time at the club. it means a good deal more now that he died so suddenly in 2017 and it is still the wildest comeback i have watched in the league.
 - *lincoln city knocking burnley out of the fa cup, 2017.* a non-league side went to a premier league ground and won it with a header in the very last minute, becoming the first team from outside the league to reach the quarter-finals in over a century. i coach a kids team on saturdays and cup nights like this are exactly why i still tell them anyone can beat anyone.
-- *stephanie roche's goal for peamount, 2013.* she flicked the ball up over a defender and volleyed it in during a women's league game that nobody was really filming, and it still finished runner-up for fifa's goal of the year, ahead of strikes scored at a world cup by full-time professionals. the best things in football do not always happen on the biggest stages, and that is the whole reason this one stuck with me.
+- *stephanie roche's goal for peamount, 2013.* she flicked the ball up over a defender and volleyed it in during a women's league game that nobody was really filming and it still finished runner-up for fifa's goal of the year, ahead of strikes scored at a world cup by full-time professionals. the best things in football do not always happen on the biggest stages and that is the whole reason this one stuck with me.
 
 **cricket**
 - *ben stokes at headingley, 2019 ashes.* england were nine wickets down and still needed seventy-odd to win, with jack leach defending one end and barely able to lay bat on ball and stokes simply took the game off australia almost single-handedly with an unbeaten 135. i have watched a great deal of cricket and i am not sure i have ever seen one player drag a side somewhere it had no right to be quite like that.
@@ -1752,8 +1752,8 @@ thus, the question of desire becomes not merely psychological but spiritual. the
 **tennis**
 - *murray winning wimbledon, 2013.* britain had waited seventy-seven years for a man to win the title and murray finally did it in straight sets against djokovic, on a baking sunday with the whole country watching through its fingers. living here, you could feel how much it mattered and the closing game alone, three championship points come and gone before he got over the line, was almost too much to sit through.
 - *raducanu winning the us open as a qualifier, 2021.* an eighteen-year-old came through three rounds of qualifying and then took the whole tournament without dropping a single set, something that had simply never been done. for about a fortnight a british teenager nobody outside the sport had heard of looked completely untouchable and then it was over almost as suddenly as it had begun.
-- *federer against del potro at the london olympics, 2012.* their semi-final ran to 19-17 in a deciding set with no tiebreak, four and a half hours of two of the most-liked players in the sport refusing to blink, on the same grass wimbledon is played on. i have always been in federer's corner, and it is probably the finest match of its type that nobody mentions, purely because it happened to be a semi-final and not a slam final.
-- *razzano knocking serena out of the french open, 2012.* a player ranked outside the top hundred beat serena williams in the opening round and saved seven match points doing it, the only time serena ever lost in the first round of a major. razzano had lost her fiancé to a brain tumour the year before, and serena was so shaken by the defeat that she went out and hired the coach who built the most dominant stretch of her whole career.
+- *federer against del potro at the london olympics, 2012.* their semi-final ran to 19-17 in a deciding set with no tiebreak, four and a half hours of two of the most-liked players in the sport refusing to blink, on the same grass wimbledon is played on. i have always been in federer's corner and it is probably the finest match of its type that nobody mentions, purely because it happened to be a semi-final and not a slam final.
+- *razzano knocking serena out of the french open, 2012.* a player ranked outside the top hundred beat serena williams in the opening round and saved seven match points doing it, the only time serena ever lost in the first round of a major. razzano had lost her fiancé to a brain tumour the year before and serena was so shaken by the defeat that she went out and hired the coach who built the most dominant stretch of her whole career.
 
 **f1**
 - *verstappen's wet drive at brazil, 2016.* the track was barely drivable and half the field was spinning into the barriers and a teenage verstappen dropped to sixteenth late on before carving his way back to third passing what felt like a car a lap. hamilton won the race but nobody really talks about that, because the whole afternoon belonged to the kid making everyone else in the wet look like they were still learning.
@@ -1763,6 +1763,56 @@ thus, the question of desire becomes not merely psychological but spiritual. the
 
 some of these everyone remembers and some you would only really know if you follow the sport closely, which is how i think a list like this should read.`,
   },
+  {
+    id: "i have everything but nothing at all",
+    slug: "i-have-everything-but-nothing-at-all",
+    title: "i have everything but nothing at all",
+    category: "blogs",
+    folder: "blog",
+    public: true,
+    session_id: "",
+    created_at: "2025-12-01T18:12:00.000Z",
+    content: `i'm twenty-three. if you saw my life written down you'd probably think i had it figured out. good grades in school, then imperial, goldman after that, the job everyone tells you to chase and i lasted one quarter before i left because i couldn't make myself care about it. then a yc startup, founding engineer. five countries in the last eight months. i play a lot of sport. my parents are good to me and i mean that and i have friends who'd pick up if i called them in the middle of the night. and i pray five times a day, i keep my fasts, i try to do everything i'm meant to do as a muslim and most days i manage it.
+
+and i still feel empty a lot of the time. that's the thing i don't really know how to say to anyone, because it sounds ungrateful and it probably is.
+
+i want to be clear that i'm not depressed or anything. i'm not sitting in the dark. it's more that i keep getting to the things i spent years working for and feeling nothing when i get there. or close to nothing. a day or two of something and then it's gone and i'm already looking at the next thing.
+
+the part that gets me is that i can't even use the obvious excuse. i haven't drifted from my deen. i pray, i fast, i'm trying. if anyone has a reason to feel full it should be me. and i don't and that scares me more than if i'd just stopped praying and could point at that and say, there, that's why.
+
+i looked into it a bit. there's a thing psychologists call the arrival fallacy, where you get to the top of the thing and the view just isn't what the climb promised. and apparently the chemical that drives you is mostly there while you're chasing, not when you actually get it. so you get the thing and the part of you that was lit up for months just switches off. that made sense of the goldman thing. i'd wanted it for years and it lasted about nine weeks before it went flat.
+
+but that doesn't explain everything, because i already know all this and knowing it hasn't fixed anything. i left goldman thinking the problem was the place, the suits, being a small cog in something massive. the startup is better, it's actually mine. and i still feel it. so it's not the job. i keep changing the job.
+
+so maybe it's me, or how i'm living, rather than what i'm doing.
+
+something i've noticed about myself that i don't love. almost everything on that list is something i can show people. the grades, the uni, the countries specially, the countries are basically made to be posted. and when something good happens my first thought isn't to feel it. it's to think about how it'll look when i tell someone. like the feeling has to wait in line behind the telling of it. i read about a therapist who works with high achievers, doctors, lawyers, the kind of people other people envy and he said the thing they admit in the end is that they're still chasing approval, usually from one person, often a parent, even when that parent loves them and already gave it. that's not exactly me. my parents are proud and i believe them. but the shape of it felt familiar. if a thing only feels real once someone's seen it, then it was never really about the thing.
+
+this is where my deen comes into it, because there's an idea i keep coming back to. the heart described as having chambers, different loves in different chambers and one in the middle that's only meant for allah. and the problem is when you put worldly things in that middle one. not loving the dunya, you're allowed to love the dunya, the prophet loved his family and had wealth and spent it. the problem is putting those things in the spot that was only ever built for the one thing that doesn't fade. yasmin mogahed has this line about how if you put a vase on the edge of a table you can't act shocked when it falls. you put it there.
+
+and that's the uncomfortable bit for me. i can pray five times a day and keep every fast and still have quietly moved my actual sense of worth out of that middle chamber and into the dunya without even noticing. the prayers can all be there, done properly, while the thing they're meant to be pointing at has slid somewhere else. i can be doing salah five times a day, which is supposed to pull me out of the world for a minute and put me in front of allah and the second it's over i'm right back to measuring myself by stuff that doesn't last. there's a thing about barakah, that it's not about how much you've got, it's about what fills your time, whether your hours go to something that lasts or something that just evaporates. and when i actually look at where my time and my worry go, i don't come out of it well.
+
+there's a hadith i think about, that whoever makes the dunya his main concern, allah scatters his affairs and puts poverty in front of his eyes and he only gets what was already written for him anyway. and whoever puts the hereafter first gets his affairs sorted and a richness put in his heart and the dunya comes to him regardless. i recognise the scattered part. i recognise the poverty in front of the eyes, in a life that on paper doesn't have any poverty in it.
+
+so what's supposed to go in the middle, if it's not the next thing on the list.
+
+i know the answer. allah. i can say it and i believe it. but i'd be lying if i said i was actually living it, because if i had it properly seated where it's meant to be i don't think i'd feel like this as often as i do. knowing the answer and living the answer are not the same thing and i'm somewhere in the gap.
+
+what i do have are a few things i've noticed. the times i don't feel empty, the times i'm not looking around for proof that any of it counted, are almost never the achievements. they're small and they're nothing you could put on a cv. talking to a friend and losing track of time and not performing anything. the middle of a football match, not winning it, the middle of it, when i'm just a body figuring out a moving problem with other bodies and there's no part of me standing off to the side watching myself. the few minutes after fajr, before i pick up my phone, before the day starts, when there's nothing to chase yet and nothing to show anyone and i'm just quiet for a second.
+
+none of that goes on a cv. i don't think that's a coincidence.
+
+i found out the old christians had a word, acedia, which isn't sadness, it's more like a flatness, a not-caring and the strange thing is it tends to land on people who are busy and capable and look completely fine. and someone wrote that despair doesn't always show up crying, sometimes it shows up showered and dressed and on time and good at its job. and our own tradition talks about a hardness that creeps into a heart that's drifted from where it came from, a heart still going through the motions while the life leaks out of it. i read that stuff and felt caught out.
+
+so maybe the empty feeling isn't a fault. maybe it's telling me something. it shows up exactly when the doing is done and there's nothing left to chase, when it's finally quiet enough to ask what all of it was for. and i've been dealing with that quiet by booking another flight, finding the next thing, adding another line. staying ahead of the question. the travelling is partly that, i can admit it now. it looks like a full life and it works like running away.
+
+i'm not going to pretend i've figured it out, because i haven't. i'll probably catch myself tomorrow already drafting how i'll tell someone about something good, the feeling stuck in line behind it like always. this has been going on longer than the time it took to write this and it's not going to fix itself because i wrote it down.
+
+but there's one small thing i think i can do. next time something good happens i want to actually feel it before i tell anyone and remember where it came from while i'm at it. that's it. just get there a second before the audience does and see if anyone's actually home when i show up on my own with allah instead of with my version of myself.
+
+or maybe i might find it empty again.`,
+  },
+
   {
     id: "finds-food-adventures",
     slug: "food-adventures",
