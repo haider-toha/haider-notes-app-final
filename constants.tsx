@@ -19,7 +19,7 @@ export const portfolioNotes: Note[] = [
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-12-19T09:14:00.000Z",
+    created_at: "2026-06-12T08:47:00.000Z",
     content: `haider toha
 london, uk
 
@@ -45,7 +45,7 @@ i read too much. mostly history, philosophy and whatever rabbit hole has me that
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-12-18T16:42:00.000Z",
+    created_at: "2026-05-29T22:15:00.000Z",
     content: `**queueing theory**
 there's real math under backend performance, things like little's law, m/m/c models and the way rising utilisation feeds tail latency. most engineers still size their connection pools and set timeouts by feel even though the right numbers are completely computable. once you actually compute them it becomes clear that wait time climbs fast as soon as a pool pushes past ~70% utilisation, which is where a lot of the "random" incidents you run into really come from. it's an old field that has barely been touched in web infra.
 
@@ -66,7 +66,7 @@ bandits are about moving past fixed-split a/b testing into adaptive allocation, 
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-12-17T21:33:00.000Z",
+    created_at: "2026-04-03T17:22:00.000Z",
     content: `**languages**
 **typescript:** fastest path from idea → interface → shipped feature.
 **python:** models, data, experiments and glue code.
@@ -91,7 +91,7 @@ bandits are about moving past fixed-split a/b testing into adaptive allocation, 
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-12-16T11:07:00.000Z",
+    created_at: "2026-03-18T10:33:00.000Z",
     content: `**users before opinions**
 i’ll trade a clever architecture for a workflow that actually unblocks the user.
 
@@ -115,7 +115,7 @@ i’ll argue for a decision with the data i have. better data wins immediately.`
     folder: "profile",
     public: true,
     session_id: "",
-    created_at: "2025-12-15T14:51:00.000Z",
+    created_at: "2026-03-01T14:08:00.000Z",
     content: `**founding engineer · sammy labs (yc w25)** · london · nov 2025-present  
 own full stack features from react frontend to python backend to postgres. spend about a third of my time on customer calls, debugging issues live and translating pain points into features. i like to move fast and ship daily.
 
@@ -1075,7 +1075,7 @@ the bandwidth savings are dramatic. to verify 100,000 files totaling 1tb, a naiv
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-11-16T17:21:00.000Z",
+    created_at: "2026-01-09T17:21:00.000Z",
     content: `we are currently witnessing a structural bifurcation in the global ai landscape. on one side, you have the closed-source giants (openai, anthropic, google) scaling dense models behind opaque apis. on the other, the open-source ecosystem has been playing catch-up, mostly through brute-force scaling or finetuning llama derivatives.
 
 but every so often, a model drops that doesn't iterate but rather it disrupts.
@@ -1550,7 +1550,7 @@ for us, the strategy is clear. use these new "reasoning models" to solve the har
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2025-11-15T09:34:00.000Z",
+    created_at: "2025-12-28T09:34:00.000Z",
     content: `i have been arguing for some time that the "capital moat" theory of ai, the idea that you need a gdp-sized budget and a nuclear power plant to train a frontier model was a temporary anomaly, not a law of physics. silicon valley vc's and us policymakers bet the house on the assumption that raw scale was the only path to agi. they believed that as long as the us controlled the supply of h100s and had the deepest pockets, hegemony was secured.
 
 on november 6, 2025, that assumption evaporated.
@@ -1811,6 +1811,53 @@ i'm not going to pretend i've figured it out, because i haven't. i'll probably c
 but there's one small thing i think i can do. next time something good happens i want to actually feel it before i tell anyone and remember where it came from while i'm at it. that's it. just get there a second before the audience does and see if anyone's actually home when i show up on my own with allah instead of with my version of myself.
 
 or maybe i might find it empty again.`,
+  },
+
+  {
+    id: "a small lit circle",
+    slug: "a-small-lit-circle",
+    title: "a small lit circle",
+    category: "blogs",
+    folder: "blog",
+    public: true,
+    session_id: "",
+    created_at: "2026-01-03T20:32:00.000Z",
+    content: `i became a software engineer partly because i wanted to understand things. i like the feeling of taking something that looks like magic from the outside and pulling it apart until i can see how it actually works. that's most of why i studied aeronautics in the first place. a plane staying up looks impossible until you learn the maths and then it isn't impossible anymore, it's just air doing what air does. i liked that. i liked the idea that if you were patient enough you could understand basically anything.
+
+and the longer i do this job the more i realise that idea was never true and somewhere underneath i still believe it anyway.
+
+here's the thing nobody tells you when you start. the more you learn, the bigger the part you can see that you don't know gets. when i first started coding i thought i was alright, better than alright if i'm honest, because i didn't know enough to see what i was missing. now i've been doing it a few years and i feel like i know less than i did then, which makes no sense on paper and complete sense in my chest. i'm an engineer at a startup. people ask me questions like i'm supposed to have the answers. and most days i'm acutely aware of how much is just outside what i actually understand.
+
+there's an old saying that fits me almost too well, jack of all trades, master of none. i do full stack, which sounds impressive until you understand what it actually means day to day, which is that i know a bit of everything and i'm not the best person in the room at any single piece of it. i can hold my own on the backend and the frontend and the database and the infrastructure, but put me next to someone who's spent five years doing nothing but databases and i'm suddenly very aware of how shallow my version is. i've got my hands on the whole machine and a real grip on none of it. and the field moves so fast that you can spend months learning a framework and then watch everyone quietly move to a different one, so even the shallow knowledge keeps rotting underneath me. it's a wheel that doesn't have an end. you don't finish. there is no finishing.
+
+for a long time i took that as a personal failing. like if i just read more, slept less, grinded harder, i'd eventually close the gap and feel like i actually knew what i was doing. and i want to say plainly that this is the same disease i've written about before in a different outfit. wanting to know everything is just wanting to have everything pointed at my head instead of my bank account. it's the same grab. the same refusal to accept that i'm small.
+
+because here's what islam said about this centuries before anyone coined imposter syndrome.
+
+there's a way of grading certainty in the islamic tradition that i think about a lot now. three levels. the first is 'ilm al-yaqin, which is knowing something by report, by description, knowing about a thing. the second is 'ayn al-yaqin, knowing it by actually seeing it. and the third is haqq al-yaqin, knowing it by being completely in it, no gap left between you and the thing at all. the old example is fire. hearing fire described is the first. seeing the fire with your own eyes is the second, and being in the fire, consumed by it entirely, is the third. the part that stops me every time is that almost everything i call knowledge sits at that first and weakest level, second hand, reported, something someone told me or i read somewhere without ever actually verifying it myself.
+
+and that's not just a me problem, that's everyone. there's a whole question in philosophy about how much of what we know is just testimony, just trust in someone else's word. most people have never seen a baby born or watched blood move through a body or stood anywhere that proves the earth is round. we take it. we take nearly all of it. even the shape of the planet is, for almost every person alive, a thing they were simply told and chose to believe. and once you sit with that for a second the confident version of yourself starts to look a bit ridiculous.
+
+there's a story in the qur'an that gets at this better than anything i could say. musa, a prophet, travels with a man given knowledge musa doesn't have. and this man does things that look wrong. he damages a boat for no reason musa can see. and musa keeps objecting, because from where he's standing it makes no sense and the man keeps telling him to be patient, that he can't yet see the reason. and the line that opens the whole thing is the man asking musa how he could possibly be patient with something he doesn't have the knowledge to encompass. that's the position i'm actually in, all the time, with almost everything. i'm musa on the boat, certain something's wrong because i can only see the slice in front of me and the fuller reason is sitting somewhere outside what i'm able to see.
+
+there's another one i like even more. sulayman, a prophet and a king, with all that knowledge and all that power and a small bird comes back and tells him it has found out something he didn't know. a hoopoe. a little bird knew a thing the prophet-king didn't. and he doesn't get defensive about it. that's the bit. the most powerful man around finds out his knowledge had a hole in it and his response isn't to cover it up, it's to take the information and be grateful for it. i think about how far that is from how i actually behave when someone more junior than me knows something i don't.
+
+and then there's qarun, who's the warning. qarun had wealth and when people asked how, he said he'd earned it all through knowledge he possessed. it was his. his cleverness, his doing. and he's in there as exactly the thing not to be. the man who looked at everything he had and credited it entirely to himself. i recognise him too, which is uncomfortable, because every time i take quiet pride in what i know as if i grew it out of nothing, that's the same move. that's qarun in a hoodie.
+
+the secular world arrived at a smaller version of all this and called it dunning-kruger. the less you know about something, the more confident you tend to be, because you don't know enough to see what you're missing. and the people with real expertise often feel less sure, not more, because they can finally see the size of the thing. darwin said ignorance breeds confidence more reliably than knowledge does. and there's research showing that being an expert doesn't protect you from overconfidence and can sometimes make it worse, that people will get more and more certain as they get more information while the actual quality of their judgement doesn't move at all. what they found is that real expertise isn't just knowing things. it's knowing the edges of what you know. it's holding your confidence at the level the evidence actually justifies and not a notch higher.
+
+which lines up almost exactly with what islam was already saying, that the believer is meant to hold real conviction and real humility at the same time and that the thing blocking you from truth is never humility, it's arrogance. arrogance being, in the prophet's own words, to reject the truth and look down on people. those are the two failure modes and i've done both. rejected a better answer because it wasn't mine, looked down on someone who knew less than me in one narrow area while they quietly knew more than me in ten others.
+
+so where does that leave me, practically, on a tuesday, when i still have to ship code i'm not fully sure about.
+
+i don't think the answer is to stop learning and i don't think it's to wallow in not knowing either. the islamic position was never that knowledge is impossible or that you should give up reaching for it. doubt is allowed, it's even useful, but only as a road toward certainty rather than a place to set up camp. al-ghazali went all the way through skepticism, doubted nearly everything and came out the other side. the doubt was a method, not a destination. that distinction matters to me. i'm allowed to not know. i'm not allowed to use not knowing as an excuse to stop.
+
+what's actually changed is smaller than i'd like and i think it's real. i ask more questions now, including the ones that feel stupid, because i've worked out that if i don't know something there's a decent chance the person next to me doesn't either and one of us has to say it. i try to credit where things actually came from instead of quietly absorbing them into my own legend. and when someone junior knows a thing i don't, i'm trying to be the king and the bird, grateful for the information, rather than the man who couldn't stand that a smaller creature saw something he missed.
+
+i still feel like a fraud some days. i've made my peace with the fact that the feeling probably scales with how much i learn rather than going away, that the more i see the more i'll see what i can't see. there's a thing about how allah brought you out of your mother knowing nothing and how some people are taken all the way back to the end of life knowing nothing again after having known a lot, your own memory failing you, the knowledge leaving the same way it came. you don't get to keep it. it was never really yours to keep. it was lent to you for a bit and you're responsible for what you do with it while you've got it and then it goes.
+
+i think i can build things on top of that. i think it's actually a steadier foundation than pretending i'll one day know enough to feel safe. i'm not going to know enough. nobody knows enough. the most anyone gets is a small lit circle in a very large dark room and the honest thing, the thing that finally takes the pressure off, is to stop pretending the room is small and just get on with lighting the bit of it i can reach.
+    `,
   },
 
   {
