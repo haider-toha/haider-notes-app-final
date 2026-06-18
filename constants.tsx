@@ -1727,6 +1727,43 @@ the conclusion is subtle yet profound. the problem is never the quantity of desi
 thus, the question of desire becomes not merely psychological but spiritual. the challenge is to discern which quiet we are living in; is it the quiet of fulfillment or the quiet of neglect.`,
   },
   {
+    id: "favourites-sporting-moments",
+    slug: "sporting-moments",
+    title: "sporting moments i love",
+    category: "favourites",
+    folder: "finds",
+    public: true,
+    session_id: "",
+    created_at: "2025-07-09T18:00:00.000Z",
+    content: `a running list of the matches and moments i find myself going back to, the ones that stuck with me long after the result stopped mattering.
+
+**football**
+- *messi's last-minute winner against iran, 2014 world cup.* iran had frustrated argentina for ninety minutes and looked set to hold out for a draw, then messi took one touch twenty yards out and bent it into the far corner in stoppage time as if the previous hour and a half had just been him waiting. it is the most messi thing imaginable, a whole game settled in one second of something nobody else on the pitch could do.
+- *tioté's equaliser in newcastle 4-4 arsenal, 2011.* arsenal were four goals up at half time and newcastle somehow hauled the whole thing back, with cheick tioté smashing in the leveller near the end for the only goal he would ever score in his time at the club. it means a good deal more now that he died so suddenly in 2017, and it is still the wildest comeback i have watched in the league.
+- *lincoln city knocking burnley out of the fa cup, 2017.* a non-league side went to a premier league ground and won it with a header in the very last minute, becoming the first team from outside the league to reach the quarter-finals in over a century. i coach a kids team on saturdays and cup nights like this are exactly why i still tell them anyone can beat anyone.
+- *stephanie roche's goal for peamount, 2013.* she flicked the ball up over a defender and volleyed it in during a women's league game that nobody was really filming, and it still finished runner-up for fifa's goal of the year, ahead of strikes scored at a world cup by full-time professionals. the best things in football do not always happen on the biggest stages, and that is the whole reason this one stuck with me.
+
+**cricket**
+- *ben stokes at headingley, 2019 ashes.* england were nine wickets down and still needed seventy-odd to win, with jack leach defending one end and barely able to lay bat on ball and stokes simply took the game off australia almost single-handedly with an unbeaten 135. i have watched a great deal of cricket and i am not sure i have ever seen one player drag a side somewhere it had no right to be quite like that.
+- *kohli against pakistan at the mcg, 2022 t20 world cup.* india were four down and the chase looked gone in front of ninety thousand people, then kohli pulled it out of nowhere, the two sixes off haris rauf the kind of shots you are not really allowed to play under that much pressure. india against pakistan is the most loaded fixture in the sport and he made the biggest version of it look like a quiet net.
+- *misbah's twin hundreds and the 56-ball blast, abu dhabi 2014.* misbah spent most of his career being teased as the most cautious batsman alive, then made a century in each innings against australia and brought the second one up in fifty-six balls, equalling what was then the fastest test hundred ever scored. watching the most patient man in the game suddenly cut loose like that was a treat reserved for people who actually sit through test cricket.
+- *ashton agar's 98 from number eleven on debut, 2013 ashes.* a nineteen-year-old walked out last with australia in deep trouble and very nearly made a hundred batting at number eleven, which had never once been done, before falling two short in a stand that set records of its own. it is one of the great near-misses the game has produced and i still feel quietly robbed on his behalf whenever it comes up.
+
+**tennis**
+- *murray winning wimbledon, 2013.* britain had waited seventy-seven years for a man to win the title and murray finally did it in straight sets against djokovic, on a baking sunday with the whole country watching through its fingers. living here, you could feel how much it mattered and the closing game alone, three championship points come and gone before he got over the line, was almost too much to sit through.
+- *raducanu winning the us open as a qualifier, 2021.* an eighteen-year-old came through three rounds of qualifying and then took the whole tournament without dropping a single set, something that had simply never been done. for about a fortnight a british teenager nobody outside the sport had heard of looked completely untouchable and then it was over almost as suddenly as it had begun.
+- *federer against del potro at the london olympics, 2012.* their semi-final ran to 19-17 in a deciding set with no tiebreak, four and a half hours of two of the most-liked players in the sport refusing to blink, on the same grass wimbledon is played on. i have always been in federer's corner, and it is probably the finest match of its type that nobody mentions, purely because it happened to be a semi-final and not a slam final.
+- *razzano knocking serena out of the french open, 2012.* a player ranked outside the top hundred beat serena williams in the opening round and saved seven match points doing it, the only time serena ever lost in the first round of a major. razzano had lost her fiancé to a brain tumour the year before, and serena was so shaken by the defeat that she went out and hired the coach who built the most dominant stretch of her whole career.
+
+**f1**
+- *verstappen's wet drive at brazil, 2016.* the track was barely drivable and half the field was spinning into the barriers and a teenage verstappen dropped to sixteenth late on before carving his way back to third passing what felt like a car a lap. hamilton won the race but nobody really talks about that, because the whole afternoon belonged to the kid making everyone else in the wet look like they were still learning.
+- *räikkönen's "leave me alone" win in abu dhabi, 2012.* in his first year back after walking away from f1 to go rallying, räikkönen led most of the race and held alonso off for the win, then told his engineer over the radio to leave him alone because he knew what he was doing. the line is a meme now, but underneath it was a genuinely good drive and a proper comeback, which is very him.
+- *webber going round the outside of alonso at eau rouge, spa 2011.* he pulled alongside and simply kept his foot in through the fastest and most frightening corner on the calendar, taking the place somewhere almost nobody would even think to try it. it is a single overtake rather than a whole race, which is probably why it lives on as a clip fans pass around rather than something the casual viewer recalls.
+- *kobayashi on the podium at his home race, suzuka 2012.* he held button off to finish third in front of the japanese crowd, the first home driver to manage it there in over twenty years and, as things turned out, the last japanese driver to stand on an f1 podium at all. the scenes with the grandstands afterwards are the sort of thing this sport does better than almost any other.
+
+some of these everyone remembers and some you would only really know if you follow the sport closely, which is how i think a list like this should read.`,
+  },
+  {
     id: "finds-food-adventures",
     slug: "food-adventures",
     title: "food adventures",
@@ -1738,32 +1775,59 @@ thus, the question of desire becomes not merely psychological but spiritual. the
     content: `food is how i understand a city. these are the places that have shaped meals into memories.
 
 **london** *(home)*
-- *tayyabs* - whitechapel institution. the lamb chops got me through exams at imperial. you queue in the cold and it's always worth it. no reservations, no pretense.
-- *gymkhana* - where i go when something goes right. the kid goat methi keema is absurd. michelin-starred but doesn't feel like it.
-- *mangal 2* - dalston ocakbasi. charcoal smoke in your clothes for days. the lamb şiş is the benchmark against which all other kebabs are measured.
-- *maroush* - 2am on edgware road, eating shawarma after a long week.
-- *regency cafe* - westminster. proper english breakfast in a room that hasn't changed in decades. the brutalist architecture outside, fried eggs inside.
+- *tayyabs* - a whitechapel institution and the lamb chops that got me through my exams at imperial. you queue in the cold and it's always worth it, no reservations and no pretense.
+- *gymkhana* - where i go when something's gone right and the kid goat methi keema is absurd. it's michelin-starred without ever feeling like it.
+- *mangal 2* - a dalston ocakbasi where the charcoal smoke stays in your clothes for days and the lamb şiş is the benchmark every other kebab gets measured against.
+- *maroush* - shawarma on edgware road at 2am, after a long week.
+- *regency cafe* - a proper english breakfast in a westminster room that hasn't changed in decades, brutalist architecture outside and fried eggs in.
 
 **new york**
-- *hyderabadi zaiqa* - curry hill, dum biryani that reminded me of dhaka. found this place jet-lagged at 11pm and went back three times that week.
-- *the halal guys* - 53rd & 6th, 1am. the white sauce. you know.
-- *joe's pizza* - greenwich village. stood outside in the rain eating a slice. that's the correct way to do it.
+- *hyderabadi zaiqa* - in curry hill, with a dum biryani that reminded me of dhaka. i found it jet-lagged at 11pm and went back three times that week.
+- *the halal guys* - the cart on 53rd and 6th at 1am, for the white sauce. you know the one.
+- *joe's pizza* - in greenwich village, where i once stood outside in the rain eating a slice, which is the only correct way to do it.
 
 **san francisco**
 - *old mandarin islamic restaurant* - halal chinese that shouldn't exist but does. the hot pot felt like a well-kept secret.
 - *reem's california* - arab bakery. the mana'eesh with za'atar hit different when you're far from home.
+- *z zoul cafe* - the only sudanese kitchen in the bay, run by one family in the tenderloin. the chef cooks the dishes his grandmother used to make and the shawarma with a bowl of thick lentil soup is what you want.
+- *old jerusalem* - a palestinian place in the mission that's been going since 2005. every table gets pickled beets and olives before you've even ordered and the musakhan, sumac chicken and caramelised onions over taboon bread, is the thing to get.
+
+**los angeles**
+- *nomad asian bistro* - halal chinese in long beach that's been going since 1980, with the quiet confidence of a place that's had forty years to get it right. order the cumin lamb, the scallion pancakes and the hand-pulled noodles.
+- *fatima's grill* - a downey spot doing lebanese-mexican fusion that sounds completely wrong and turns out exactly right. the shawarma fries and the birria tacos are all halal.
+- *al-noor* - a pakistani room in lawndale that's been there since '98, with goat biryani and a crowd of regulars who've been coming since the day it opened.
 
 **paris**
-- *l'as du fallafel* - the marais. ate this standing in a cobblestone alley, sauce dripping. perfect.
-- *mosquée de paris* - mint tea and pastries in the courtyard after friday prayer.
+- *l'as du fallafel* - in the marais, eaten standing in a cobblestone alley with the sauce dripping down my hand. perfect.
+- *mosquée de paris* - mint tea and pastries in the courtyard after friday prayers.
+
+**munich**
+- *tengri tagh* - uyghur food, which you almost never find in germany, with big-plate chicken and hand-pulled belt noodles. no alcohol and a small prayer corner at the back.
+- *sultanahmet köftecisi* - the munich branch of an istanbul köfte house that's been going since 1920. they do one thing perfectly, grilled meatballs with bean salad, pickles and a bowl of lentil soup.
 
 **dubai**
-- *al ustad special kabab* - old dubai. iranian kebabs since 1978. the city transformed around it; it stayed the same.
-- *3 fils* - waterfront at night, watching the dhows. japanese-middle eastern fusion that made me rethink what food can be.
+- *al ustad special kabab* - iranian kebabs in old dubai since 1978. the whole city has transformed around it while it stayed exactly the same.
+- *3 fils* - on the waterfront at night, watching the dhows, with a japanese-middle eastern fusion that made me rethink what food can be.
 
 **dhaka**
-- *star kabab* - the seekh kebabs my dad used to take me to as a kid. this is what my taste buds were trained on. everything else is comparison.
-- *kacchi bhai* - if you want to understand what biryani is supposed to taste like, start here. the potatoes at the bottom, caramelised and spiced.
+- *star kabab* - the seekh kebabs my dad used to take me to as a kid, the thing my taste buds were trained on and everything else has been a comparison ever since.
+- *kacchi bhai* - if you want to understand what biryani is supposed to taste like, you start here, with the potatoes at the bottom, caramelised and spiced.
+
+**kuala lumpur**
+- *nasi lemak wanjo* - a kampung baru institution since the sixties, with a dark, sweet sambal over coconut rice that pulls a queue at breakfast and another one all over again at supper.
+- *line clear* - penang's legendary nasi kandar, transplanted to kl. you point at what you want and they flood the rice with a mix of gravies and it's still the most authentic version in the city.
+- *ikan bakar jalan bellamy* - a row of open flames near the istana, grilling fish to order. get the stingray in sambal with a pile of ulam on the side.
+
+**penang**
+- *deen maju* - the nasi kandar locals will actually queue around the block for, across from the sikh temple. ask for kuah campur so all the gravies run together over the rice and take the spice-fried chicken on top.
+- *bangkok lane mee goreng* - a mamak stall in pulau tikus that's been frying the same plate of mee goreng for ninety years. order it with extra squid.
+- *bee hwa cafe* - one of the very few places doing halal char koay teow, a dish that barely exists in halal form because the real thing is fried in pork lard. this one still comes with all the smoke and wok hei.
+- *roti canai transfer road* - a forty-year-old roadside griddle that drowns its roti in so much curry the locals call it kuah banjir, or flooded. get there early, before it's all gone.
+
+**singapore**
+- *green chilli chicken rice* - one stall doing one dish since '99, a fried chicken thigh over pandan coconut rice under a rough green chilli sambal. they shut the moment it runs out, usually some time in the early afternoon.
+- *selera rasa* - the nasi lemak at adam road that singaporeans will genuinely argue is the best in the country, with fragrant rice, crisp ikan bilis and a serious sambal.
+- *haji kadir* - a golden mile institution doing sup tulang merah, marrow bones in a fierce red gravy that you suck straight out through a straw. messy and completely worth it.
 
 **general rule**
 i trust hole-in-the-wall places with bad lighting and no english menu over anywhere with "curated" in the description. food should be a little inconvenient.`,
@@ -1866,26 +1930,57 @@ i keep a longer list in notion but these are the ones i'd actually give someone.
     content: `i think best when i'm walking. these are the places i go to clear my head or remember why i like being alive.
 
 **london**
-- *hyde park, late night* - my default when i need to think. the path around the serpentine at 11pm, when it's just you and the occasional runner. problems feel smaller out there.
-- *hampstead heath* - parliament hill for the skyline. the ponds in summer. this is where london stops being a city and starts being something older.
-- *the south bank* - tate modern to tower bridge. best at dusk when the lights come on and the thames looks cinematic.
-- *the barbican conservatory* - tropical plants in brutalist concrete. free, quiet, strange. good for reading.
-- *columbia road on sundays* - flower market chaos. everyone's in a good mood. i rarely buy anything but i always leave happier.
+- *hyde park, late night* - my default when i need to think, walking the path around the serpentine at 11pm when it's just you and the occasional runner. problems feel smaller out there.
+- *hampstead heath* - parliament hill for the skyline and the ponds in summer. this is where london stops being a city and starts being something older.
+- *the south bank* - the walk from tate modern to tower bridge, best at dusk when the lights come on and the thames looks cinematic.
+- *the barbican conservatory* - tropical plants tucked into brutalist concrete, free and quiet and a little strange and good for reading.
+- *columbia road on sundays* - flower market chaos where everyone's in a good mood and i rarely buy anything but i always leave happier.
 
-**other cities**
-- *central park, nyc* - the reservoir loop at dawn. watching the city wake up from inside a rectangle of green.
-- *the high line, nyc* - elevated park on old train tracks. best in early morning before the tourists arrive.
-- *the marais, paris* - getting lost in the side streets. falafel, bookshops, cobblestones. paris at walking pace.
+**new york**
+- *central park* - the reservoir loop at dawn, watching the city wake up from inside a rectangle of green.
+- *the high line* - an elevated park built on old train tracks, best in the early morning before the tourists arrive.
+
+**san francisco**
+- *lands end trail* - the coastal path runs from the old sutro baths ruins out to a little cypress labyrinth above the surf and the golden gate keeps appearing through the trees until you forget you're in a city at all.
+- *tank hill* - the overlook locals climb instead of twin peaks, with the same wide view across the bay and none of the tour buses. best in the last of the evening light.
+- *the 16th avenue tiled steps* - a long, hand-laid mosaic staircase that climbs up to grand view park. it's a small sand-dune hilltop with one of the finest skyline views in the city and hardly anyone else on it.
+
+**los angeles**
+- *the secret stairs* - silver lake and echo park are laced with hundreds of public staircases left over from the old trolley days and you can lose a whole afternoon climbing between gardens and bungalows if you start from the micheltorena steps.
+- *fern dell, griffith park* - a shaded creek path lined with ferns that feels like it was airlifted in from oregon. cool and quiet, while everyone else is sweating their way up to the observatory.
+- *the bradbury building* - a downtown office building you can wander into for free, with a sunlit victorian atrium of wrought iron railings and open cage lifts that you'll recognise the second you walk in from blade runner.
+- *museum of jurassic technology* - a dim and deliberately confusing little museum in culver city where you genuinely can't tell what's real and what's been invented, with a quiet russian tea room up on the roof when you need to recover.
+
+**paris**
+- *the marais* - getting lost in the side streets among the falafel, the bookshops and the cobblestones. paris at walking pace.
+
+**munich**
+- *the flaucher* - the gravel islands and shallow channels of the isar where münchners spend whole summer afternoons grilling and swimming, far wilder and emptier than the englischer garten if you walk a little upstream from thalkirchen.
+- *glockenbachviertel* - the most lived-in corner of the city, where people gather on the steps around gärtnerplatz with corner-shop beers on warm evenings and you can wander for hours without any plan at all.
+
+**kuala lumpur**
+- *kampung baru* - a malay village of wooden stilt houses that's somehow held its ground seven hundred metres from the petronas towers, with food on every corner and the unhurried feel of an older city that refuses to leave.
+- *bukit tunku* - the greenest and quietest corner of kl, all winding roads under old trees and colonial houses. there's a lookout over the whole skyline at changkat tunku.
+- *kl forest eco park* - a canopy walkway strung through genuine old rainforest right beneath the kl tower, ten minutes from the shopping malls and almost completely overlooked.
+
+**penang**
+- *the moongate trail* - the way locals actually climb penang hill, a shaded jungle path that winds up through an old moon-gate arch so you earn the view properly instead of riding the funicular.
+- *balik pulau* - the quiet other side of the island, all paddy fields and fruit orchards and sleepy kampungs, best taken slowly on a bike before the developers finally get to it.
+
+**singapore**
+- *the rail corridor* - twenty-four kilometres of disused railway with the tracks lifted and the whole line left to the grass and if you walk the bukit timah stretch early enough it's just you and the green the entire way.
+- *pulau ubin* - a short bumboat from changi takes you to the last of kampong singapore, where you rent a rattling old bike and ride past granite quarries, mangroves and the strange little german girl shrine.
+- *lazarus island* - a near-empty crescent of white sand and clear water a short ferry from the city, the beach singaporeans quietly keep for themselves while everyone else is queueing for sentosa.
 
 **nature escapes**
-- *peak district* - mam tor and the great ridge. proper hiking. wind in your face, sheep everywhere.
-- *the lake district* - did helvellyn in the rain. couldn't see anything. still worth it.
+- *peak district* - mam tor and the great ridge, proper hiking with the wind in your face and sheep everywhere.
+- *the lake district* - i did helvellyn in the rain and couldn't see a thing and it was still worth it.
 
 **gliding**
-- *lasham airfield* - where i'm learning to fly. the silence when you release from the tow plane. no engine, just wind. unreal feeling.
+- *lasham airfield* - where i'm learning to fly. the silence when you release from the tow plane, with no engine and just wind, is an unreal feeling.
 
 **airports**
-unpopular opinion: i love airports. the in-between feeling. everyone going somewhere. i've had some of my best thinking time in departure lounges.`,
+an unpopular opinion, but i love airports and that in-between feeling of everyone going somewhere. some of my best thinking has happened in departure lounges.`,
   },
   {
     id: "reflections-questions",
