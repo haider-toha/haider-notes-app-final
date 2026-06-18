@@ -159,7 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const renderFoldersList = () => (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="sticky top-0 z-10 px-4 pt-4 pb-2 bg-apple-sidebarLight/70 dark:bg-apple-sidebarDark/60 backdrop-blur-xl select-none">
+      <div className="sticky top-0 z-10 px-4 pt-4 pb-2 bg-apple-sidebarLight dark:bg-apple-sidebarDark select-none">
         <div className="flex items-baseline justify-between px-1 mb-1">
           <div className="text-[22px] font-bold tracking-[-0.022em] text-black dark:text-white">
             folders
@@ -221,7 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const renderNotesList = () => (
     <div className="flex flex-col h-full">
       {/* Header + Search */}
-      <div className="sticky top-0 z-10 px-4 pt-4 pb-2 bg-apple-sidebarLight/70 dark:bg-apple-sidebarDark/60 backdrop-blur-xl select-none">
+      <div className="sticky top-0 z-10 px-2.5 pt-4 pb-2 bg-apple-sidebarLight dark:bg-apple-sidebarDark select-none">
         {/* Back button on mobile */}
         {isMobile && (
           <button
@@ -313,7 +313,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Mobile: Show folders OR notes based on state
   if (isMobile) {
     return (
-      <div className="flex flex-col h-full border-r border-black/10 dark:border-white/10 bg-apple-sidebarLight/75 dark:bg-apple-sidebarDark/70 backdrop-blur-xl">
+      <div className="flex flex-col h-full border-r border-black/[0.08] dark:border-white/[0.08] bg-apple-sidebarLight dark:bg-apple-sidebarDark">
         {showNotesList ? renderNotesList() : renderFoldersList()}
       </div>
     );
@@ -321,9 +321,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // Desktop: Two-column layout
   return (
-    <div className="flex h-full border-r border-black/10 dark:border-white/10 bg-apple-sidebarLight/75 dark:bg-apple-sidebarDark/70 backdrop-blur-xl">
+    <div className="flex h-full border-r border-black/[0.08] dark:border-white/[0.08] bg-apple-sidebarLight dark:bg-apple-sidebarDark">
       {/* Folders Column */}
-      <div className="w-[200px] lg:w-[220px] border-r border-black/5 dark:border-white/5 flex-shrink-0 overflow-hidden">
+      <div className="w-[200px] lg:w-[220px] flex-shrink-0 overflow-hidden border-r border-black/[0.08] dark:border-white/[0.08]">
         {renderFoldersList()}
       </div>
 
