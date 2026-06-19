@@ -1000,7 +1000,7 @@ const MainContent: React.FC<MainContentProps> = ({
         {/* Content Area */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto no-scrollbar"
+          className="flex-1 overflow-y-auto custom-scrollbar"
         >
           <div className="max-w-[720px] mx-auto px-4 sm:px-6 md:px-12 py-5 md:py-7 min-h-full">
             {/* Date Header — centered, gray, regular weight (Apple Notes) */}

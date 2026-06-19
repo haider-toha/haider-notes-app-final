@@ -16,8 +16,13 @@
           extend: {
             colors: {
               apple: {
-                yellow: '#FFCC00',
+                // Accent (folder icons, links, mobile bar buttons). The original launch
+                // gold — deeper/warmer than Apple's exact systemYellow (#FFCC00), and
+                // legible as link text on white.
+                yellow: '#F0C000',
                 yellowDark: '#FFD60A',
+                // Selected note/folder row — Apple Notes' bright "selected note" yellow,
+                // shown with dark text on top for contrast.
                 selectionLight: '#FFD52E',
                 selectionDark: '#E0A93A',
                 sidebarLight: '#F4F4F6',
@@ -65,6 +70,39 @@
       .no-scrollbar {
           -ms-overflow-style: none;  /* IE and Edge */
           scrollbar-width: none;  /* Firefox */
+      }
+      /* Subtle, always-available scrollbar (thin rounded thumb, Apple-style).
+         The transparent border + content-box clip make the thumb read as a
+         thin floating pill with breathing room from the edge. */
+      .custom-scrollbar::-webkit-scrollbar {
+          width: 9px;
+          height: 9px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: rgba(0, 0, 0, 0.22);
+          border-radius: 9999px;
+          border: 2px solid transparent;
+          background-clip: content-box;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(0, 0, 0, 0.38);
+      }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: rgba(255, 255, 255, 0.22);
+      }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: rgba(255, 255, 255, 0.4);
+      }
+      /* Firefox */
+      .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+      }
+      .dark .custom-scrollbar {
+          scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
       }
       body {
         -webkit-font-smoothing: antialiased;

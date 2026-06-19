@@ -168,7 +168,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Folders List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-2.5 pb-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-2.5 pb-4">
         {folders.map((folder) => {
           const isSelected = selectedFolderId === folder.id && !isMobile;
           const count = getFolderCount(folder.id);
@@ -260,7 +260,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Note List */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-2.5 pb-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-2.5 pb-4">
         {filteredNotes.length === 0 ? (
           <div className="px-3 py-10 text-center text-[13px] text-apple-textGray select-none">
             no notes
