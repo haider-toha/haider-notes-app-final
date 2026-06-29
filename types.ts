@@ -8,6 +8,7 @@ export interface Note {
   session_id: string;
   created_at: string;
   content: string;
+  isPinned?: boolean;
 }
 
 export interface Folder {

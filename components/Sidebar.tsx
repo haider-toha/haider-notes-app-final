@@ -10,6 +10,7 @@ import {
   BookOpen,
   PenLine,
   ChevronLeft,
+  Pin,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -110,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     return notes.filter((n) => n.folder === folderId).length;
   };
 
-  // Filter notes by selected folder and search query, then sort by date (newest first)
+  // Filter notes by selected folder and search query; pinned first, then by date
   const filteredNotes = useMemo(() => {
     let filtered =
       selectedFolderId === "all"
@@ -128,11 +129,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       });
     }
 
-    // Sort by created_at descending (newest first)
-    return [...filtered].sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    );
+    return [...filtered].sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
   }, [notes, selectedFolderId, query]);
 
   const selectedFolder = folders.find((f) => f.id === selectedFolderId);
@@ -147,6 +148,52 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleBackToFolders = () => {
     setShowNotesList(false);
+  };
+
+  const renderNoteItem = (note: Note) => {
+    const isSelected = selectedNoteId === note.id;
+    const previewText = getPreview(note.content);
+    const dateText = formatDate(note.created_at);
+
+    return (
+      <div
+        key={note.id}
+        onClick={() => onSelectNote(note.id)}
+        className={`
+          group flex flex-col px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 relative select-none mb-px
+          ${
+            isSelected
+              ? "bg-apple-selectionLight dark:bg-apple-selectionDark"
+              : "hover:bg-apple-hoverLight dark:hover:bg-apple-hoverDark"
+          }
+        `}
+      >
+        <div className={`flex items-center mb-0.5 gap-1 ${note.isPinned ? "pr-0" : ""}`}>
+          <div
+            className={`font-semibold text-[15px] leading-tight truncate flex-1 min-w-0 ${isSelected ? "text-black" : "text-black dark:text-white"}`}
+          >
+            {note.title}
+          </div>
+          {note.isPinned && (
+            <Pin
+              className={`w-3 h-3 flex-shrink-0 rotate-45 ${isSelected ? "text-black/40" : "text-apple-textGray/60"}`}
+            />
+          )}
+        </div>
+        <div className="flex gap-1.5 text-[13px] leading-snug w-full">
+          <span
+            className={`whitespace-nowrap flex-shrink-0 ${isSelected ? "text-black/65" : "text-black/55 dark:text-white/55"}`}
+          >
+            {dateText}
+          </span>
+          <span
+            className={`truncate ${isSelected ? "text-black/55" : "text-apple-textGray"}`}
+          >
+            {previewText || "no additional text"}
+          </span>
+        </div>
+      </div>
+    );
   };
 
   // Folders List View.
@@ -266,44 +313,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             no notes
           </div>
         ) : (
-          filteredNotes.map((note) => {
-            const isSelected = selectedNoteId === note.id;
-            const previewText = getPreview(note.content);
-            const dateText = formatDate(note.created_at);
-
-            return (
-              <div
-                key={note.id}
-                onClick={() => onSelectNote(note.id)}
-                className={`
-                group flex flex-col px-3 py-2.5 rounded-md cursor-pointer transition-colors duration-150 relative select-none mb-px
-                ${
-                  isSelected
-                    ? "bg-apple-selectionLight dark:bg-apple-selectionDark"
-                    : "hover:bg-apple-hoverLight dark:hover:bg-apple-hoverDark"
-                }
-              `}
-              >
-                <div
-                  className={`font-semibold text-[15px] mb-0.5 leading-tight truncate ${isSelected ? "text-black" : "text-black dark:text-white"}`}
-                >
-                  {note.title}
-                </div>
-                <div className="flex gap-1.5 text-[13px] leading-snug w-full">
-                  <span
-                    className={`whitespace-nowrap flex-shrink-0 ${isSelected ? "text-black/65" : "text-black/55 dark:text-white/55"}`}
-                  >
-                    {dateText}
-                  </span>
-                  <span
-                    className={`truncate ${isSelected ? "text-black/55" : "text-apple-textGray"}`}
-                  >
-                    {previewText || "no additional text"}
-                  </span>
-                </div>
-              </div>
-            );
-          })
+          filteredNotes.map((note) => renderNoteItem(note))
         )}
       </div>
     </div>

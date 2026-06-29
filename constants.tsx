@@ -20,6 +20,7 @@ export const portfolioNotes: Note[] = [
     public: true,
     session_id: "",
     created_at: "2026-06-12T08:47:00.000Z",
+    isPinned: true,
     content: `haider toha
 london, uk
 
@@ -46,6 +47,7 @@ i read too much. mostly history, philosophy and whatever rabbit hole has me that
     public: true,
     session_id: "",
     created_at: "2026-05-29T22:15:00.000Z",
+    isPinned: true,
     content: `**queueing theory**
 there's real math under backend performance, things like little's law, m/m/c models and the way rising utilisation feeds tail latency. most engineers still size their connection pools and set timeouts by feel even though the right numbers are completely computable. once you actually compute them it becomes clear that wait time climbs fast as soon as a pool pushes past ~70% utilisation, which is where a lot of the "random" incidents you run into really come from. it's an old field that has barely been touched in web infra.
 
@@ -67,6 +69,7 @@ bandits are about moving past fixed-split a/b testing into adaptive allocation, 
     public: true,
     session_id: "",
     created_at: "2026-04-03T17:22:00.000Z",
+    isPinned: true,
     content: `**languages**
 **typescript:** fastest path from idea → interface → shipped feature.
 **python:** models, data, experiments and glue code.
@@ -92,6 +95,7 @@ bandits are about moving past fixed-split a/b testing into adaptive allocation, 
     public: true,
     session_id: "",
     created_at: "2026-03-18T10:33:00.000Z",
+    isPinned: true,
     content: `**users before opinions**
 i’ll trade a clever architecture for a workflow that actually unblocks the user.
 
@@ -116,6 +120,7 @@ i’ll argue for a decision with the data i have. better data wins immediately.`
     public: true,
     session_id: "",
     created_at: "2026-03-01T14:08:00.000Z",
+    isPinned: true,
     content: `**founding engineer · sammy labs (yc w25)** · london · nov 2025-present  
 own full stack features from react frontend to python backend to postgres. spend about a third of my time on customer calls, debugging issues live and translating pain points into features. i like to move fast and ship daily.
 
