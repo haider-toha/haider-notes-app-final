@@ -623,6 +623,22 @@ const MainContent: React.FC<MainContentProps> = ({
       return <MermaidDiagram key={key} chart={code} id={`diagram-${key}`} onExpand={setModalDiagram} />;
     }
 
+    if (language === "iframe") {
+      const src = code.trim();
+      return (
+        <div key={key} className="my-6 w-full rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
+          <iframe
+            src={src}
+            width="100%"
+            height="520"
+            style={{ border: "none", display: "block" }}
+            allow="autoplay"
+            title="simulation"
+          />
+        </div>
+      );
+    }
+
     // Regular code block
     return (
       <div key={key} className="my-4">
