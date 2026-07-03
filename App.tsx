@@ -229,6 +229,8 @@ const App: React.FC = () => {
                 onSelectNote={handleSelectNote}
                 onSelectFolder={handleSelectFolder}
                 isMobile={isMobile}
+                theme={theme}
+                onToggleTheme={toggleTheme}
               />
             </div>
           </div>
@@ -240,6 +242,8 @@ const App: React.FC = () => {
               onBack={handleBack}
               isMobile={isMobile}
               onShare={handleShare}
+              theme={theme}
+              onToggleTheme={toggleTheme}
             />
           </div>
         </div>

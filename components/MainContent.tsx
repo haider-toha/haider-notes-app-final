@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Note } from "../types";
+import { Note, Theme } from "../types";
 import {
   ChevronLeft,
   Share,
@@ -8,6 +8,8 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize2,
+  Moon,
+  Sun,
 } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
@@ -24,6 +26,8 @@ interface MainContentProps {
   onBack: () => void;
   isMobile: boolean;
   onShare: () => void;
+  theme?: Theme;
+  onToggleTheme?: () => void;
 }
 
 /** Canvas logical sizes from each simulation HTML file — keeps iframe height tight. */
@@ -435,6 +439,8 @@ const MainContent: React.FC<MainContentProps> = ({
   onBack,
   isMobile,
   onShare,
+  theme,
+  onToggleTheme,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [modalImage, setModalImage] = useState<{
@@ -1013,6 +1019,19 @@ const MainContent: React.FC<MainContentProps> = ({
             </button>
 
             <div className="flex items-center space-x-4 pr-2">
+              {onToggleTheme && (
+                <button
+                  onClick={onToggleTheme}
+                  aria-label="Toggle dark mode"
+                  className="text-apple-yellow hover:opacity-70"
+                >
+                  {theme === "light" ? (
+                    <Moon className="w-5 h-5" />
+                  ) : (
+                    <Sun className="w-5 h-5" />
+                  )}
+                </button>
+              )}
               <button
                 onClick={onShare}
                 aria-label="Share note"

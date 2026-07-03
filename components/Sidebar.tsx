@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Note, Folder } from "../types";
+import { Note, Folder, Theme } from "../types";
 import {
   Search,
   ChevronRight,
@@ -11,6 +11,8 @@ import {
   PenLine,
   ChevronLeft,
   Pin,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -21,6 +23,8 @@ interface SidebarProps {
   onSelectNote: (id: string) => void;
   onSelectFolder: (folderId: string) => void;
   isMobile?: boolean;
+  theme?: Theme;
+  onToggleTheme?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -31,6 +35,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSelectNote,
   onSelectFolder,
   isMobile = false,
+  theme,
+  onToggleTheme,
 }) => {
   const [query, setQuery] = useState("");
   // On mobile, show notes list if a note is selected, otherwise show folders
@@ -211,6 +217,19 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="text-[22px] font-bold tracking-[-0.022em] text-black dark:text-white">
             folders
           </div>
+          {isMobile && onToggleTheme && (
+            <button
+              onClick={onToggleTheme}
+              aria-label="Toggle dark mode"
+              className="p-1.5 rounded-md text-apple-textGray hover:text-black/75 dark:hover:text-white/75 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            >
+              {theme === "light" ? (
+                <Moon className="w-[18px] h-[18px] stroke-[1.8]" />
+              ) : (
+                <Sun className="w-[18px] h-[18px] stroke-[1.8]" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 
