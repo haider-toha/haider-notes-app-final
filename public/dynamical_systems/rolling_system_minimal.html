@@ -8,24 +8,14 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:transparent;}
   body{font-family:Georgia,"Times New Roman",serif;}
-  .wrap{max-width:720px;margin:0 auto;padding:12px 12px 18px;}
-  #scene{width:100%;height:auto;display:block;background:#fffefb;border-radius:6px;}
-  .bar{display:flex;justify-content:center;margin-top:12px;}
-  #playpause{
-    font-family:inherit;font-size:14px;cursor:pointer;
-    background:#1c1b18;color:#f7f4ec;border:none;border-radius:7px;
-    padding:8px 20px;letter-spacing:.3px;min-width:96px;
-  }
-  #playpause:active{transform:translateY(1px);}
+  .wrap{max-width:720px;margin:0 auto;padding:0;}
+  #scene{width:100%;height:auto;display:block;background:transparent;border-radius:0;}
   .hidden-refs{display:none !important;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <canvas id="scene" width="1800" height="840"></canvas>
-  <div class="bar">
-    <button id="playpause">Pause</button>
-  </div>
 </div>
 
 <!-- Hidden scaffolding: every element below is referenced by the untouched
@@ -159,7 +149,25 @@ const CW = 900, CH = 420;        // CSS logical size
   ctx.setTransform(dpr,0,0,dpr,0,0);
 })();
 
-const INK='#1c1b18', INKSOFT='#6a655c', FILL='#cdc6b6', FILL2='#e3ddcf';
+let INK='#1c1b18', INKSOFT='#6a655c', FILL='#cdc6b6', FILL2='#e3ddcf', WHITEFILL='#fffefb', MARK='#a8324a';
+
+function setTheme(dark){
+  if(dark){
+    INK='#d4cfc5'; INKSOFT='#8a857c'; FILL='#4a4540'; FILL2='#3a3735'; WHITEFILL='#1a1918'; MARK='#d44a64';
+    cv.style.background='transparent';
+  } else {
+    INK='#1c1b18'; INKSOFT='#6a655c'; FILL='#cdc6b6'; FILL2='#e3ddcf'; WHITEFILL='#fffefb'; MARK='#a8324a';
+    cv.style.background='#fffefb';
+  }
+}
+(function detectTheme(){
+  try {
+    var html=window.parent.document.documentElement;
+    setTheme(html.classList.contains('dark'));
+    new MutationObserver(function(){ setTheme(html.classList.contains('dark')); })
+      .observe(html, {attributes:true, attributeFilter:['class']});
+  } catch(e){}
+})();
 
 function serif(size, italic){ return (italic?'italic ':'')+size+'px Georgia, serif'; }
 function lab(txt,x,y,opt={}){
@@ -209,7 +217,7 @@ function draw(){
 
   const cx0 = CW/2;                          // screen x of CoM (fixed)
   const cx  = cx0 + (S.x - comX)*scale;      // cradle centre, screen x
-  const Ccy = 26 + 0.47*RS;                  // cradle centre, screen y
+  const Ccy = 46 + 0.47*RS;                  // cradle centre, screen y (nudged down for even margins)
   const bowlBottomY = Ccy + RS;
   const railY = bowlBottomY + 42;
   const rimAng = 118*Math.PI/180;            // half-opening of the bowl
@@ -232,12 +240,12 @@ function draw(){
   // wheels
   const wheelR=12, wy=railY-wheelR, wdx=RS*0.62;
   ctx.save();
-  ctx.strokeStyle=INK; ctx.lineWidth=1.8; ctx.fillStyle='#fffefb';
+  ctx.strokeStyle=INK; ctx.lineWidth=1.8; ctx.fillStyle=WHITEFILL;
   for(const sgn of [-1,1]){
     const wx=cx+sgn*wdx;
     ctx.beginPath(); ctx.arc(wx,wy,wheelR,0,2*Math.PI); ctx.fill(); ctx.stroke();
     ctx.beginPath(); ctx.arc(wx,wy,2.4,0,2*Math.PI); ctx.fillStyle=INK; ctx.fill();
-    ctx.fillStyle='#fffefb';
+    ctx.fillStyle=WHITEFILL;
   }
   ctx.restore();
   // deck connecting wheels, just under the bowl
@@ -298,7 +306,7 @@ function draw(){
   ctx.strokeStyle=INK; ctx.lineWidth=2; ctx.stroke();
   // spin spokes (psi = -(b/r) theta) -> visualises rolling
   const psi = -(b/P.r)*th;
-  ctx.strokeStyle='#a8324a'; ctx.lineWidth=2;
+  ctx.strokeStyle=MARK; ctx.lineWidth=2;
   for(let kSp=0;kSp<2;kSp++){
     const a = psi + kSp*Math.PI/2;
     ctx.beginPath(); ctx.moveTo(Gx,Gy);
@@ -306,7 +314,7 @@ function draw(){
   }
   dot(Gx,Gy,2.4,INK);
   // rim dot to track spin
-  dot(Gx+rS*Math.cos(psi), Gy+rS*Math.sin(psi), 3.2, '#a8324a');
+  dot(Gx+rS*Math.cos(psi), Gy+rS*Math.sin(psi), 3.2, MARK);
   ctx.restore();
 
   // contact point
@@ -330,15 +338,6 @@ function draw(){
   lab('x', (cx0+cx)/2, baseY-10, {size:14, color:INKSOFT});
   ctx.restore();
 
-  // ---- on-canvas live readout (top-left) ----
-  const en = energy();
-  ctx.save();
-  ctx.textAlign='left'; ctx.textBaseline='top';
-  ctx.font='13px Menlo, monospace'; ctx.fillStyle=INKSOFT;
-  ctx.fillText('E  = '+en.E.toFixed(4)+' J', 16, 14);
-  ctx.fillText('ΔE = '+fmtSci(en.E-E0)+' J', 16, 32);
-  ctx.fillText('pₓ = '+momentum().toFixed(4), 16, 50);
-  ctx.restore();
 }
 
 /* small canvas helpers */
@@ -382,7 +381,6 @@ function pushHist(){
 }
 function drawChart(){
   ectx.clearRect(0,0,ECW,ECH);
-  ectx.fillStyle='#fffefb'; ectx.fillRect(0,0,ECW,ECH);
   if(eHist.length<2) return;
   let lo=Infinity, hi=-Infinity;
   for(const s of eHist){ lo=Math.min(lo,s.T,s.V,s.E); hi=Math.max(hi,s.T,s.V,s.E); }
@@ -524,19 +522,5 @@ typeset();
 requestAnimationFrame(frame);
 </script>
 
-<script>
-/* Minimal-page play/pause. The original loop is driven by a "running" flag that
-   lives inside the physics script's scope; the untouched btnPlay handler is what
-   toggles it. So forward clicks from the single visible button to the (hidden)
-   original button and mirror its label. This reuses the original mechanism
-   verbatim instead of duplicating it. */
-(function(){
-  var vis  = document.getElementById('playpause');
-  var real = document.getElementById('btnPlay');
-  var sync = function(){ vis.textContent = real.textContent; };
-  vis.addEventListener('click', function(){ real.click(); sync(); });
-  sync();
-})();
-</script>
 </body>
 </html>

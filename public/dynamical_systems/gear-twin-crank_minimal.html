@@ -8,24 +8,14 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:transparent;}
   body{font-family:Georgia,"Times New Roman",serif;}
-  .wrap{max-width:720px;margin:0 auto;padding:12px 12px 18px;}
-  #scene{width:100%;height:auto;display:block;background:#fffefb;border-radius:6px;}
-  .bar{display:flex;justify-content:center;margin-top:12px;}
-  #playpause{
-    font-family:inherit;font-size:14px;cursor:pointer;
-    background:#1c1b18;color:#f7f4ec;border:none;border-radius:7px;
-    padding:8px 20px;letter-spacing:.3px;min-width:96px;
-  }
-  #playpause:active{transform:translateY(1px);}
+  .wrap{max-width:720px;margin:0 auto;padding:0;}
+  #scene{width:100%;height:auto;display:block;background:transparent;border-radius:0;}
   .hidden-refs{display:none !important;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <canvas id="scene" width="1880" height="1320"></canvas>
-  <div class="bar">
-    <button id="playpause">Pause</button>
-  </div>
 </div>
 
 <!-- Hidden elements. The untouched physics/integration/drawing script references
@@ -234,8 +224,28 @@ const CW = 940, CH = 660;        // CSS logical size
   ctx.setTransform(dpr,0,0,dpr,0,0);
 })();
 
-const INK='#1c1b18', INKSOFT='#6a655c', FILL='#cdc6b6', FILL2='#e3ddcf',
-      ROD2='#3a3730', GEARFILL='#efe9dd', MARK='#a8324a';
+let INK='#1c1b18', INKSOFT='#6a655c', FILL='#cdc6b6', FILL2='#e3ddcf',
+    ROD2='#3a3730', GEARFILL='#efe9dd', MARK='#a8324a', WHITEFILL='#fffefb';
+
+function setTheme(dark){
+  if(dark){
+    INK='#d4cfc5'; INKSOFT='#8a857c'; FILL='#4a4540'; FILL2='#3a3735';
+    ROD2='#a09888'; GEARFILL='#2a2724'; MARK='#d44a64'; WHITEFILL='#1a1918';
+    cv.style.background='transparent';
+  } else {
+    INK='#1c1b18'; INKSOFT='#6a655c'; FILL='#cdc6b6'; FILL2='#e3ddcf';
+    ROD2='#3a3730'; GEARFILL='#efe9dd'; MARK='#a8324a'; WHITEFILL='#fffefb';
+    cv.style.background='#fffefb';
+  }
+}
+(function detectTheme(){
+  try {
+    var html=window.parent.document.documentElement;
+    setTheme(html.classList.contains('dark'));
+    new MutationObserver(function(){ setTheme(html.classList.contains('dark')); })
+      .observe(html, {attributes:true, attributeFilter:['class']});
+  } catch(e){}
+})();
 
 function serif(size, italic){ return (italic?'italic ':'')+size+'px Georgia, serif'; }
 function lab(txt,x,y,opt={}){
@@ -274,7 +284,7 @@ function groundGlyph(sx,sy,halfw,drop){
   ctx.restore();
 }
 function dot(x,y,r,c){ ctx.save(); ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI); ctx.fillStyle=c; ctx.fill(); ctx.restore(); }
-function ring(x,y,r){ ctx.save(); ctx.strokeStyle=INK; ctx.lineWidth=1.5; ctx.fillStyle='#fffefb';
+function ring(x,y,r){ ctx.save(); ctx.strokeStyle=INK; ctx.lineWidth=1.5; ctx.fillStyle=WHITEFILL;
   ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI); ctx.fill(); ctx.stroke();
   ctx.beginPath(); ctx.arc(x,y,r*0.4,0,2*Math.PI); ctx.stroke(); ctx.restore(); }
 function dimLine(x1,y1,x2,y2,txt,off){
@@ -429,17 +439,6 @@ function draw(){
   lab('O₁', O1[0]-R1px-4, O1[1]+R1px+2, {size:12,color:INKSOFT,align:'right'});
   lab('O₂', O2[0]+R2px+6, O2[1]+R2px+2, {size:12,color:INKSOFT,align:'left'});
 
-  // ---- on-canvas live readout (top-left) ----
-  const en = energy();
-  ctx.save();
-  ctx.textAlign='left'; ctx.textBaseline='top';
-  ctx.font='13px Menlo, monospace'; ctx.fillStyle=INKSOFT;
-  ctx.fillText('E   = '+en.E.toFixed(4)+' J', 16, 14);
-  ctx.fillText('ΔE  = '+fmtSci(en.E-E0)+' J', 16, 32);
-  ctx.fillText('ρ = R₁/R₂ = '+rho.toFixed(3), 16, 50);
-  ctx.fillText('θ₂ = -ρθ₁ = '+th2.toFixed(3)+' rad', 16, 68);
-  ctx.restore();
-
   if(blewUp){
     ctx.save(); ctx.textAlign='center'; ctx.fillStyle=MARK;
     ctx.font=serif(17,true);
@@ -475,7 +474,6 @@ function pushHist(){
 }
 function drawChart(){
   ectx.clearRect(0,0,ECW,ECH);
-  ectx.fillStyle='#fffefb'; ectx.fillRect(0,0,ECW,ECH);
   if(eHist.length<2) return;
   let lo=Infinity, hi=-Infinity;
   for(const s of eHist){ lo=Math.min(lo,s.T,s.V,s.E); hi=Math.max(hi,s.T,s.V,s.E); }
@@ -658,14 +656,5 @@ resetState();
 requestAnimationFrame(frame);
 </script>
 
-<script>
-(function(){
-  var vis=document.getElementById('playpause');
-  var real=document.getElementById('btnPlay');
-  function sync(){ vis.textContent=real.textContent; }
-  sync();
-  vis.addEventListener('click',function(){ real.click(); sync(); });
-})();
-</script>
 </body>
 </html>

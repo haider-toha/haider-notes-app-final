@@ -26,6 +26,13 @@ interface MainContentProps {
   onShare: () => void;
 }
 
+/** Canvas logical sizes from each simulation HTML file — keeps iframe height tight. */
+const IFRAME_ASPECT_RATIOS: Record<string, number> = {
+  "/dynamical_systems/rolling_system_minimal.html": 900 / 420,
+  "/dynamical_systems/gear-twin-crank_minimal.html": 940 / 660,
+  "/dynamical_systems/cam-skater_minimal.html": 940 / 600,
+};
+
 // Diagram Modal Component for full-screen view with pinch/scroll zoom
 const DiagramModal: React.FC<{
   svg: string;
@@ -625,13 +632,17 @@ const MainContent: React.FC<MainContentProps> = ({
 
     if (language === "iframe") {
       const src = code.trim();
+      const aspectRatio = IFRAME_ASPECT_RATIOS[src] ?? 16 / 9;
       return (
-        <div key={key} className="my-6 w-full rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
+        <div
+          key={key}
+          className="my-3 w-full overflow-hidden relative"
+          style={{ aspectRatio }}
+        >
           <iframe
             src={src}
-            width="100%"
-            height="520"
-            style={{ border: "none", display: "block" }}
+            className="absolute inset-0 w-full h-full"
+            style={{ border: "none", background: "transparent" }}
             allow="autoplay"
             title="simulation"
           />
