@@ -1081,15 +1081,15 @@ the bandwidth savings are dramatic. to verify 100,000 files totaling 1tb, a naiv
     public: true,
     session_id: "",
     created_at: "2026-07-03T12:00:00.000Z",
-    content: `i spent an afternoon deriving three mechanical systems by hand and coding each one, and none of them are textbook pendulums. i picked them because in each one a constraint does something quietly outrageous to the momentum you are taught to trust. a constraint is never only a geometric rule. it carries a force, and that force is where the surprises hide. the one thing i held onto across all three was energy, recomputed from scratch every step, because if my algebra is wrong energy is the number that tells on me.
+    content: `i spent an afternoon deriving three mechanical systems by hand and coding each one and none of them are textbook pendulums. i picked them because in each one a constraint does something quietly outrageous to the momentum you are taught to trust. a constraint is never only a geometric rule. it carries a force and that force is where the surprises hide. the one thing i held onto across all three was energy, recomputed from scratch every step, because if my algebra is wrong energy is the number that tells on me.
 
-the first is a solid cylinder rolling back and forth inside a curved cradle, and the cradle is bolted to a cart that slides freely on a frictionless track. nothing pushes the cart and nothing rubs anywhere, yet it slides steadily left and right the whole time the cylinder rocks. i take $\\mathbf{q} = (x, \\theta)$, the cart position and the angle of the cylinder's centre from the bottom of the bowl, and the centre orbits the cradle at radius $b = R - r$. rolling without slipping ties the cylinder's spin to its swing, and because the cradle only translates the condition integrates, so it is holonomic.
+the first is a solid cylinder rolling back and forth inside a curved cradle and the cradle is bolted to a cart that slides freely on a frictionless track. nothing pushes the cart and nothing rubs anywhere, yet it slides steadily left and right the whole time the cylinder rocks. i take $\\mathbf{q} = (x, \\theta)$, the cart position and the angle of the cylinder's centre from the bottom of the bowl and the centre orbits the cradle at radius $b = R - r$. rolling without slipping ties the cylinder's spin to its swing and because the cradle only translates the condition integrates, so it is holonomic.
 
 $$
 r\\,\\dot\\psi = -(R-r)\\,\\dot\\theta \\quad\\Longrightarrow\\quad \\dot\\psi = -\\frac{b}{r}\\,\\dot\\theta
 $$
 
-i use it to remove $\\psi$ before writing anything down. the kinetic energy carries the cart, the orbiting centre, and the spin with $I = \\tfrac12 m r^2$, and gravity gives a potential that is not zero.
+i use it to remove $\\psi$ before writing anything down. the kinetic energy carries the cart, the orbiting centre and the spin with $I = \\tfrac12 m r^2$ and gravity gives a potential that is not zero.
 
 $$
 T = \\tfrac12(M+m)\\,\\dot{x}^2 + m b\\cos\\theta\\,\\dot{x}\\,\\dot{\\theta} + \\tfrac34 m b^2\\dot{\\theta}^2, \\qquad V = -\\,m g b\\cos\\theta
@@ -1101,27 +1101,27 @@ $$
 \\begin{bmatrix} M+m & m b\\cos\\theta \\\\ \\cos\\theta & \\tfrac32 b \\end{bmatrix} \\begin{bmatrix} \\ddot{x} \\\\ \\ddot{\\theta} \\end{bmatrix} = \\begin{bmatrix} m b\\sin\\theta\\,\\dot{\\theta}^2 \\\\ -\\,g\\sin\\theta \\end{bmatrix}
 $$
 
-here is the thing i wanted to see. $x$ never appears in $\\mathcal{L}$, only $\\dot{x}$ does, so it is cyclic and its momentum is fixed, and since the system starts from rest that constant is zero forever.
+here is the thing i wanted to see. $x$ never appears in $\\mathcal{L}$, only $\\dot{x}$ does, so it is cyclic and its momentum is fixed and since the system starts from rest that constant is zero forever.
 
 $$
 p_x = (M+m)\\,\\dot{x} + m b\\cos\\theta\\,\\dot{\\theta} = 0
 $$
 
-no friction is holding the centre of mass in place. the rolling constraint is, and the cart has to recoil exactly opposite the cylinder to keep the sum at zero.
+no friction is holding the centre of mass in place. the rolling constraint is and the cart has to recoil exactly opposite the cylinder to keep the sum at zero.
 
 \`\`\`iframe
 /dynamical_systems/rolling_system_minimal.html
 \`\`\`
 
-watch the cart slide against the cylinder while the centre of the whole picture stays pinned, and watch the red marker on the rim turn in lockstep with the swing. the motion is liveliest at the ends, where the cylinder turns around and drags the cart's recoil back with it.
+watch the cart slide against the cylinder while the centre of the whole picture stays pinned and watch the red marker on the rim turn in lockstep with the swing. the motion is liveliest at the ends, where the cylinder turns around and drags the cart's recoil back with it.
 
-the second system trades the free support for a hard kinematic law. two cranks turn on fixed parallel axles, each rigidly keyed to a spur gear, and the gears mesh, so turning one crank forces the other to counter-rotate at a fixed ratio. a double pendulum hangs off the first crank and a single one off the second, with gravity the only driver. i integrate four coordinates, $\\mathbf{q} = (\\theta_1, \\phi_a, \\phi_b, \\phi_c)$, and the second crank is missing on purpose, because two pitch circles rolling without slip trade equal and opposite arc, a holonomic relation between the angles themselves.
+the second system trades the free support for a hard kinematic law. two cranks turn on fixed parallel axles, each rigidly keyed to a spur gear and the gears mesh, so turning one crank forces the other to counter-rotate at a fixed ratio. a double pendulum hangs off the first crank and a single one off the second, with gravity the only driver. i integrate four coordinates, $\\mathbf{q} = (\\theta_1, \\phi_a, \\phi_b, \\phi_c)$ and the second crank is missing on purpose, because two pitch circles rolling without slip trade equal and opposite arc, a holonomic relation between the angles themselves.
 
 $$
 R_1\\theta_1 = -R_2\\theta_2 \\quad\\Longrightarrow\\quad \\theta_2 = -\\rho\\,\\theta_1, \\qquad \\rho = \\frac{R_1}{R_2}
 $$
 
-folding it into the coordinates turns five rigid rods into a four-coordinate problem with no multiplier to drag around. the kinetic energy is the usual quadratic form in the rates, and the potential pulls the gear ratio inside a trig function through $\\sin(\\rho\\theta_1)$, so the Lagrangian and its reduced equations are
+folding it into the coordinates turns five rigid rods into a four-coordinate problem with no multiplier to drag around. the kinetic energy is the usual quadratic form in the rates and the potential pulls the gear ratio inside a trig function through $\\sin(\\rho\\theta_1)$, so the Lagrangian and its reduced equations are
 
 $$
 \\mathcal{L} = \\tfrac12\\,\\dot{\\mathbf{q}}^{\\mathsf{T}} M(\\mathbf{q})\\,\\dot{\\mathbf{q}} - V(\\mathbf{q}), \\qquad M(\\mathbf{q})\\,\\ddot{\\mathbf{q}} = F(\\mathbf{q}, \\dot{\\mathbf{q}}),
@@ -1139,9 +1139,9 @@ what i did not expect is that the two pendulum trains never talk directly. the s
 /dynamical_systems/gear-twin-crank_minimal.html
 \`\`\`
 
-watch the two cranks stay mirror images, turning opposite ways at the fixed ratio, and watch the double pendulum whip the first crank hard enough to jerk the second one across the loop, a kick with no contact, carried entirely through the teeth.
+watch the two cranks stay mirror images, turning opposite ways at the fixed ratio and watch the double pendulum whip the first crank hard enough to jerk the second one across the loop, a kick with no contact, carried entirely through the teeth.
 
-the third system stops conserving momentum entirely, and it does it on purpose. a rigid chassis coasts on frictionless ice on a single knife-edge blade that can slide along its heading but never sideways, and a cam at its centre wags a follower rod through a groove. there is no motor and no friction, and it still eases itself forward and drifts into a slow turn, changing its own speed with nothing pushing on it. i take $\\mathbf{q} = (x, y, \\theta, \\psi)$, the chassis centre, its heading, and the cam angle. the groove is holonomic and folds straight in, but the blade is not. it forbids any sideways velocity, one scalar condition on the speeds that refuses to integrate.
+the third system stops conserving momentum entirely and it does it on purpose. a rigid chassis coasts on frictionless ice on a single knife-edge blade that can slide along its heading but never sideways and a cam at its centre wags a follower rod through a groove. there is no motor and no friction and it still eases itself forward and drifts into a slow turn, changing its own speed with nothing pushing on it. i take $\\mathbf{q} = (x, y, \\theta, \\psi)$, the chassis centre, its heading and the cam angle. the groove is holonomic and folds straight in, but the blade is not. it forbids any sideways velocity, one scalar condition on the speeds that refuses to integrate.
 
 $$
 -\\,\\dot{x}\\sin\\theta + \\dot{y}\\cos\\theta + a\\dot\\theta = 0
@@ -1165,11 +1165,11 @@ and every time the wag drives $\\lambda$ off zero the centre of mass gains speed
 /dynamical_systems/cam-skater_minimal.html
 \`\`\`
 
-watch the forward speed keep changing while nothing pushes the skater, and the carved track bend although nothing steers it.
+watch the forward speed keep changing while nothing pushes the skater and the carved track bend although nothing steers it.
 
-all three run the same way, classical RK4 at a fixed step of one or two milliseconds, eight to sixteen substeps a frame. the energy readout in each corner is the part i actually trust, because it is computed a second and independent way. rather than read the kinetic energy back off the same $M$ and $F$ that pushed the state forward, which would only prove my solver is consistent with itself, each step rebuilds $E$ from the plain per-body kinematics, the cartesian velocity and height of every mass, and never touches the reduced equations. if the algebra were wrong the true energy would drift and this number would wander off with it. it held flat in all three, somewhere between a part in a million and a part in $10^{11}$, which is how i knew the derivations were right.
+all three run the same way, classical RK4 at a fixed step of one or two milliseconds, eight to sixteen substeps a frame. the energy readout in each corner is the part i actually trust, because it is computed a second and independent way. rather than read the kinetic energy back off the same $M$ and $F$ that pushed the state forward, which would only prove my solver is consistent with itself, each step rebuilds $E$ from the plain per-body kinematics, the cartesian velocity and height of every mass and never touches the reduced equations. if the algebra were wrong the true energy would drift and this number would wander off with it. it held flat in all three, somewhere between a part in a million and a part in $10^{11}$, which is how i knew the derivations were right.
 
-that is the whole reason i built them. the rolling cradle pins momentum to zero, the gear train erases it, the skater manufactures it out of nothing, and in every case it is the same quiet character doing the work, the force hiding inside a constraint, while energy sits perfectly still and watches.`,
+that is the whole reason i built them. the rolling cradle pins momentum to zero, the gear train erases it, the skater manufactures it out of nothing and in every case it is the same quiet character doing the work, the force hiding inside a constraint, while energy sits perfectly still and watches.`,
   },
   {
     id: "blog-minimax-m2",
