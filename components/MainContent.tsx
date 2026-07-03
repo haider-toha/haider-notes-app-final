@@ -776,7 +776,7 @@ const MainContent: React.FC<MainContentProps> = ({
     if (headingMatch) {
       const level = headingMatch[1].length;
       const sizeByLevel = [
-        "text-[23px] md:text-[25px]",
+        "text-[27px] md:text-[31px]",
         "text-[20px] md:text-[21px]",
         "text-[18px] md:text-[19px]",
         "text-[17px]",

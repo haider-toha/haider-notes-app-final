@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cam-Wagged Coasting Skater</title>
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#f4f1ea;color:#1c1b18;}
+  .wrap{max-width:960px;margin:0 auto;padding:16px 16px 22px;}
+  #scene{width:100%;height:auto;display:block;border-radius:6px;background:#fffefb;}
+  .bar{display:flex;justify-content:center;margin-top:14px;}
+  #playpause{
+    font-family:Georgia,"Times New Roman",serif;font-size:15px;cursor:pointer;
+    background:#1c1b18;color:#f7f4ec;border:none;border-radius:7px;
+    padding:9px 24px;letter-spacing:.3px;
+  }
+  #playpause:active{transform:translateY(1px);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="scene" width="1880" height="1200"></canvas>
+  <div class="bar"><button id="playpause">Pause</button></div>
+
+  <!-- Hidden elements the (untouched) physics JS references by id/class.
+       Kept in the DOM so the original code runs identically and throws zero
+       errors: hidden sliders keep their original id/min/max/step/value, the
+       hidden readout spans keep their ids, and the energy-chart canvas keeps
+       its id and size. None of these are shown. -->
+  <div style="display:none" aria-hidden="true">
+    <button id="btnPlay">Pause</button>
+    <button id="btnReset">Reset</button>
+    <canvas id="echart" width="760" height="300"></canvas>
+    <span id="rE"></span><span id="rdE"></span><span id="rknife"></span>
+    <span id="rv"></span><span id="rpsi"></span><span id="rbeta"></span><span id="rt"></span>
+    <input id="sMC" type="range" min="0.4" max="3" step="0.1" value="1.2"><span id="vMC"></span>
+    <input id="sLC" type="range" min="0.4" max="1.8" step="0.05" value="1.0"><span id="vLC"></span>
+    <input id="sA" type="range" min="0.02" max="0.6" step="0.01" value="0.15"><span id="vA"></span>
+    <input id="sMK" type="range" min="0.1" max="2" step="0.05" value="0.5"><span id="vMK"></span>
+    <input id="sR" type="range" min="0.08" max="0.5" step="0.01" value="0.2"><span id="vR"></span>
+    <input id="sMF" type="range" min="0.1" max="1.5" step="0.05" value="0.4"><span id="vMF"></span>
+    <input id="sLF" type="range" min="0.2" max="1.2" step="0.05" value="0.6"><span id="vLF"></span>
+    <input id="sB0" type="range" min="-1" max="1" step="0.05" value="0.3"><span id="vB0"></span>
+    <input id="sAA" type="range" min="0.1" max="1.2" step="0.05" value="0.7"><span id="vAA"></span>
+    <input id="sTH0" type="range" min="-180" max="180" step="1" value="14"><span id="vTH0"></span>
+    <input id="sPS0" type="range" min="-180" max="180" step="1" value="0"><span id="vPS0"></span>
+    <input id="sV0" type="range" min="-1.5" max="1.5" step="0.05" value="0.7"><span id="vV0"></span>
+    <input id="sTHD" type="range" min="-3" max="3" step="0.1" value="0.6"><span id="vTHD"></span>
+    <input id="sPSD" type="range" min="-14" max="14" step="0.5" value="8"><span id="vPSD"></span>
+  </div>
+</div>
+
+<!-- No-op KaTeX stub. The original script keeps a typeset() routine that polls
+     `typeof katex === 'undefined'` and re-schedules itself forever until KaTeX
+     loads. We removed the KaTeX CDN link/script (no math is displayed here), so
+     we supply a no-op `katex` global: typeset() then runs a single pass, finds
+     every equation element absent (each put() early-returns), and stops. Nothing
+     is rendered. This keeps the physics script byte-for-byte identical while
+     avoiding a perpetual timer. -->
+<script>window.katex = { render: function(){} };</script>
+
+<script>
+/* ============================================================================
+   CAM-WAGGED COASTING SKATER
+   --------------------------------------------------------------------------
+   Generalized coordinates  q = (x, y, theta, psi).   Free-floating chassis on
+   frictionless ice; gravity acts OUT of plane so V = 0 and E = T is conserved.
+
+   Bodies (all rigid, inertias central):
+     chassis  (rod)   m_c, I_c = m_c L_c^2/12,  COM G_c = (x,y),  omega = theta_d
+     cam      (disc)  m_k, I_k = m_k R^2/2,     centre at G_c,    omega = theta_d + psi_d
+     follower (rod)   m_f, I_f = m_f l_f^2/12,  pivot at G_c,     phi = theta + beta0 + A sin psi
+
+   Constraints (all holonomic ones folded into the coordinates):
+     pin(cam,chassis) +2, pin(follower,chassis) +2, cam-follower groove +1  => q=5
+     f = 3p - q = 9 - 5 = 4  ==  |(x,y,theta,psi)|.
+   Knife-edge (nonholonomic) at C = G_c + a*e1 :  -xd sin th + yd cos th + a th_d = 0,
+   removing ONE independent speed -> 3 independent speeds (v, theta_d, psi_d).
+
+   Reduced canonical form  M(psi) [vd, th_dd, ps_dd]^T = F(psi, v, th_d, ps_d),
+   with M symmetric = reduced d2L/dqd dqd (stateOrder [v, theta, psi]).  Integrated
+   with classical fixed-step RK4 over the full pose [x,y,theta,psi, v,th_d,ps_d].
+   E = T is computed INDEPENDENTLY from the Cartesian rigid-body kinematics (NOT
+   reconstructed from M/F).  M / F / energy are transcribed verbatim from the
+   verified derivation (energy-check E0 = 1.6154887 J, maxRelDrift ~3.4e-9 over
+   60 s at dt = 1e-3).
+   ========================================================================== */
+
+/* ---------- parameters, initial conditions & state ---------- */
+const PAR = { m_c:1.2, L_c:1.0, a:0.15, m_k:0.5, R:0.2, m_f:0.4, l_f:0.6, beta0:0.3, A:0.7 };
+const IC  = { th0:14, ps0:0,          // release angles (degrees)
+              v0:0.7, thd0:0.6, psd0:8.0 };  // forward speed (m/s) & rates (rad/s)
+
+// state = [x, y, theta, psi, v, theta_d, psi_d]  (full pose + 3 independent speeds)
+let S  = [0, 0, 0.25, 0, 0.7, 0.6, 8.0];
+let E0 = 0;            // energy baseline (re-set on reset / mass change)
+let simT = 0;
+let lastSample = 0;
+let running = true;
+let blewUp = false;    // set only if the state runs non-finite (safety guard)
+
+const DT = 0.001;      // fixed integrator step (s) -- the dt that passed the oracle
+const SUBSTEPS = 16;   // -> 16 ms of sim per animation frame
+const DEG = Math.PI/180;
+const cos = Math.cos, sin = Math.sin;
+
+/* ---------- dynamics:  M(psi) [vd, th_dd, ps_dd]^T = F  (verbatim canonical strings) ----------
+   Symbols: config theta, psi; speeds v, theta_d, psi_d;  beta = beta0 + A sin(psi).
+   Transcribed exactly from derivations/cam-wagged-coasting-skater.md section 6. */
+function buildMF(psi, v, theta_d, psi_d){
+  const m_c=PAR.m_c, L_c=PAR.L_c, a=PAR.a, m_k=PAR.m_k, R=PAR.R,
+        m_f=PAR.m_f, l_f=PAR.l_f, beta0=PAR.beta0, A=PAR.A;
+  const A2=A*A, lf2=l_f*l_f, a2=a*a, Lc2=L_c*L_c, R2=R*R;
+  const cp=cos(psi), sp=sin(psi), cp2=cp*cp;
+  const beta=A*sp+beta0, sb=sin(beta), cb=cos(beta);
+  const thd2=theta_d*theta_d, psd2=psi_d*psi_d;
+
+  const M00 = m_c + m_f + m_k;
+  const M01 = -l_f*m_f*sb/2;
+  const M02 = -A*l_f*m_f*sb*cp/2;
+  const M11 = Lc2*m_c/12 + R2*m_k/2 + a2*m_c + a2*m_f + a2*m_k - a*l_f*m_f*cb + lf2*m_f/3;
+  const M12 = -A*a*l_f*m_f*cp*cb/2 + A*lf2*m_f*cp/3 + R2*m_k/2;
+  const M22 = A2*lf2*m_f*cp2/3 + R2*m_k/2;
+
+  const M = [
+    [M00, M01, M02],
+    [M01, M11, M12],
+    [M02, M12, M22],
+  ];
+
+  const F = [
+    A2*l_f*m_f*psd2*cp2*cb/2 - A*l_f*m_f*psd2*sp*sb/2 + A*l_f*m_f*psi_d*theta_d*cp*cb
+      - a*m_c*thd2 - a*m_f*thd2 - a*m_k*thd2 + l_f*m_f*thd2*cb/2,
+    -A2*a*l_f*m_f*psd2*sb*cp2/2 - A*a*l_f*m_f*psd2*sp*cb/2 - A*a*l_f*m_f*psi_d*theta_d*sb*cp
+      + A*lf2*m_f*psd2*sp/3 + a*m_c*theta_d*v + a*m_f*theta_d*v + a*m_k*theta_d*v
+      - l_f*m_f*theta_d*v*cb/2,
+    A*l_f*m_f*(4*A*l_f*psd2*sp + 6*a*thd2*sb - 6*theta_d*v*cb)*cp/12,
+  ];
+  return { M, F };
+}
+
+// Gaussian elimination with partial pivoting: solve A x = b  (n x n)
+function solveLin(A, b, n){
+  const M=A.map((row,i)=>row.slice().concat(b[i]));
+  for(let col=0; col<n; col++){
+    let piv=col;
+    for(let r=col+1;r<n;r++) if(Math.abs(M[r][col])>Math.abs(M[piv][col])) piv=r;
+    const t=M[col]; M[col]=M[piv]; M[piv]=t;
+    const dg=M[col][col];
+    for(let r=0;r<n;r++){
+      if(r===col) continue;
+      const f=M[r][col]/dg;
+      if(f!==0) for(let cc=col;cc<=n;cc++) M[r][cc]-=f*M[col][cc];
+    }
+  }
+  const x=new Array(n);
+  for(let i=0;i<n;i++) x[i]=M[i][n]/M[i][i];
+  return x;
+}
+
+// state derivative: solve reduced accelerations, then recover full-pose rates
+function deriv(st){
+  const theta=st[2], psi=st[3], v=st[4], thd=st[5], psd=st[6];
+  const { M, F } = buildMF(psi, v, thd, psd);
+  const acc = solveLin(M, F, 3);                 // [vd, theta_dd, psi_dd]
+  const xd = v*cos(theta) + PAR.a*thd*sin(theta); // knife-edge speed recovery
+  const yd = v*sin(theta) - PAR.a*thd*cos(theta);
+  return [xd, yd, thd, psd, acc[0], acc[1], acc[2]];
+}
+function rk4(st,h){
+  const add=(A0,k,f)=>{const o=new Array(7);for(let i=0;i<7;i++)o[i]=A0[i]+f*k[i];return o;};
+  const k1=deriv(st), k2=deriv(add(st,k1,h/2)), k3=deriv(add(st,k2,h/2)), k4=deriv(add(st,k3,h));
+  const o=new Array(7);
+  for(let i=0;i<7;i++) o[i]=st[i]+h/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
+  return o;
+}
+
+/* ---------- conserved quantities (INDEPENDENT of M / F) ----------
+   Cartesian rigid-body energy of the 3 bodies. xd, yd come from the knife-edge
+   speed-recovery (definition of v), NOT from the EOM reduction, so E is a real check.
+   Per-body split is returned so the strip chart can show internal transfer. */
+function energy(){
+  const theta=S[2], psi=S[3], v=S[4], thd=S[5], psd=S[6];
+  const m_c=PAR.m_c, L_c=PAR.L_c, a=PAR.a, m_k=PAR.m_k, R=PAR.R,
+        m_f=PAR.m_f, l_f=PAR.l_f, beta0=PAR.beta0, A=PAR.A;
+  const ct=cos(theta), st=sin(theta);
+  const xd = v*ct + a*thd*st;
+  const yd = v*st - a*thd*ct;
+  const phi  = theta + beta0 + A*sin(psi);
+  const phid = thd + A*cos(psi)*psd;
+  const vfx = xd - (l_f/2)*phid*sin(phi);
+  const vfy = yd + (l_f/2)*phid*cos(phi);
+  const Ic=m_c*L_c*L_c/12, Ik=m_k*R*R/2, If=m_f*l_f*l_f/12;
+
+  const KEtrans = 0.5*(m_c+m_k)*(xd*xd+yd*yd);   // chassis + cam translation
+  const KEchsp  = 0.5*Ic*thd*thd;                // chassis spin
+  const KEcamsp = 0.5*Ik*(thd+psd)*(thd+psd);    // cam spin
+  const KEfoll  = 0.5*m_f*(vfx*vfx+vfy*vfy) + 0.5*If*phid*phid;  // follower total
+  const T = KEtrans + KEchsp + KEcamsp + KEfoll;
+  return { T, V:0, E:T, trans:KEtrans, chsp:KEchsp, camsp:KEcamsp, foll:KEfoll, xd, yd };
+}
+// knife-edge residual v_C . e2 = -xd sin th + yd cos th + a th_d  (== 0 by construction)
+function knifeResidual(){
+  const en=energy(); const th=S[2];
+  return -en.xd*sin(th) + en.yd*cos(th) + PAR.a*S[5];
+}
+
+/* ---------- reset / re-baseline ---------- */
+function resetState(){
+  S = [0, 0, IC.th0*DEG, IC.ps0*DEG, IC.v0, IC.thd0, IC.psd0];
+  simT=0; lastSample=0; blewUp=false;
+  E0 = energy().E;
+  eHist.length = 0; track.length = 0;
+}
+function rebaseline(){          // keep motion, re-zero the energy reference
+  E0 = energy().E;
+  eHist.length = 0;
+}
+
+/* ============================================================================
+   RENDERING  (top-down textbook line-drawing on ice; camera follows G_c)
+   ========================================================================== */
+const cv  = document.getElementById('scene');
+const ctx = cv.getContext('2d');
+const CW = 940, CH = 600;        // CSS logical size
+(function setupHiDPI(){
+  const dpr = Math.max(1, Math.min(3, window.devicePixelRatio||1));
+  cv.width = CW*dpr; cv.height = CH*dpr;
+  cv.style.aspectRatio = CW+'/'+CH;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+})();
+
+const INK='#1c1b18', INKSOFT='#6a655c', FILL='#cdc6b6', FILL2='#e3ddcf',
+      ROD2='#3a3730', CAMFILL='#efe9dd', MARK='#a8324a', TEAL='#2a7f6f', ORANGE='#b9722a';
+
+const WIN_W = 4.4;               // metres visible across the canvas width
+const SCALE = CW / WIN_W;        // ~214 px/m, fixed (grid cells stay constant)
+let   track = [];                // world positions of the blade contact C
+const TRACK_MAX = 1500;
+
+// world -> screen, camera centred on G_c = (S[0], S[1]); world y is up
+function W2S(wx,wy){ return [CW/2 + (wx-S[0])*SCALE, CH/2 - (wy-S[1])*SCALE]; }
+
+function serif(size, italic){ return (italic?'italic ':'')+size+'px Georgia, serif'; }
+function lab(txt,x,y,opt){
+  opt=opt||{};
+  ctx.save();
+  ctx.fillStyle = opt.color||INK;
+  ctx.font = serif(opt.size||15, opt.italic!==false);
+  ctx.textAlign = opt.align||'center';
+  ctx.textBaseline = opt.baseline||'middle';
+  ctx.fillText(txt,x,y);
+  ctx.restore();
+}
+function arrow(x1,y1,x2,y2,opt){
+  opt=opt||{}; const head = opt.head||8;
+  ctx.save();
+  ctx.strokeStyle = opt.color||INK; ctx.fillStyle = opt.color||INK;
+  ctx.lineWidth = opt.w||1.4;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  const a = Math.atan2(y2-y1, x2-x1);
+  ctx.beginPath();
+  ctx.moveTo(x2,y2);
+  ctx.lineTo(x2-head*Math.cos(a-0.4), y2-head*Math.sin(a-0.4));
+  ctx.lineTo(x2-head*Math.cos(a+0.4), y2-head*Math.sin(a+0.4));
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+function dot(x,y,r,c){ ctx.save(); ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI); ctx.fillStyle=c; ctx.fill(); ctx.restore(); }
+function ring(x,y,r){ ctx.save(); ctx.strokeStyle=INK; ctx.lineWidth=1.5; ctx.fillStyle='#fffefb';
+  ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(x,y,r*0.4,0,2*Math.PI); ctx.stroke(); ctx.restore(); }
+// dimension line between two screen points, offset perpendicular, italic label
+function dimLine(x1,y1,x2,y2,txt,off){
+  const a=Math.atan2(y2-y1,x2-x1), nx=Math.cos(a+Math.PI/2), ny=Math.sin(a+Math.PI/2);
+  const ox=nx*off, oy=ny*off;
+  ctx.save(); ctx.strokeStyle=INKSOFT; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(x1+ox,y1+oy); ctx.lineTo(x2+ox,y2+oy); ctx.stroke();
+  arrow(x2+ox,y2+oy,x1+ox,y1+oy,{w:1,head:5,color:INKSOFT});
+  arrow(x1+ox,y1+oy,x2+ox,y2+oy,{w:1,head:5,color:INKSOFT});
+  lab(txt,(x1+x2)/2+ox*1.9,(y1+y2)/2+oy*1.9,{size:13,color:INKSOFT});
+  ctx.restore();
+}
+// signed arc from angle 0 (world +x) sweep to psi (world CCW +), about screen pt
+function angleArc(sx,sy,ang0,ang1,txt,r,col){
+  ctx.save(); ctx.strokeStyle=col||INK; ctx.lineWidth=1.1;
+  ctx.beginPath(); ctx.arc(sx,sy,r, -Math.max(ang0,ang1), -Math.min(ang0,ang1)); ctx.stroke();
+  ctx.restore();
+  const mid=(ang0+ang1)/2;
+  lab(txt, sx+(r+12)*Math.cos(mid), sy-(r+12)*Math.sin(mid), {size:13,color:col||INK});
+}
+
+// faint fixed world grid (scrolls under the skater as G_c translates)
+function drawGrid(){
+  const gs=0.5;
+  const halfW=(CW/2)/SCALE, halfH=(CH/2)/SCALE;
+  const minX=S[0]-halfW, maxX=S[0]+halfW, minY=S[1]-halfH, maxY=S[1]+halfH;
+  ctx.save(); ctx.strokeStyle='#ece7d9'; ctx.lineWidth=1;
+  for(let gx=Math.ceil(minX/gs)*gs; gx<=maxX; gx+=gs){
+    const p0=W2S(gx,minY), p1=W2S(gx,maxY);
+    ctx.beginPath(); ctx.moveTo(p0[0],p0[1]); ctx.lineTo(p1[0],p1[1]); ctx.stroke();
+  }
+  for(let gy=Math.ceil(minY/gs)*gs; gy<=maxY; gy+=gs){
+    const p0=W2S(minX,gy), p1=W2S(maxX,gy);
+    ctx.beginPath(); ctx.moveTo(p0[0],p0[1]); ctx.lineTo(p1[0],p1[1]); ctx.stroke();
+  }
+  ctx.restore();
+}
+// carved blade track
+function drawTrack(){
+  if(track.length<2) return;
+  ctx.save(); ctx.strokeStyle='#d7cdb8'; ctx.lineWidth=2; ctx.lineJoin='round';
+  ctx.beginPath();
+  for(let i=0;i<track.length;i++){ const p=W2S(track[i][0],track[i][1]); i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]); }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function draw(){
+  ctx.clearRect(0,0,CW,CH);
+
+  const th=S[2], psi=S[3];
+  const a=PAR.a, L_c=PAR.L_c, R=PAR.R, l_f=PAR.l_f, beta0=PAR.beta0, A=PAR.A;
+  const e1=[cos(th),sin(th)], e2=[-sin(th),cos(th)];
+  const phi = th + beta0 + A*sin(psi);            // follower absolute angle
+  const camAng = th + psi;                        // cam absolute orientation
+
+  // ---- world geometry (around G_c = S[0],S[1]) ----
+  const Gc=[S[0],S[1]];
+  const C  =[Gc[0]+a*e1[0],           Gc[1]+a*e1[1]];             // blade contact
+  const ch0=[Gc[0]-(L_c/2)*e1[0],     Gc[1]-(L_c/2)*e1[1]];       // chassis tail
+  const ch1=[Gc[0]+(L_c/2)*e1[0],     Gc[1]+(L_c/2)*e1[1]];       // chassis nose
+  const Ft =[Gc[0]+l_f*cos(phi),      Gc[1]+l_f*sin(phi)];        // follower tip
+
+  // ---- ice backdrop ----
+  drawGrid();
+  drawTrack();
+
+  // screen points
+  const sGc=W2S(Gc[0],Gc[1]), sC=W2S(C[0],C[1]), sCh0=W2S(ch0[0],ch0[1]),
+        sCh1=W2S(ch1[0],ch1[1]), sFt=W2S(Ft[0],Ft[1]);
+  const Rpx=R*SCALE;
+
+  // ---- chassis hull (light) + rod spine ----
+  ctx.save();
+  const hw=0.09*SCALE;                            // half-width of the hull
+  const nx=-e1[1], ny=e1[0];                       // chassis normal (screen uses -y, handle via W2S pts)
+  // build hull as a rounded quad from the four world corners
+  const hc=[
+    W2S(ch0[0]+ (hw/SCALE)*(-e1[1]), ch0[1]+ (hw/SCALE)*(e1[0])),
+    W2S(ch1[0]+ (hw/SCALE)*(-e1[1]), ch1[1]+ (hw/SCALE)*(e1[0])),
+    W2S(ch1[0]- (hw/SCALE)*(-e1[1]), ch1[1]- (hw/SCALE)*(e1[0])),
+    W2S(ch0[0]- (hw/SCALE)*(-e1[1]), ch0[1]- (hw/SCALE)*(e1[0])),
+  ];
+  ctx.beginPath();
+  ctx.moveTo(hc[0][0],hc[0][1]);
+  for(let i=1;i<4;i++) ctx.lineTo(hc[i][0],hc[i][1]);
+  ctx.closePath();
+  ctx.fillStyle='#f3eee1'; ctx.fill();
+  ctx.strokeStyle=FILL; ctx.lineWidth=1.2; ctx.stroke();
+  ctx.restore();
+  // rod spine
+  ctx.save(); ctx.lineCap='round'; ctx.strokeStyle=INK; ctx.lineWidth=6;
+  ctx.beginPath(); ctx.moveTo(sCh0[0],sCh0[1]); ctx.lineTo(sCh1[0],sCh1[1]); ctx.stroke();
+  ctx.restore();
+
+  // ---- cam disc (centre G_c), spokes + nose keyed to camAng ----
+  ctx.save();
+  ctx.beginPath(); ctx.arc(sGc[0],sGc[1],Rpx,0,2*Math.PI);
+  ctx.fillStyle=CAMFILL; ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=1.6; ctx.stroke();
+  // groove hint (dashed inner circle)
+  ctx.setLineDash([3,3]); ctx.strokeStyle=INKSOFT; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(sGc[0],sGc[1],Rpx*0.62,0,2*Math.PI); ctx.stroke();
+  ctx.setLineDash([]);
+  // 4 spokes (screen y is down, so subtract sin)
+  ctx.strokeStyle=INKSOFT; ctx.lineWidth=1.8;
+  for(let k=0;k<4;k++){
+    const ph=camAng + k*Math.PI/2;
+    ctx.beginPath(); ctx.moveTo(sGc[0],sGc[1]);
+    ctx.lineTo(sGc[0]+Rpx*0.82*Math.cos(ph), sGc[1]-Rpx*0.82*Math.sin(ph)); ctx.stroke();
+  }
+  // cam nose marker (a dot on the rim, at camAng) -- shows the fast spin
+  dot(sGc[0]+Rpx*Math.cos(camAng), sGc[1]-Rpx*Math.sin(camAng), 3.6, MARK);
+  ctx.restore();
+
+  // ---- follower rod (accent) + roller at tip ----
+  ctx.save(); ctx.lineCap='round'; ctx.strokeStyle=ORANGE; ctx.lineWidth=4.5;
+  ctx.beginPath(); ctx.moveTo(sGc[0],sGc[1]); ctx.lineTo(sFt[0],sFt[1]); ctx.stroke();
+  ctx.restore();
+  ctx.save(); ctx.fillStyle='#fffefb'; ctx.strokeStyle=ORANGE; ctx.lineWidth=1.6;
+  ctx.beginPath(); ctx.arc(sFt[0],sFt[1],5.5,0,2*Math.PI); ctx.fill(); ctx.stroke(); ctx.restore();
+
+  // ---- knife-edge blade at C, along e1 ; ticks show the no-slip (e2) direction ----
+  const bl=0.13*SCALE;                             // half-length of the blade (screen px)
+  const bx=e1[0]*bl, by=-e1[1]*bl;                 // along-heading in screen coords
+  ctx.save(); ctx.lineCap='round'; ctx.strokeStyle=MARK; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(sC[0]-bx,sC[1]-by); ctx.lineTo(sC[0]+bx,sC[1]+by); ctx.stroke();
+  ctx.restore();
+  // forbidden-lateral marker: short e2 segment with an x
+  const tx=-e2[0]*10, ty=e2[1]*10;
+  ctx.save(); ctx.strokeStyle=INKSOFT; ctx.lineWidth=1; ctx.setLineDash([2,2]);
+  ctx.beginPath(); ctx.moveTo(sC[0]-tx,sC[1]-ty); ctx.lineTo(sC[0]+tx,sC[1]+ty); ctx.stroke();
+  ctx.restore();
+  lab('✗', sC[0]+ (e2[0]*16), sC[1]- (e2[1]*16), {size:12,color:INKSOFT,italic:false});
+
+  // ---- pins / mass-centre marks ----
+  ring(sGc[0],sGc[1],5.2);                         // pivot / mass-centre at G_c
+  dot(sGc[0],sGc[1],1.8,INK);
+  dot(sC[0],sC[1],3.0,MARK);
+
+  // ---- dimension lines & coordinate labels ----
+  dimLine(sGc[0],sGc[1], sCh1[0],sCh1[1], 'L_c/2', 16);
+  dimLine(sGc[0],sGc[1], sC[0],sC[1], 'a', -13);
+  dimLine(sGc[0],sGc[1], sFt[0],sFt[1], 'l_f', 15);
+  // cam radius dimension (pointing to nose direction, clear of spokes)
+  arrow(sGc[0],sGc[1], sGc[0]+Rpx*Math.cos(camAng+0.5), sGc[1]-Rpx*Math.sin(camAng+0.5), {w:1,head:5,color:INKSOFT});
+  lab('R', sGc[0]+Rpx*0.6*Math.cos(camAng+0.5)-8, sGc[1]-Rpx*0.6*Math.sin(camAng+0.5), {size:12,color:INKSOFT});
+  // heading angle theta (from screen-horizontal to e1) and follower beta (e1 -> phi)
+  angleArc(sGc[0],sGc[1], 0, th, 'θ', 34, INKSOFT);
+  angleArc(sGc[0],sGc[1], th, phi, 'β', Math.max(20,Rpx+14), ORANGE);
+  lab('C', sC[0]+e1[0]*16, sC[1]-e1[1]*16, {size:12,color:MARK});
+  lab('G_c', sGc[0]-10, sGc[1]+16, {size:12,color:INKSOFT,align:'right'});
+
+  // ---- gravity out-of-plane glyph (top-right): circle with x, into page ----
+  const gx=CW-52, gy=40, gr=11;
+  ctx.save(); ctx.strokeStyle=INKSOFT; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.arc(gx,gy,gr,0,2*Math.PI); ctx.stroke();
+  const d=gr*0.62;
+  ctx.beginPath(); ctx.moveTo(gx-d,gy-d); ctx.lineTo(gx+d,gy+d);
+  ctx.moveTo(gx+d,gy-d); ctx.lineTo(gx-d,gy+d); ctx.stroke();
+  ctx.restore();
+  lab('g', gx, gy-gr-9, {size:15});
+  lab('⊥ ice, V = 0', gx-2, gy+gr+11, {size:11,color:INKSOFT});
+
+  // ---- fixed world reference frame (bottom-left) ----
+  const ox=64, oy=CH-40;
+  arrow(ox,oy, ox+34,oy,{w:1.2,head:6,color:INKSOFT});
+  arrow(ox,oy, ox,oy-34,{w:1.2,head:6,color:INKSOFT});
+  lab('n̂1', ox+44, oy,{size:12,color:INKSOFT});
+  lab('n̂2', ox, oy-46,{size:12,color:INKSOFT});
+  lab('ice grid: 0.5 m', ox+120, oy-8, {size:11,color:INKSOFT,align:'left'});
+
+  // ---- on-canvas live readout (top-left) ----
+  const en = energy();
+  ctx.save();
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.font='13px Menlo, monospace'; ctx.fillStyle=INKSOFT;
+  ctx.fillText('E   = '+en.E.toFixed(5)+' J', 16, 14);
+  ctx.fillText('ΔE  = '+fmtSci(en.E-E0)+' J', 16, 32);
+  ctx.fillText('v   = '+S[4].toFixed(3)+' m/s', 16, 50);
+  ctx.fillText('ψ   = '+(S[3]/(2*Math.PI)).toFixed(3)+' turns', 16, 68);
+  ctx.fillText('β   = '+(PAR.beta0+PAR.A*sin(S[3])).toFixed(3)+' rad', 16, 86);
+  ctx.restore();
+
+  if(blewUp){
+    ctx.save(); ctx.textAlign='center'; ctx.fillStyle=MARK;
+    ctx.font=serif(17,true);
+    ctx.fillText('state diverged — press Reset', CW/2, CH-16);
+    ctx.restore();
+  }
+}
+
+function fmtSci(v){
+  if(v===0) return '0';
+  const s = v<0?'-':'+'; v=Math.abs(v);
+  return s+v.toExponential(2);
+}
+
+/* ============================================================================
+   ENERGY STRIP CHART  (per-body components against a flat total)
+   ========================================================================== */
+const ech = document.getElementById('echart');
+const ectx= ech.getContext('2d');
+const ECW=380, ECH=150;
+(function(){
+  const dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
+  ech.width=ECW*dpr; ech.height=ECH*dpr; ech.style.aspectRatio=ECW+'/'+ECH;
+  ectx.setTransform(dpr,0,0,dpr,0,0);
+})();
+const eHist=[];               // {t, E, trans, camsp, foll}
+const HIST_MAX=600;           // ~ last 18 s (sampled every 0.03 s)
+
+function pushHist(){
+  const e=energy();
+  eHist.push({t:simT, E:e.E, trans:e.trans, camsp:e.camsp, foll:e.foll});
+  if(eHist.length>HIST_MAX) eHist.shift();
+}
+function drawChart(){
+  ectx.clearRect(0,0,ECW,ECH);
+  ectx.fillStyle='#fffefb'; ectx.fillRect(0,0,ECW,ECH);
+  if(eHist.length<2) return;
+  let lo=Infinity, hi=-Infinity;
+  for(const s of eHist){ lo=Math.min(lo,s.trans,s.camsp,s.foll,s.E); hi=Math.max(hi,s.trans,s.camsp,s.foll,s.E); }
+  if(hi-lo<1e-9){ hi+=0.5; lo-=0.5; }
+  const pad=(hi-lo)*0.12; lo-=pad; hi+=pad; if(lo>0) lo=0;
+  const t0=eHist[0].t, t1=eHist[eHist.length-1].t, span=Math.max(1e-6,t1-t0);
+  const X=t=>8+(t-t0)/span*(ECW-16);
+  const Y=v=>ECH-20-(v-lo)/(hi-lo)*(ECH-32);
+
+  const series=[['foll',ORANGE,1.4],['camsp',MARK,1.4],['trans',TEAL,1.4],['E',INK,2.4]];
+  for(const [key,col,w] of series){
+    ectx.strokeStyle=col; ectx.lineWidth=w; ectx.beginPath();
+    eHist.forEach((s,i)=>{ const x=X(s.t),y=Y(s[key]); i?ectx.lineTo(x,y):ectx.moveTo(x,y); });
+    ectx.stroke();
+  }
+  ectx.fillStyle='#6a655c'; ectx.font='10px Menlo, monospace';
+  ectx.textAlign='right'; ectx.fillText(hi.toFixed(2), ECW-4, 11);
+  ectx.fillText(lo.toFixed(2), ECW-4, ECH-4);
+  ectx.textAlign='left'; ectx.fillText('t (s)', 8, ECH-4);
+}
+
+/* ============================================================================
+   READOUT DOM
+   ========================================================================== */
+const $=id=>document.getElementById(id);
+function updateReadout(){
+  const e=energy();
+  $('rE').textContent    = e.E.toFixed(5)+' J';
+  $('rdE').textContent   = fmtSci(e.E-E0)+' J';
+  $('rknife').textContent= knifeResidual().toExponential(1);
+  $('rv').textContent    = S[4].toFixed(4)+' m/s';
+  $('rpsi').textContent  = (S[3]/(2*Math.PI)).toFixed(3);
+  $('rbeta').textContent = (PAR.beta0+PAR.A*Math.sin(S[3])).toFixed(4)+' rad';
+  $('rt').textContent    = simT.toFixed(2)+' s';
+}
+
+/* ============================================================================
+   MAIN LOOP
+   ========================================================================== */
+function frame(){
+  if(running && !blewUp){
+    for(let i=0;i<SUBSTEPS;i++){
+      const ns=rk4(S, DT);
+      let ok=true; for(let j=0;j<7;j++) if(!Number.isFinite(ns[j])) ok=false;
+      if(!ok){ blewUp=true; running=false; $('btnPlay').textContent='Play'; break; }
+      S=ns; simT+=DT;
+    }
+    // record the carved blade track (world contact point C)
+    const th=S[2];
+    track.push([S[0]+PAR.a*Math.cos(th), S[1]+PAR.a*Math.sin(th)]);
+    if(track.length>TRACK_MAX) track.shift();
+    if(simT-lastSample>=0.03){ pushHist(); lastSample=simT; }
+  }
+  draw(); drawChart(); updateReadout();
+  requestAnimationFrame(frame);
+}
+
+/* ============================================================================
+   CONTROLS
+   ========================================================================== */
+function bindSlider(id, obj, key, fmt, mode){
+  const sl=$(id), out=$('v'+id.slice(1));
+  const show=()=>out.textContent=fmt(parseFloat(sl.value));
+  sl.addEventListener('input', ()=>{
+    obj[key]=parseFloat(sl.value); show();
+    if(mode==='reset') resetState(); else rebaseline();
+  });
+  show();
+}
+// masses -> rebaseline (keep the motion); geometry & release -> reset
+bindSlider('sMC', PAR,'m_c',  v=>v.toFixed(1)+' kg', 'rebaseline');
+bindSlider('sMK', PAR,'m_k',  v=>v.toFixed(2)+' kg', 'rebaseline');
+bindSlider('sMF', PAR,'m_f',  v=>v.toFixed(2)+' kg', 'rebaseline');
+bindSlider('sLC', PAR,'L_c',  v=>v.toFixed(2)+' m',  'reset');
+bindSlider('sA',  PAR,'a',    v=>v.toFixed(2)+' m',  'reset');
+bindSlider('sR',  PAR,'R',    v=>v.toFixed(2)+' m',  'reset');
+bindSlider('sLF', PAR,'l_f',  v=>v.toFixed(2)+' m',  'reset');
+bindSlider('sB0', PAR,'beta0',v=>v.toFixed(2)+' rad','reset');
+bindSlider('sAA', PAR,'A',    v=>v.toFixed(2)+' rad','reset');
+// initial release
+bindSlider('sTH0', IC,'th0',  v=>v.toFixed(0)+'°', 'reset');
+bindSlider('sPS0', IC,'ps0',  v=>v.toFixed(0)+'°', 'reset');
+bindSlider('sV0',  IC,'v0',   v=>v.toFixed(2)+' m/s',   'reset');
+bindSlider('sTHD', IC,'thd0', v=>v.toFixed(1)+' rad/s', 'reset');
+bindSlider('sPSD', IC,'psd0', v=>v.toFixed(1)+' rad/s', 'reset');
+
+$('btnPlay').addEventListener('click', e=>{
+  if(blewUp) return;
+  running=!running; e.target.textContent=running?'Pause':'Play';
+});
+$('btnReset').addEventListener('click', ()=>{
+  resetState(); if(!running){ running=true; $('btnPlay').textContent='Pause'; }
+});
+
+/* ============================================================================
+   TYPESET THE EQUATIONS WITH KaTeX
+   --------------------------------------------------------------------------
+   LAG_TEX and the M / F matrices are the verified derivation's LaTeX, verbatim.
+   ========================================================================== */
+const LAG_TEX = "\\mathcal{L}=T=\\tfrac12(m_c+m_k)(\\dot x^2+\\dot y^2)+\\tfrac12 I_c\\dot\\theta^2+\\tfrac12 I_k(\\dot\\theta+\\dot\\psi)^2+\\tfrac12 m_f\\!\\left[\\big(\\dot x-\\tfrac{l_f}{2}\\dot\\varphi\\sin\\varphi\\big)^2+\\big(\\dot y+\\tfrac{l_f}{2}\\dot\\varphi\\cos\\varphi\\big)^2\\right]+\\tfrac12 I_f\\dot\\varphi^2";
+
+const M_TEX = "M(\\psi)=\\left[\\begin{matrix}m_{c} + m_{f} + m_{k} & - \\frac{l_{f} m_{f} \\sin{\\left(\\beta \\right)}}{2} & - \\frac{A l_{f} m_{f} \\sin{\\left(\\beta \\right)} \\cos{\\left(\\psi \\right)}}{2}\\\\- \\frac{l_{f} m_{f} \\sin{\\left(\\beta \\right)}}{2} & \\frac{L_{c}^{2} m_{c}}{12} + \\frac{R^{2} m_{k}}{2} + a^{2} m_{c} + a^{2} m_{f} + a^{2} m_{k} - a l_{f} m_{f} \\cos{\\left(\\beta \\right)} + \\frac{l_{f}^{2} m_{f}}{3} & - \\frac{A a l_{f} m_{f} \\cos{\\left(\\beta \\right)} \\cos{\\left(\\psi \\right)}}{2} + \\frac{A l_{f}^{2} m_{f} \\cos{\\left(\\psi \\right)}}{3} + \\frac{R^{2} m_{k}}{2}\\\\- \\frac{A l_{f} m_{f} \\sin{\\left(\\beta \\right)} \\cos{\\left(\\psi \\right)}}{2} & - \\frac{A a l_{f} m_{f} \\cos{\\left(\\beta \\right)} \\cos{\\left(\\psi \\right)}}{2} + \\frac{A l_{f}^{2} m_{f} \\cos{\\left(\\psi \\right)}}{3} + \\frac{R^{2} m_{k}}{2} & \\frac{A^{2} l_{f}^{2} m_{f} \\cos^{2}{\\left(\\psi \\right)}}{3} + \\frac{R^{2} m_{k}}{2}\\end{matrix}\\right]\\begin{bmatrix}\\dot v\\\\\\ddot\\theta\\\\\\ddot\\psi\\end{bmatrix}";
+
+const F_TEX = "F=\\left[\\begin{matrix}\\frac{A^{2} \\dot\\psi^{2} l_{f} m_{f} \\cos{\\left(\\beta \\right)} \\cos^{2}{\\left(\\psi \\right)}}{2} - \\frac{A \\dot\\psi^{2} l_{f} m_{f} \\sin{\\left(\\beta \\right)} \\sin{\\left(\\psi \\right)}}{2} + A \\dot\\psi \\dot\\theta l_{f} m_{f} \\cos{\\left(\\beta \\right)} \\cos{\\left(\\psi \\right)} - \\dot\\theta^{2} a m_{c} - \\dot\\theta^{2} a m_{f} - \\dot\\theta^{2} a m_{k} + \\frac{\\dot\\theta^{2} l_{f} m_{f} \\cos{\\left(\\beta \\right)}}{2}\\\\- \\frac{A^{2} \\dot\\psi^{2} a l_{f} m_{f} \\sin{\\left(\\beta \\right)} \\cos^{2}{\\left(\\psi \\right)}}{2} - \\frac{A \\dot\\psi^{2} a l_{f} m_{f} \\sin{\\left(\\psi \\right)} \\cos{\\left(\\beta \\right)}}{2} + \\frac{A \\dot\\psi^{2} l_{f}^{2} m_{f} \\sin{\\left(\\psi \\right)}}{3} - A \\dot\\psi \\dot\\theta a l_{f} m_{f} \\sin{\\left(\\beta \\right)} \\cos{\\left(\\psi \\right)} + \\dot\\theta a m_{c} v + \\dot\\theta a m_{f} v + \\dot\\theta a m_{k} v - \\frac{\\dot\\theta l_{f} m_{f} v \\cos{\\left(\\beta \\right)}}{2}\\\\\\frac{A l_{f} m_{f} \\left(4 A \\dot\\psi^{2} l_{f} \\sin{\\left(\\psi \\right)} + 6 \\dot\\theta^{2} a \\sin{\\left(\\beta \\right)} - 6 \\dot\\theta v \\cos{\\left(\\beta \\right)}\\right) \\cos{\\left(\\psi \\right)}}{12}\\end{matrix}\\right]";
+
+function typeset(){
+  if(typeof katex==='undefined'){ setTimeout(typeset,120); return; }
+  const R = String.raw;
+  const put=(id,tex,disp)=>{
+    const el=document.getElementById(id); if(!el) return;
+    try{ katex.render(tex, el, {displayMode:disp!==false, throwOnError:false}); }
+    catch(err){ el.innerHTML='<span class="raweq">'+tex+'</span>'; }
+  };
+
+  // inline bits
+  put('k-nhat', R`(\hat n_1,\hat n_2)`, false);
+  put('k-grav', R`-g\,\hat n_3`, false);
+  put('k-ehat', R`\hat e_1=\cos\theta\,\hat n_1+\sin\theta\,\hat n_2,\ \ \hat e_2=-\sin\theta\,\hat n_1+\cos\theta\,\hat n_2`, false);
+  put('k-phi',  R`v_C\cdot\hat e_2=0`, false);
+  put('k-aq',   R`(\dot x,\dot y,\dot\theta,\dot\psi)`, false);
+  put('e-LT',   R`L=T-V=T`, false);
+  put('el-op',  R`\frac{d}{dt}\!\left(\frac{\partial\mathcal L}{\partial \dot q}\right)-\frac{\partial\mathcal L}{\partial q}=A_q^{\mathsf T}\lambda`, false);
+  put('el-mf',  R`M(\psi)\,\ddot q=F`, false);
+  put('el-so',  R`[\,v,\ \theta,\ \psi\,]`, false);
+  put('el-beta',R`\beta\equiv\beta_0+A\sin\psi`, false);
+  put('s-solve',R`[\dot v,\ \ddot\theta,\ \ddot\psi]^{\mathsf T}=M(\psi)^{-1}F`, false);
+
+  // kinematics: positions / groove
+  put('k-pos', R`\begin{aligned}
+      &r_{G_c}=(x,y),\qquad r_C=r_{G_c}+a\,\hat e_1,\qquad
+        r_{G_f}=r_{G_c}+\tfrac{l_f}{2}\big(\cos\varphi,\ \sin\varphi\big),\\[3pt]
+      &\varphi=\theta+\beta_0+A\sin\psi,\qquad
+        \dot\varphi=\dot\theta+A\cos\psi\,\dot\psi,\qquad
+        \omega_{\text{cam}}=\dot\theta+\dot\psi.
+      \end{aligned}`);
+
+  // knife-edge recovery
+  put('k-recov', R`\underbrace{-\dot x\sin\theta+\dot y\cos\theta+a\,\dot\theta=0}_{\text{knife-edge, nonholonomic}}
+      \ \Longrightarrow\ \dot x=v\cos\theta+a\dot\theta\sin\theta,\quad
+        \dot y=v\sin\theta-a\dot\theta\cos\theta.`);
+
+  // Lagrangian + where-defs
+  put('e-L', LAG_TEX);
+  put('e-Ldefs', R`\varphi=\theta+\beta_0+A\sin\psi,\quad
+      \dot\varphi=\dot\theta+A\cos\psi\,\dot\psi,\quad V=0,\quad
+      (I_c,I_k,I_f)=\Big(\tfrac{m_cL_c^2}{12},\ \tfrac{m_kR^2}{2},\ \tfrac{m_fl_f^2}{12}\Big).`);
+
+  // canonical M / F (verified, verbatim)
+  put('s-M', M_TEX);
+  put('s-F', F_TEX);
+
+  // first-order state form
+  put('s-state', R`\frac{d}{dt}\big[x,\ y,\ \theta,\ \psi,\ v,\ \dot\theta,\ \dot\psi\big]^{\mathsf T}
+      =\big[\dot x,\ \dot y,\ \dot\theta,\ \dot\psi,\ \dot v,\ \ddot\theta,\ \ddot\psi\big]^{\mathsf T},\qquad
+      [\dot v,\ \ddot\theta,\ \ddot\psi]^{\mathsf T}=M(\psi)^{-1}F.`);
+
+  // conserved / constrained quantities
+  put('c-E',     R`E=T+V=T=\text{const}\quad(V=0)`);
+  put('c-knife', R`v_C\cdot\hat e_2=-\dot x\sin\theta+\dot y\cos\theta+a\dot\theta=0`);
+}
+
+/* ---------- go ---------- */
+resetState();
+typeset();
+requestAnimationFrame(frame);
+</script>
+
+<!-- Wire the single visible play/pause button to the original hidden #btnPlay
+     toggle. Clicking it delegates to btnPlay's own click handler (the original
+     mechanism that flips `running`), then mirrors its label. Starts on "Pause"
+     to match the original, which begins running. -->
+<script>
+(function(){
+  var pp = document.getElementById('playpause');
+  var bp = document.getElementById('btnPlay');
+  pp.textContent = bp.textContent;               // start in the original state ("Pause")
+  pp.addEventListener('click', function(){
+    bp.click();                                  // reuse the original toggle logic exactly
+    pp.textContent = bp.textContent;             // mirror Play/Pause label
+  });
+})();
+</script>
+</body>
+</html>

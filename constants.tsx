@@ -24,11 +24,11 @@ export const portfolioNotes: Note[] = [
     content: `haider toha
 london, uk
 
-[github](https://github.com/haider-toha) • [email](mailto:mohammedhaidertoha@gmail.com) • [linkedin](https://linkedin.com/in/haidertoha)
+[github](https://github.com/haider-toha) • [email](mailto:mohammedhaidertoha@gmail.com) • [linkedin](https://linkedin.com/in/haidertoha) • [twitter](https://x.com/HaiderToha)
 
 founding engineer at sammy labs (yc w25). i write code across the stack, from typescript on the frontend to python on the backend with postgres underneath. most of my time goes into building features end-to-end, designing the interface, writing the api, optimising the queries and making sure it holds up in production.
 
-my background is aeronautics (imperial college). designing systems that can't afford to fail taught me to think about failure modes first, asking what breaks, when and how you recover gracefully. i’ve since worked at goldman sachs (scale, process, reliability) and built my own ventures from zero (speed, scrappiness, shipping daily). both shaped how i write code.
+my background is aeronautics. designing systems that can't afford to fail taught me to think about failure modes first, asking what breaks, when and how you recover gracefully. i’ve since worked at goldman sachs (scale, process, reliability) and built my own ventures from zero (speed, scrappiness, shipping daily). both shaped how i write code.
 
 i spend about a third of my time with customers, on calls, debugging their issues live, understanding what's actually blocking them vs what they say is blocking them. the best features i've shipped came from watching someone struggle with the product.
 
@@ -130,8 +130,8 @@ worked on cloud security and internal tooling for the tech risk & cybersec team.
 **intern · goldman sachs** · birmingham · summer 2024  
 built nlp and semantic search tooling that reduced time-to-answer for research analysts. first exposure to building production systems at scale.
 
-**founder · provost academics** · london · may 2024-present  
-built an ai tutoring product from scratch and grew it to 50+ paying customers. handled everything from product design to infrastructure to customer support. still running on the side.`,
+# education
+**meng aeronautics · imperial** · london · 2021-2025`,
   },
   {
     id: "project-self-engineering-agent",
