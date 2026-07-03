@@ -1080,7 +1080,7 @@ the bandwidth savings are dramatic. to verify 100,000 files totaling 1tb, a naiv
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2026-07-03T14:37:22.000Z",
+    created_at: "2026-07-03T13:37:22.000Z",
     content: `dynamical systems was the one course at uni that actually grabbed me, so on a slow afternoon last week i tried to see how much trouble i could get into. picked three systems on purpose to be awkward, none of them the usual pendulums, each with a constraint that does something it shouldn't. derived everything by hand, wrote my own integrator, and recomputed the energy from scratch every step.
 
 the first is a solid cylinder rolling back and forth inside a curved cradle and the cradle is bolted to a cart that slides freely on a frictionless track. nothing pushes the cart and nothing rubs anywhere, yet it slides steadily left and right the whole time the cylinder rocks. i take $\\mathbf{q} = (x, \\theta)$, the cart position and the angle of the cylinder's centre from the bottom of the bowl and the centre orbits the cradle at radius $b = R - r$. rolling without slipping ties the cylinder's spin to its swing and because the cradle only translates the condition integrates, so it is holonomic.
