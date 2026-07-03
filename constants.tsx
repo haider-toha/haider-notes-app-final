@@ -1073,221 +1073,103 @@ the bandwidth savings are dramatic. to verify 100,000 files totaling 1tb, a naiv
 **stack** - go, net (tcp/udp), crypto/sha256, encoding/gob, sync, fsnotify`,
   },
   {
-    id: "blog-dynamical-systems-rolling",
-    slug: "rolling-cylinder-cradle",
-    title: "rolling cylinder in a free-sliding cradle",
-    category: "blog",
-    folder: "blog",
-    public: true,
-    session_id: "",
-    created_at: "2026-07-03T10:00:00.000Z",
-    content: `a solid cylinder rolls back and forth inside a curved cradle, and the cradle is bolted to a cart that slides freely on a frictionless track. nothing pushes the cart and nothing rubs anywhere, yet it slides steadily left and right the whole time the cylinder rocks. the part that stopped me is that the horizontal momentum stays pinned at exactly zero throughout, so the centre of mass never shifts even slightly while both bodies visibly slosh around it.
-
-i built this because i had grown bored of pendulums. a pendulum's pivot is bolted to the wall, and the wall quietly does all the bookkeeping, soaking up every reaction force and never moving. i wanted the support itself to be free, so that every bit of the cylinder's motion had to be paid for by the cart recoiling the other way, with the books balancing on their own. and i wanted a real rolling contact rather than a bead sliding on a wire, because rolling drags the moment of inertia into the problem, and i wanted to watch that term show up and earn its place in the energy.
-
-the configuration has two degrees of freedom. i take $\\mathbf{q} = (x, \\theta)$, with $x$ the horizontal position of the cart and $\\theta$ the angle of the cylinder's centre measured from the bottom of the bowl. the cylinder centre orbits the cradle centre at radius $b = R - r$, where $R$ is the bowl radius and $r$ the cylinder radius.
-
-rolling without slipping ties the cylinder's own spin $\\psi$ to its swing. because the cradle only translates and never turns, the contact condition collapses to a single scalar relation, and that relation integrates, so it is holonomic. i use it to remove $\\psi$ as an independent coordinate before writing anything else down.
-
-$$
-r\\,\\dot\\psi = -(R-r)\\,\\dot\\theta \\quad\\Longrightarrow\\quad \\dot\\psi = -\\frac{b}{r}\\,\\dot\\theta
-$$
-
-the kinetic energy is the cart's translation, plus the cylinder centre's translation, plus the cylinder's spin about its own axis with $I = \\tfrac12 m r^2$. feeding the rolling constraint into that spin term is where the moment of inertia enters, and it lands as the $\\tfrac34$ in front of $\\dot\\theta^2$, one half from moving the centre and one quarter from the spin.
-
-$$
-T = \\tfrac12 (M+m)\\,\\dot{x}^2 + m b \\cos\\theta\\,\\dot{x}\\,\\dot{\\theta} + \\tfrac34 m b^2 \\dot{\\theta}^2
-$$
-
-gravity acts on the cylinder alone, so the potential is just its height in the bowl, and it is not zero here.
-
-$$
-V = -\\,m g b \\cos\\theta
-$$
-
-the Lagrangian $\\mathcal{L} = T - V$ follows.
-
-$$
-\\mathcal{L} = \\tfrac12 (M+m)\\,\\dot{x}^2 + m b \\cos\\theta\\,\\dot{x}\\,\\dot{\\theta} + \\tfrac34 m b^2 \\dot{\\theta}^2 + m g b \\cos\\theta
-$$
-
-applying the Euler-Lagrange equations, $\\frac{d}{dt}\\!\\left(\\frac{\\partial \\mathcal{L}}{\\partial \\dot{q}}\\right) - \\frac{\\partial \\mathcal{L}}{\\partial q} = 0$, to each coordinate and collecting the accelerations gives the reduced pair $M(\\mathbf{q})\\,\\ddot{\\mathbf{q}} = F$.
-
-$$
-\\begin{bmatrix} M+m & m b \\cos\\theta \\\\ \\cos\\theta & \\tfrac32 b \\end{bmatrix} \\begin{bmatrix} \\ddot{x} \\\\ \\ddot{\\theta} \\end{bmatrix} = \\begin{bmatrix} m b \\sin\\theta\\,\\dot{\\theta}^2 \\\\ -\\,g \\sin\\theta \\end{bmatrix}
-$$
-
-the second row is already divided through by $m b$, which is why the matrix reads asymmetrically, it is the exact pair the code carries. inverting the two by two by hand gives the closed-form accelerations that actually get integrated.
-
-$$
-\\ddot{x} = \\frac{m \\sin\\theta \\left( \\tfrac32 b\\,\\dot{\\theta}^2 + g\\cos\\theta \\right)}{D}, \\qquad \\ddot{\\theta} = -\\frac{\\sin\\theta \\left[ (M+m)\\,g + m b \\cos\\theta\\,\\dot{\\theta}^2 \\right]}{b\\,D}
-$$
-
-the denominator $D = \\tfrac32(M+m) - m\\cos^2\\theta$ stays strictly positive for every angle and mass, so the system never hits a singularity.
-
-the payoff is what stays constant. $x$ never appears in $\\mathcal{L}$, only $\\dot{x}$ does, so $x$ is cyclic and its conjugate momentum is fixed. the system starts from rest, so that constant is zero for all time.
-
-$$
-p_x = (M+m)\\,v + m b \\cos\\theta\\,\\omega = 0
-$$
-
-with $v = \\dot{x}$ and $\\omega = \\dot{\\theta}$. a zero total horizontal momentum at fixed total mass means the centre of mass has zero horizontal velocity, forever, so it never moves. that is the whole trick of watching it, no friction is holding the centre of mass in place, the rolling constraint is, and the cart has to slide exactly opposite the cylinder's swing to keep the sum at zero. and because the contact rolls and so does no work, and nothing else dissipates, the energy is conserved too.
-
-$$
-E = \\tfrac12(M+m)\\,v^2 + m b \\cos\\theta\\,v\\omega + \\tfrac34 m b^2 \\omega^2 - m g b \\cos\\theta = \\text{const}
-$$
-
-the integrator is classical RK4 at a fixed step of $0.002$ seconds, run eight substeps per animation frame, so each drawn frame advances $16$ milliseconds of simulated time. the energy readout is the honest part of the whole thing. every step it recomputes $E$ straight from the current coordinates and velocities through the $T$ and $V$ above, on a code path that never touches the acceleration solver the integrator calls, so watching $\\Delta E = E - E_0$ sit near zero is a real check rather than a circular one, since RK4 has no built-in reason to conserve energy and a wrong acceleration or too large a step would show up at once as $E$ walking away from its start. i will be straight about the one limit. the check reuses the same reduced kinetic energy expression, with the rolling factor already folded in, rather than rebuilding each body's $\\tfrac12 m v^2 + \\tfrac12 I \\omega^2$ from scratch, so it catches integrator error and most derivation mistakes but not a sign error shared between the energy and the equations of motion.
-
-\`\`\`iframe
-/dynamical_systems/rolling_system_minimal.html
-\`\`\`
-
-watch the marker on the cylinder's rim, it turns in lockstep with the swing, which is the rolling constraint made visible. and watch the cart slide the opposite way to the cylinder while the centre of the whole picture stays put. the motion is liveliest at the ends of each swing, where the cylinder turns around and drags the cart's recoil into reverse with it.`,
-  },
-  {
-    id: "blog-dynamical-systems-twin-crank",
-    slug: "gear-closed-twin-crank-pendulums",
-    title: "gear-closed twin-crank pendulums",
-    category: "blog",
-    folder: "blog",
-    public: true,
-    session_id: "",
-    created_at: "2026-07-03T11:00:00.000Z",
-    content: `two cranks turn on fixed, parallel axles, and each one is rigidly keyed to a spur gear. the gears mesh, so turning one crank forces the other to counter-rotate at a fixed ratio. off the first crank hangs a double pendulum, off the second a single one, and gravity is the only thing pushing on any of it. the part that isn't obvious until you write it out is that the whole contraption conserves no momentum at all, linear or angular, and the single quantity that survives the motion is energy.
-
-i studied aeronautics because i liked turning things that look like magic into things that look like bookkeeping. a wing holding a plane up, a pendulum falling into chaos. deriving a Lagrangian by hand is the same move done at a desk. a plain double pendulum i can write down half asleep by now, and that's the problem with it, its two angles are free and answer to nothing but each other, so after a while the derivation stops teaching you anything. i wanted a constraint with actual teeth in it. a gear mesh is a hard kinematic law, $R_1\\theta_1 = -R_2\\theta_2$, and i wanted to watch what it does to a Lagrangian when you refuse to let one coordinate move on its own. i also wanted a system that isn't in any textbook, so that if the energy came out flat i would know it was my algebra holding and not my memory of a worked example.
-
-there are five rigid rods. two cranks ($m_1, L_1$ at absolute angle $\\theta_1$, and $m_2, L_2$ at $\\theta_2$), the double pendulum's two links ($a$ and $b$ at absolute angles $\\phi_a$ and $\\phi_b$), and the single pendulum's link ($c$ at $\\phi_c$). every angle is absolute, measured from the horizontal, which keeps the position map clean. the four coordinates i actually integrate are
-
-$$
-\\mathbf{q} = (\\theta_1,\\ \\phi_a,\\ \\phi_b,\\ \\phi_c).
-$$
-
-$\\theta_2$ is missing from that list on purpose, because the gears settle it. two pitch circles rolling without slip trade equal and opposite arc, which is one clean holonomic relation between the angles themselves rather than their rates,
-
-$$
-R_1\\theta_1 = -R_2\\theta_2 \\quad\\Longrightarrow\\quad \\theta_2 = -\\rho\\,\\theta_1, \\qquad \\rho = \\frac{R_1}{R_2}.
-$$
-
-because it is holonomic i can fold it straight into the coordinate choice instead of dragging a Lagrange multiplier through the whole derivation. crank 2 stops being a degree of freedom and becomes a shadow of crank 1, running backwards at ratio $\\rho$. that one substitution is what turns five bodies into a four-coordinate problem.
-
-the kinetic energy is the familiar sum over the rods, each contributing the motion of its mass centre and its spin about that centre, with $I_G = m\\ell^2/12$ for a uniform rod, and it collapses into the usual quadratic form in the rates,
-
-$$
-T = \\tfrac{1}{2}\\sum_{\\text{bodies}}\\big(m\\,|\\mathbf{v}_G|^2 + I_G\\,\\omega^2\\big) = \\tfrac{1}{2}\\,\\dot{\\mathbf{q}}^{\\mathsf{T}} M(\\mathbf{q})\\,\\dot{\\mathbf{q}}.
-$$
-
-the potential is just the heights of those same centres, and this is where the gear ratio first shows its hand, because $\\theta_2 = -\\rho\\theta_1$ drags crank 2 into the sum as $\\sin(\\rho\\theta_1)$, a gear ratio living inside a trig function,
-
-$$
-V = g\\Big[L_1\\big(\\tfrac{m_1}{2}+m_a+m_b\\big)\\sin\\theta_1 + a\\big(\\tfrac{m_a}{2}+m_b\\big)\\sin\\phi_a + \\tfrac{m_b b}{2}\\sin\\phi_b - L_2\\big(\\tfrac{m_2}{2}+m_c\\big)\\sin(\\rho\\theta_1) + \\tfrac{m_c c}{2}\\sin\\phi_c\\Big].
-$$
-
-the Lagrangian is their difference and nothing more,
-
-$$
-\\mathcal{L} = T - V = \\tfrac{1}{2}\\,\\dot{\\mathbf{q}}^{\\mathsf{T}} M(\\mathbf{q})\\,\\dot{\\mathbf{q}} - V(\\mathbf{q}).
-$$
-
-running each coordinate through the Euler-Lagrange operator and gathering the second derivatives gives the reduced form i integrate, a symmetric mass matrix on one side and the forcing on the other,
-
-$$
-M(\\mathbf{q})\\,\\ddot{\\mathbf{q}} = F(\\mathbf{q},\\dot{\\mathbf{q}}), \\qquad \\ddot{\\mathbf{q}} = M(\\mathbf{q})^{-1}F(\\mathbf{q},\\dot{\\mathbf{q}}),
-$$
-
-where $F$ carries gravity and the velocity-dependent terms, the ones quadratic in the angular rates. the thing i didn't expect to enjoy so much is how the two pendulum trains never speak to each other directly. the single pendulum's only handle on the rest of the system is a single off-diagonal entry against the crank,
-
-$$
-M_{\\theta_1\\phi_c} = -\\frac{L_2 R_1 c\\,m_c}{2R_2}\\cos\\!\\big(\\rho\\theta_1 + \\phi_c\\big),
-$$
-
-and it sits at exactly zero against $\\phi_a$ and $\\phi_b$. whatever the double pendulum gets up to reaches the single one only by way of the crank and the gears. the mesh is the whole conversation between them.
-
-no coordinate is cyclic. $\\theta_1$ sits in the potential twice, once as itself and once buried inside $\\sin(\\rho\\theta_1)$, and it threads through that crank-to-pendulum coupling as well, so there is no ignorable coordinate and therefore no conserved generalized momentum. you might expect the spinning gears to bank some angular momentum the way a flywheel does, but they don't. both axles are bolted to the ground and gravity keeps torquing every rod, so nothing rotational is conserved, and the mesh locks away the one rotation that might otherwise have been free. what survives is a single number that never moves,
-
-$$
-E = T + V = \\text{const}.
-$$
-
-that absence is the whole texture of watching it. there is no drift toward a resting state and no momentum for the motion to settle around, only the same fixed pot of energy sloshing between five rods forever, the cranks trading with the pendulums and the pendulums trading through the cranks, and because there is no dissipation it never stops. the gear closure keeps its own silent books alongside all this, a residual pinned to zero by construction,
-
-$$
-R_1\\theta_1 + R_2\\theta_2 = 0,
-$$
-
-which the code prints every frame as a sanity line and which stays at zero to the last digit, since $\\theta_2$ was defined as $-\\rho\\theta_1$ in the first place.
-
-the integrator is classical RK4 at a fixed step of $dt = 0.001$ seconds, sixteen substeps to an animation frame, and each derivative evaluation rebuilds $M$ and $F$ and solves $M\\ddot{\\mathbf{q}} = F$ by Gaussian elimination with partial pivoting. the energy readout is the part i actually trust the model on, because it is computed a second and entirely separate way. rather than read $T$ off $\\tfrac{1}{2}\\dot{\\mathbf{q}}^{\\mathsf{T}} M\\dot{\\mathbf{q}}$, which would just be handing the integrator its own matrices back and learning nothing, the check reconstructs every rod's mass-centre velocity and height straight from the Cartesian position map and adds up $T + V$ from those, never touching the $M$ and $F$ that drove the step. a flat energy line then tests the reduced equations against independent kinematics instead of against themselves, which is the difference between a real check and a tautology. it holds to a relative drift of about $2.8\\times10^{-7}$ over forty seconds and falls like $O(dt^4)$ when i shrink the step, which is exactly what RK4 is supposed to do.
-
-here it is, stripped down to the canvas.
-
-\`\`\`iframe
-/dynamical_systems/gear-twin-crank_minimal.html
-\`\`\`
-
-watch the two cranks first: they are always mirror images, turning opposite ways at the fixed ratio, and that lockstep is the gear. the good behaviour lives in the moments when the double pendulum whips the first crank hard enough to visibly jerk the second one across the loop, a kick delivered with no contact at all, carried entirely through the mesh.`,
-  },
-  {
-    id: "blog-dynamical-systems-cam-skater",
-    slug: "cam-wagged-coasting-skater",
-    title: "cam-wagged coasting skater",
+    id: "blog-dynamical-systems",
+    slug: "what-constraints-do-to-momentum",
+    title: "what constraints do to momentum",
     category: "blog",
     folder: "blog",
     public: true,
     session_id: "",
     created_at: "2026-07-03T12:00:00.000Z",
-    content: `a rigid chassis coasts on frictionless ice, balanced on a single knife-edge blade that can slide along its heading but never sideways. bolted at its centre is a small disc, a cam, and the cam's spin wags a follower rod back and forth through a groove. there is no motor, no spring, and no friction to push against, and the whole thing still eases itself forward and drifts into a slow turn. it changes its own forward speed with nothing pushing on it from outside, and while it does that neither its linear nor its angular momentum stays constant. the only quantity that never moves is the energy.
+    content: `i spent an afternoon deriving three mechanical systems by hand and coding each one, and none of them are textbook pendulums. i picked them because in each one a constraint does something quietly outrageous to the momentum you are taught to trust. a constraint is never only a geometric rule. it carries a force, and that force is where the surprises hide. the one thing i held onto across all three was energy, recomputed from scratch every step, because if my algebra is wrong energy is the number that tells on me.
 
-i wanted to watch momentum go missing. the first thing you learn in mechanics is the opposite, that on a frictionless surface with no outside force the centre of mass drifts at constant velocity and cannot do otherwise, and i believed it the way you believe a thing you were told rather than one you checked. a skater is the loophole. the knife-edge blade is a constraint, and a constraint quietly carries a force, and the moment there is a force the centre-of-mass argument loses its footing. i chose a cam wag as the engine because it needed no engine: the follower angle is slaved to the cam by the groove, so the cam just coasts on the spin it was released with and the wagging comes for free, no actuator and no stored spring energy anywhere. i wanted the smallest honest machine that pushes on nothing and walks anyway.
+the first is a solid cylinder rolling back and forth inside a curved cradle, and the cradle is bolted to a cart that slides freely on a frictionless track. nothing pushes the cart and nothing rubs anywhere, yet it slides steadily left and right the whole time the cylinder rocks. i take $\\mathbf{q} = (x, \\theta)$, the cart position and the angle of the cylinder's centre from the bottom of the bowl, and the centre orbits the cradle at radius $b = R - r$. rolling without slipping ties the cylinder's spin to its swing, and because the cradle only translates the condition integrates, so it is holonomic.
 
-the configuration is four numbers, $\\mathbf{q} = (x, y, \\theta, \\psi)$: the chassis mass-centre $(x, y)$, its heading $\\theta$, and the cam angle $\\psi$ taken relative to the chassis. three rigid bodies ride on this, a chassis rod, the cam disc, and a follower rod, with the cam centre and the follower pivot both pinned at the mass-centre. the groove is a holonomic relation folded straight into the coordinates, so the follower's absolute angle is $\\varphi = \\theta + \\beta_0 + A\\sin\\psi$ and as the cam winds through $\\psi$ the follower swings by $\\beta = \\beta_0 + A\\sin\\psi$ with nothing else free to choose.
+$$
+r\\,\\dot\\psi = -(R-r)\\,\\dot\\theta \\quad\\Longrightarrow\\quad \\dot\\psi = -\\frac{b}{r}\\,\\dot\\theta
+$$
 
-the blade sits a distance $a$ ahead of the mass-centre along the heading, and it is the whole point. it forbids any velocity across itself, one scalar condition on the speeds,
-$$
--\\dot x\\sin\\theta + \\dot y\\cos\\theta + a\\dot\\theta = 0.
-$$
-this is nonholonomic. you cannot integrate it back into a relation among $x, y, \\theta$ alone, the cross-partials fail the exactness test, so it removes a speed rather than a coordinate. the pose keeps all four freedoms while the velocities drop to three. i name the survivor $v$, the forward speed, the component of the mass-centre velocity along the heading, and the constraint hands the cartesian rates back,
-$$
-\\dot x = v\\cos\\theta + a\\dot\\theta\\sin\\theta, \\qquad \\dot y = v\\sin\\theta - a\\dot\\theta\\cos\\theta,
-$$
-so the independent speeds are $(v, \\dot\\theta, \\dot\\psi)$.
+i use it to remove $\\psi$ before writing anything down. the kinetic energy carries the cart, the orbiting centre, and the spin with $I = \\tfrac12 m r^2$, and gravity gives a potential that is not zero.
 
-gravity points out of the plane and the ice carries it, so it does no work in the plane and the potential is $V = 0$. the Lagrangian is all kinetic,
 $$
-\\mathcal{L} = T = \\tfrac12(m_c+m_k)(\\dot x^2+\\dot y^2) + \\tfrac12 I_c\\dot\\theta^2 + \\tfrac12 I_k(\\dot\\theta+\\dot\\psi)^2 + \\tfrac12 m_f(\\dot x_f^2 + \\dot y_f^2) + \\tfrac12 I_f\\dot\\varphi^2,
+T = \\tfrac12(M+m)\\,\\dot{x}^2 + m b\\cos\\theta\\,\\dot{x}\\,\\dot{\\theta} + \\tfrac34 m b^2\\dot{\\theta}^2, \\qquad V = -\\,m g b\\cos\\theta
 $$
-where the follower mass-centre velocity is $(\\dot x_f, \\dot y_f) = (\\dot x - \\tfrac{l_f}{2}\\dot\\varphi\\sin\\varphi,\\ \\dot y + \\tfrac{l_f}{2}\\dot\\varphi\\cos\\varphi)$, the central inertias are $(I_c, I_k, I_f) = (\\tfrac{1}{12}m_c L_c^2,\\ \\tfrac12 m_k R^2,\\ \\tfrac{1}{12}m_f l_f^2)$, and the cam spins at $\\dot\\theta + \\dot\\psi$ because $\\psi$ is read against a chassis that is itself yawing.
 
-the equations come from Euler-Lagrange with the constraint carried by a multiplier,
-$$
-\\frac{d}{dt}\\!\\left(\\frac{\\partial \\mathcal{L}}{\\partial \\dot{\\mathbf q}}\\right) - \\frac{\\partial \\mathcal{L}}{\\partial \\mathbf q} = \\mathbf{A}_{\\mathbf q}^{\\mathsf T}\\lambda,
-$$
-where $\\mathbf{A}_{\\mathbf q} = (-\\sin\\theta,\\ \\cos\\theta,\\ a,\\ 0)$ is the row of the knife-edge condition and $\\lambda$ is the lateral reaction the blade exerts. the blade does no work along the motions it permits, so projecting the four equations onto the admissible directions, the Lagrange-d'Alembert step, annihilates that term and leaves three equations with no multiplier in them,
-$$
-M(\\psi)\\,\\ddot{\\mathbf q} = F, \\qquad \\ddot{\\mathbf q} = [\\dot v,\\ \\ddot\\theta,\\ \\ddot\\psi]^{\\mathsf T}.
-$$
-$M(\\psi)$ is the symmetric, positive-definite reduced mass matrix and $F(\\psi, v, \\dot\\theta, \\dot\\psi)$ gathers every centrifugal and coupling term. each step is just this $3\\times 3$ solve for the accelerations. the multiplier $\\lambda$ never enters the reduced motion, but it has not gone anywhere, and it is the whole story of what comes next.
+that $\\tfrac34$ is the moment of inertia showing up, one half from moving the centre and one quarter from the spin. with $\\mathcal{L} = T - V$ the Euler-Lagrange equations collapse to the reduced pair $M(\\mathbf{q})\\ddot{\\mathbf{q}} = F$.
 
-energy is the only invariant,
 $$
-E = T + V = T = \\text{const}, \\qquad V = 0.
+\\begin{bmatrix} M+m & m b\\cos\\theta \\\\ \\cos\\theta & \\tfrac32 b \\end{bmatrix} \\begin{bmatrix} \\ddot{x} \\\\ \\ddot{\\theta} \\end{bmatrix} = \\begin{bmatrix} m b\\sin\\theta\\,\\dot{\\theta}^2 \\\\ -\\,g\\sin\\theta \\end{bmatrix}
 $$
-linear momentum is not. the one in-plane external force on the machine is the blade's lateral reaction, so the total momentum obeys
+
+here is the thing i wanted to see. $x$ never appears in $\\mathcal{L}$, only $\\dot{x}$ does, so it is cyclic and its momentum is fixed, and since the system starts from rest that constant is zero forever.
+
+$$
+p_x = (M+m)\\,\\dot{x} + m b\\cos\\theta\\,\\dot{\\theta} = 0
+$$
+
+no friction is holding the centre of mass in place. the rolling constraint is, and the cart has to recoil exactly opposite the cylinder to keep the sum at zero.
+
+\`\`\`iframe
+/dynamical_systems/rolling_system_minimal.html
+\`\`\`
+
+watch the cart slide against the cylinder while the centre of the whole picture stays pinned, and watch the red marker on the rim turn in lockstep with the swing. the motion is liveliest at the ends, where the cylinder turns around and drags the cart's recoil back with it.
+
+the second system trades the free support for a hard kinematic law. two cranks turn on fixed parallel axles, each rigidly keyed to a spur gear, and the gears mesh, so turning one crank forces the other to counter-rotate at a fixed ratio. a double pendulum hangs off the first crank and a single one off the second, with gravity the only driver. i integrate four coordinates, $\\mathbf{q} = (\\theta_1, \\phi_a, \\phi_b, \\phi_c)$, and the second crank is missing on purpose, because two pitch circles rolling without slip trade equal and opposite arc, a holonomic relation between the angles themselves.
+
+$$
+R_1\\theta_1 = -R_2\\theta_2 \\quad\\Longrightarrow\\quad \\theta_2 = -\\rho\\,\\theta_1, \\qquad \\rho = \\frac{R_1}{R_2}
+$$
+
+folding it into the coordinates turns five rigid rods into a four-coordinate problem with no multiplier to drag around. the kinetic energy is the usual quadratic form in the rates, and the potential pulls the gear ratio inside a trig function through $\\sin(\\rho\\theta_1)$, so the Lagrangian and its reduced equations are
+
+$$
+\\mathcal{L} = \\tfrac12\\,\\dot{\\mathbf{q}}^{\\mathsf{T}} M(\\mathbf{q})\\,\\dot{\\mathbf{q}} - V(\\mathbf{q}), \\qquad M(\\mathbf{q})\\,\\ddot{\\mathbf{q}} = F(\\mathbf{q}, \\dot{\\mathbf{q}}),
+$$
+
+which i solve each step by Gaussian elimination. this time no coordinate is cyclic. $\\theta_1$ sits in the potential as itself and again inside $\\sin(\\rho\\theta_1)$, so there is no ignorable coordinate and no conserved momentum at all. you might expect the gears to bank angular momentum like a flywheel, but both axles are bolted down and gravity keeps torquing every rod, so nothing rotational survives either. the only invariant left is energy.
+
+$$
+E = T + V = \\text{const}
+$$
+
+what i did not expect is that the two pendulum trains never talk directly. the single pendulum reaches the rest of the system through one off-diagonal entry against the crank and sits at exactly zero against the double pendulum's angles. the mesh is the entire conversation between them.
+
+\`\`\`iframe
+/dynamical_systems/gear-twin-crank_minimal.html
+\`\`\`
+
+watch the two cranks stay mirror images, turning opposite ways at the fixed ratio, and watch the double pendulum whip the first crank hard enough to jerk the second one across the loop, a kick with no contact, carried entirely through the teeth.
+
+the third system stops conserving momentum entirely, and it does it on purpose. a rigid chassis coasts on frictionless ice on a single knife-edge blade that can slide along its heading but never sideways, and a cam at its centre wags a follower rod through a groove. there is no motor and no friction, and it still eases itself forward and drifts into a slow turn, changing its own speed with nothing pushing on it. i take $\\mathbf{q} = (x, y, \\theta, \\psi)$, the chassis centre, its heading, and the cam angle. the groove is holonomic and folds straight in, but the blade is not. it forbids any sideways velocity, one scalar condition on the speeds that refuses to integrate.
+
+$$
+-\\,\\dot{x}\\sin\\theta + \\dot{y}\\cos\\theta + a\\dot\\theta = 0
+$$
+
+this is nonholonomic. it removes a speed, not a coordinate, so the pose keeps all four freedoms while the velocities drop to three. gravity points out of the plane and the ice carries it, so $V = 0$ and the Lagrangian is all kinetic. the equations come from Euler-Lagrange with the constraint carried by a multiplier,
+
+$$
+\\frac{d}{dt}\\!\\left(\\frac{\\partial \\mathcal{L}}{\\partial \\dot{\\mathbf{q}}}\\right) - \\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{q}} = \\mathbf{A}_{\\mathbf{q}}^{\\mathsf{T}}\\lambda, \\qquad \\mathbf{A}_{\\mathbf{q}} = (-\\sin\\theta,\\ \\cos\\theta,\\ a,\\ 0),
+$$
+
+and because the blade does no work along the motions it permits, projecting onto the admissible directions kills the multiplier and leaves a clean $3\\times 3$ solve $M(\\psi)\\ddot{\\mathbf{q}} = F$. but $\\lambda$ has not gone anywhere. the one in-plane external force on the machine is that blade reaction, so the total momentum obeys
+
 $$
 \\frac{d\\mathbf{p}}{dt} = \\lambda\\,\\hat{e}_2 \\neq 0,
 $$
-and every time the wag drives $\\lambda$ off zero the centre of mass gains speed it had no other way to get. angular momentum goes the same way, since that same off-centre reaction torques the body. this is the loophole made concrete. nothing drives the skater and nothing outside pushes it, the blade reaction does no work so it cannot touch $E$, but it is free to redirect the motion already there, rectifying the follower's back-and-forth into a one-way forward drift and a slow curve. watching it, a body that ought to hold its momentum instead pumps itself along, the forward speed rising and falling with the wag, and the blade never once slips sideways, $v_C\\cdot\\hat{e}_2 = 0$ to machine precision.
 
-the state is seven numbers, $[x, y, \\theta, \\psi, v, \\dot\\theta, \\dot\\psi]$, integrated with classical fixed-step RK4 at $\\Delta t = 0.001$ s, sixteen steps to an animation frame. the energy check is the part i actually trust. rather than read energy back out of the same $M$ and $F$ that pushed the state forward, which would only confirm my solver inverts a matrix consistently with itself, i recompute $E$ from scratch every step as the plain cartesian kinetic energy of the three bodies, each mass-centre velocity taken from the knife-edge speed-recovery. it never touches the reduced equations. if $M$ or $F$ were wrong the true energy would drift and this independent number would wander off with it. instead it holds flat to about a part in $10^{9}$ over a minute while the per-body energies swing hard, the cam pouring its spin into forward translation and taking it back, so a flat total says something real rather than repeating itself.
-
-here it is.
+and every time the wag drives $\\lambda$ off zero the centre of mass gains speed it had no other way to get. the constraint does no work, so it cannot touch $E$, but it is free to redirect the motion already there, rectifying the follower's back-and-forth into a one-way drift. energy stays the only invariant, $E = T = \\text{const}$.
 
 \`\`\`iframe
 /dynamical_systems/cam-skater_minimal.html
 \`\`\`
 
-watch the small readout in the corner. the forward speed $v$ keeps changing while nothing pushes the skater, and the carved track bends although nothing steers it. the drift line beside it sits at zero to nine figures the whole time, which is the part that took the longest to earn: the machine rearranges its motion completely and spends not one joule doing it.`,
+watch the forward speed keep changing while nothing pushes the skater, and the carved track bend although nothing steers it.
+
+all three run the same way, classical RK4 at a fixed step of one or two milliseconds, eight to sixteen substeps a frame. the energy readout in each corner is the part i actually trust, because it is computed a second and independent way. rather than read the kinetic energy back off the same $M$ and $F$ that pushed the state forward, which would only prove my solver is consistent with itself, each step rebuilds $E$ from the plain per-body kinematics, the cartesian velocity and height of every mass, and never touches the reduced equations. if the algebra were wrong the true energy would drift and this number would wander off with it. it held flat in all three, somewhere between a part in a million and a part in $10^{11}$, which is how i knew the derivations were right.
+
+that is the whole reason i built them. the rolling cradle pins momentum to zero, the gear train erases it, the skater manufactures it out of nothing, and in every case it is the same quiet character doing the work, the force hiding inside a constraint, while energy sits perfectly still and watches.`,
   },
   {
     id: "blog-minimax-m2",
