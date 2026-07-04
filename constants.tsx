@@ -2060,6 +2060,7 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *star kabab* - the seekh kebabs my dad used to take me to as a kid, the thing my taste buds were trained on and everything else has been a comparison ever since.
 - *kacchi bhai* - if you want to understand what biryani is supposed to taste like, you start here, with the potatoes at the bottom, caramelised and spiced.
 
+`/*
 **kuala lumpur**
 - *nasi lemak wanjo* - a kampung baru institution since the sixties, with a dark, sweet sambal over coconut rice that pulls a queue at breakfast and another one all over again at supper.
 - *line clear* - penang's legendary nasi kandar, transplanted to kl. you point at what you want and they flood the rice with a mix of gravies and it's still the most authentic version in the city.
@@ -2075,7 +2076,7 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *green chilli chicken rice* - one stall doing one dish since '99, a fried chicken thigh over pandan coconut rice under a rough green chilli sambal. they shut the moment it runs out, usually some time in the early afternoon.
 - *selera rasa* - the nasi lemak at adam road that singaporeans will genuinely argue is the best in the country, with fragrant rice, crisp ikan bilis and a serious sambal.
 - *haji kadir* - a golden mile institution doing sup tulang merah, marrow bones in a fierce red gravy that you suck straight out through a straw. messy and completely worth it.
-
+`*/ + `
 **general rule**
 i trust hole-in-the-wall places with bad lighting and no english menu over anywhere with "curated" in the description. food should be a little inconvenient.`,
   },
@@ -2205,6 +2206,7 @@ i keep a longer list in notion but these are the ones i'd actually give someone.
 - *the flaucher* - the gravel islands and shallow channels of the isar where münchners spend whole summer afternoons grilling and swimming, far wilder and emptier than the englischer garten if you walk a little upstream from thalkirchen.
 - *glockenbachviertel* - the most lived-in corner of the city, where people gather on the steps around gärtnerplatz with corner-shop beers on warm evenings and you can wander for hours without any plan at all.
 
+`/*
 **kuala lumpur**
 - *kampung baru* - a malay village of wooden stilt houses that's somehow held its ground seven hundred metres from the petronas towers, with food on every corner and the unhurried feel of an older city that refuses to leave.
 - *bukit tunku* - the greenest and quietest corner of kl, all winding roads under old trees and colonial houses. there's a lookout over the whole skyline at changkat tunku.
@@ -2218,7 +2220,7 @@ i keep a longer list in notion but these are the ones i'd actually give someone.
 - *the rail corridor* - twenty-four kilometres of disused railway with the tracks lifted and the whole line left to the grass and if you walk the bukit timah stretch early enough it's just you and the green the entire way.
 - *pulau ubin* - a short bumboat from changi takes you to the last of kampong singapore, where you rent a rattling old bike and ride past granite quarries, mangroves and the strange little german girl shrine.
 - *lazarus island* - a near-empty crescent of white sand and clear water a short ferry from the city, the beach singaporeans quietly keep for themselves while everyone else is queueing for sentosa.
-
+`*/ + `
 **nature escapes**
 - *peak district* - mam tor and the great ridge, proper hiking with the wind in your face and sheep everywhere.
 - *the lake district* - i did helvellyn in the rain and couldn't see a thing and it was still worth it.
