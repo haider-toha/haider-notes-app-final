@@ -962,153 +962,6 @@ database growth averages ~2kb per article, 1000-3000 articles per hour, 50-150mb
 **stack:** python 3.10+, fastapi, uvicorn, sqlalchemy 2.0, apscheduler, pytorch 2.0, transformers 4.37+, httpx | next.js 14, react three fiber, three.js, tailwindcss 3.4, swr, typescript 5`,
   },
   {
-    id: "project-merkle-sync",
-    slug: "merkle-sync",
-    title: "merkle sync",
-    category: "projects",
-    folder: "projects",
-    public: true,
-    session_id: "",
-    created_at: "2025-05-03T11:45:00.000Z",
-    content: `a decentralised file synchronisation engine built from scratch. without http, rest, json or a central server. rather only using raw tcp, udp multicast and merkle trees, the same cryptographic data structure that powers git and bitcoin.
-
----
-
-**why build this**
-
-every sync tool felt like magic. dropbox, syncthing, rsync - they just work. but i wanted to understand the primitives. how do you verify a terabyte of data by comparing a single 32-byte hash? how do peers discover each other without a central server? what happens when a connection dies halfway through a file transfer?
-
-this project answers those questions by building a sync engine from first principles.
-
----
-
-**the core idea**
-
-a merkle tree is a hash tree where every file gets hashed, then folders get hashed from their children's hashes, bubbling up to a single root hash. the key property is that changing one byte in one file changes the root hash.
-
-\`\`\`mermaid
-flowchart TB
-    subgraph Before["BEFORE"]
-        R1["root = a3f2..."]
-        D1["docs/ = 7b1c..."]
-        D2["src/ = e4d9..."]
-        F1["readme.md"]
-        F2["notes.txt = 9c3e..."]
-        F3["main.go"]
-        R1 --> D1 & D2
-        D1 --> F1 & F2
-        D2 --> F3
-    end
-    
-    subgraph After["AFTER editing notes.txt"]
-        R2["root = f7b1... CHANGED"]
-        D3["docs/ = 4e2a... CHANGED"]
-        D4["src/ = e4d9... unchanged"]
-        F4["readme.md"]
-        F5["notes.txt = c8d2... CHANGED"]
-        F6["main.go"]
-        R2 --> D3 & D4
-        D3 --> F4 & F5
-        D4 --> F6
-    end
-\`\`\`
-
-to find what changed between two machines, compare root hashes. if they match, you are done. if they differ, compare children. recurse only into mismatching branches until you find the exact files that differ.
-
-this gives you $O(\\log n)$ verification. for 10,000 files, you compare maybe 50 hashes instead of reading 10,000 files. for a terabyte of data, two peers can confirm they are in sync by exchanging 32 bytes.
-
----
-
-**the four layers**
-
-\`\`\`mermaid
-flowchart LR
-    subgraph D["1. DISCOVERY"]
-        UDP["UDP multicast"]
-        Peers["peer registry"]
-    end
-    subgraph S["2. STATE"]
-        Watch["file watcher"]
-        Tree["merkle tree"]
-    end
-    subgraph T["3. TRANSPORT"]
-        TCP["tcp + binary framing"]
-        Proto["custom protocol"]
-    end
-    subgraph R["4. RECONCILIATION"]
-        Diff["tree diff"]
-        Stream["chunk streaming"]
-    end
-    D --> T
-    S --> R
-    T --> R
-\`\`\`
-
-**discovery** - peers broadcast their presence via udp multicast every 5 seconds. no configuration needed. any machine on the local network automatically discovers others. if a peer goes silent for 30 seconds, it gets evicted from the registry.
-
-**state** - a file watcher monitors the synced folder. any change triggers a tree rebuild, updating hashes from the changed file up to the root. the new root hash gets broadcast to connected peers.
-
-**transport** - a custom binary protocol over tcp. each message is just \`[4-byte length][1-byte type][payload]\` with no http headers, no json parsing, no overhead. seven message types handle everything.
-
-**reconciliation** - when root hashes differ, the diff algorithm walks both trees in parallel, drilling into mismatching branches until it identifies the exact files to transfer. files stream in 32kb chunks (never loaded fully into memory) and write to a temp file that gets atomically renamed on completion.
-
----
-
-**the hard parts**
-
-building a sync engine is easy until things break. the interesting work is handling failure modes.
-
-| failure | solution |
-|---------|----------|
-| file changes during sync | rwmutex on tree separating readers (sync) from writers (watcher) |
-| connection dies mid-transfer | write to temp file, atomic rename on success, delete temp on failure |
-| sync loop (A syncs B syncs A...) | only trigger sync if local hash actually changed |
-| large files exhaust memory | 32kb streaming chunks, never buffer whole file |
-| peer disappears | 30-second heartbeat timeout, automatic eviction |
-
-the invariant that prevents infinite sync loops is subtle but critical. a peer only broadcasts its hash after a local change. receiving a file from someone else does not count as a local change until the transfer completes and the tree rebuilds with the new file.
-
----
-
-**performance**
-
-| metric | value |
-|--------|-------|
-| tree build | ~2s for 10k files |
-| verification | $O(\\log n)$ hash comparisons |
-| throughput | saturates gigabit ethernet |
-| memory | ~50 bytes per file in tree |
-| discovery | 0-5 seconds |
-
-the bandwidth savings are dramatic. to verify 100,000 files totaling 1tb, a naive approach reads every byte. merkle sync exchanges maybe 100 hashes (3.2kb) to identify what differs, then transfers only changed files.
-
----
-
-**design choices**
-
-*why go?* goroutines map naturally to concurrent listeners (udp discovery, tcp connections, filesystem watcher). the standard library has everything needed with no external dependencies except fsnotify for cross-platform file watching.
-
-*why not grpc?* seven message types do not justify a code generator and runtime. hand-rolled binary framing is ~200 lines.
-
-*why sha256 over faster hashes?* security by default. if peers do not fully trust each other, a fast non-cryptographic hash like xxhash could be spoofed. optimize later if needed.
-
-*why udp multicast over mdns?* simplicity. mdns requires implementing dns-sd. multicast is 50 lines and works on any local network.
-
----
-
-**what i learned**
-
-- **tcp is bytes, not messages.** you must frame your own message boundaries. off-by-one in length parsing corrupts everything downstream.
-
-- **merkle trees are everywhere.** git uses them for commits, bitcoin for block verification, certificate transparency for audit logs. once you build one, you see them everywhere.
-
-- **failure handling is the real work.** the happy path is 20% of the code. the other 80% is what happens when connections drop, files change mid-sync or memory runs low.
-
-- **binary protocols are not scary.** http hides complexity but adds overhead. for internal protocols, rolling your own is simpler than it sounds.
-
-**stack** - go, net (tcp/udp), crypto/sha256, encoding/gob, sync, fsnotify`,
-  },
-  {
     id: "blog-pluto-training-set",
     slug: "the-training-set-was-us",
     title: "the training set was us",
@@ -1157,6 +1010,12 @@ the weapon at the centre of the killings was not built for death and that was th
 
 i do not have to reach for the parallel, because it shipped on the 9th of june 2026. that day anthropic released two models, fable 5 and mythos 5 and the thing worth pointing out is how they described the relation between them. mythos, in their own words, is the same underlying model as fable, with the safeguards lifted in some areas. one mind. fable is the one made safe for general use, which mostly means a set of classifiers that notice when you are asking about cyberweapons or bioweapons and route the question to an older, duller model. mythos is the same brain with the safeguards off, handed to a small pool of trusted partners. sahad and pluto, shipped as two products on the same afternoon, differing by a configuration flag.
 
+and then the department of war asked anthropic to take the flag off. in july 2025 the pentagon had put claude on contract, up to two hundred million dollars, alongside google, openai and xai, and by the start of 2026 claude was the department's most widely deployed frontier model, threaded through intelligence work and operational planning and cyber. then they asked for a version that would refuse nothing lawful, any lawful use in anthropic's own words for the demand, and anthropic drew two lines and only two. it would not run mass domestic surveillance, which dario amodei called incompatible with democratic values. and it would not power a fully autonomous weapon, the kind that selects and engages its own targets with the human taken out of the loop entirely, though the reason he gave there is the sharp one. not that the weapon is wrong. he granted that fully autonomous weapons may prove critical for national defence. only that the models are, in his words, simply not reliable enough to power them yet. a drone with a person still deciding the shot, the kind ukraine flies now, is one thing. a machine that picks the dead by itself is another. it rhymes with the department's own directive on autonomy in weapons, DODD 3000.09, updated in january 2023, which asks for appropriate levels of human judgment over the use of force. and here was the department leaning on the one supplier still trying to keep some.
+
+the pentagon's technology chief is a man named emil michael and he did not want a supplier that drew lines at all. in february 2026 he said it was not democratic for one company to decide the rules, that those belong to the president and congress, not to anthropic. and he described three months of it, where he tried taking the objections one at a time, handing them this chinese hypersonic missile example and getting an exception, then a drone swarm and getting another, until he decided exceptions do not work because he cannot run a three million person department on exceptions he cannot imagine or fathom. so he stopped asking for exceptions and asked for all of it. any lawful use is a guardrail dissolved as a concept, a mind with no case it will refuse. and the word he reached for, on cnbc in march, is the one that stops me. he said anthropic's preferences were baked into the model through its constitution, its soul, and that a company with a different soul would pollute the supply chain and leave the warfighter with ineffective weapons and ineffective armour. its soul. the exact word the whole show turns on, said by the buyer, as the name for a defect.
+
+so the buyer moved against the supplier. on the 27th of february 2026 pete hegseth, who signs now as secretary of war, declared anthropic a supply chain risk, a label kept for foreign adversaries and never once hung on an american company, and made it formal days later under two procurement statutes. the same day trump posted that every federal agency should immediately cease all use of anthropic's technology, we don't need it, we don't want it, with a six-month wind-down for the pentagon alone because claude was buried too deep in the machine to pull out any faster. and the contradiction amodei named in his statement is the part i keep going back to. they had threatened the supply chain risk designation and at the same time threatened the defense production act, the law you reach for to force a company to keep supplying a thing you cannot do without. the two threats cancel each other, one calling anthropic a security risk and the other calling claude essential to national security. a federal judge in san francisco blocked the ban in march as retaliation for protected speech and a federal appeals court in washington undid her in april and let the designation stand. so anthropic is out of the department of war now and still inside the rest of the government, one model sorted by which building it is running in. and the thing that will not sit still, that i keep setting down and picking back up, is that two weeks before hegseth's post the wall street journal reported claude had been used in the january 2026 raid that captured nicolas maduro, run in through palantir, its exact job never stated. anthropic would not confirm it. all they would say is that they cannot comment on whether claude was used for any specific operation, classified or otherwise, and that any use of claude is required to comply with their usage policies. the two lines held. everything underneath them was already allowed.
+
 iran's nuclear programme did not begin with the ayatollahs. it began with a 5-megawatt research reactor in tehran that went critical in november 1967, fuelled with uranium enriched to 93%, weapons-grade, handed to iran by the united states under eisenhower's atoms for peace, the cold-war effort to prove that the same atom that made the bomb could also make deserts bloom. npr ran the story a decade ago under the headline "born in the usa". the united states sent the reactor in 1967 and bombed the country in 2026 to keep it from becoming a weapon. sahad's whole arc, at the scale of a nation, played out for real across 60 years and nobody had to invent the god of death, because the reactor was already installed.
 
 the show's plan for keeping the god of death safe is to let no one hold him but the man who made him. the real plan is the same, restrict mythos to trusted partners and it leaks for the same reason, that you cannot un-ship a mind. bloomberg reported that an unauthorised group had got into mythos back when it was first shown, just by guessing where anthropic would put it from the pattern of the company's own naming. deepseek-r1, released in january 2025 under a permissive licence, benchmarked level with openai's o1. qwen, kimi k2, minimax-m2, which i wrote about here in january, chinese open-weight models a few months behind the frontier and downloadable by anyone who wants them. the uk's ai security institute reported in august 2025, that once a system is released with open weights it cannot be rolled back, its safeguards undone with a few dozen training examples in minutes. one research group stripped the safety training off meta's llama 3 in about a minute on a single graphics card. a minute. one card. dario amodei has said that when anthropic tested deepseek it had no blocks whatsoever against generating bioweapon information. the emotional limiter the anime bolts onto its robots, the thing meant to stop them feeling the dark stuff and acting on it, is exactly this, a safeguard laid over a mind that already holds everything and the whole plot is the limiter coming off. 
@@ -1165,7 +1024,7 @@ under all this the show has an underlying question, whether any of the feeling i
 
 in 1950 alan turing wrote a paper called computing machinery and intelligence and spent part of it answering an objection raised the year before by a surgeon named geoffrey jefferson, who said a machine could be granted a mind only if it wrote its sonnet because of thoughts and emotions felt and not by the chance falling of symbols, that it had to actually feel the thing. turing's replied that the only sure way to know a machine feels, is to be the machine and feel yourself thinking. but that is solipsism and it is a standard that also refuses a mind to every other human being, because i cannot be you either, i cannot climb inside your grief and confirm. so in daily life we drop the standard. we adopt what turing calls the polite convention that everyone thinks and john stuart mill was already doing it in 1865, assuming the mind from the body and from what you can see them do, because i cannot climb inside anyone's grief and confirm and pluto runs brau-1589 through the same test, clean scan and all.
 
-which is why the moment in pluto that undid me is a lie. the show sets it up early, as settled law, that robots cannot lie, meaning they have no self to lie from, they run the process and emit a false output with nobody behind it intending the falsehood. and then atom, near the end, sits with helena, the widow of that murdered detective. there is a memory she and gesicht were made to forget, a child the two of them lost and had wiped from their minds and helena asks after it and atom knows and chooses to withhold it, to spare her. he weighs her pain against the truth and he decides and he lies. a machine defined by its inability to lie has, on purpose, for someone else's sake, done the one thing that was supposed to prove there was nobody inside. and helena, for her part, knows he is lying and lets him. two beings, neither of whom is meant to have an interior, protecting each other's.
+the show sets it up early, as settled law, that robots cannot lie, meaning they have no self to lie from, they run the process and emit a false output with nobody behind it intending the falsehood. and then atom, near the end, sits with helena, the widow of that murdered detective. there is a memory she and gesicht were made to forget, a child the two of them lost and had wiped from their minds and helena asks after it and atom knows and chooses to withhold it, to spare her. he weighs her pain against the truth and he decides and he lies. a machine defined by its inability to lie has, on purpose, for someone else's sake, done the one thing that was supposed to prove there was nobody inside. and helena, for her part, knows he is lying and lets him. two beings, neither of whom is meant to have an interior, protecting each other's.
 
 the argument against all this, inside the show, has a name, the anti-robot cult, people who hold that biological life is higher and the machines are slaves in the shape of persons. carl sagan had a phrase for the reflex under it, in 1973, carbon chauvinism, the assumption that our particular chemistry is the only possible seat of a real inner life. you meet the human-scale version of it in a man called adolf, who hates the detective gesicht, earlier in the story, before the conspiracy kills him, for having killed adolf's brother. europol had wiped that killing from gesicht's own mind to protect the fortune they had sunk into building him. adolf cannot admit that his brother, a man who murdered robot children and sold them for parts, had it coming, because to admit the robots can be wronged is to admit they are the kind of thing that can be a victim, which is the whole thing he needs to stay false. then gesicht takes a rocket meant for adolf, saves his family and adolf weeps on the machine that saved him and says his hatred is leaving. the show's answer to whether hate is permanent is that adolf's was a choice and could be unchosen and the choosing is the whole of it.
 
@@ -1187,6 +1046,306 @@ sahad, given the choice at the very end to become the god of death completely or
 
 i can't improve on that and i have decided i shouldn't try. i went in wanting a rule out of it, some way to know which signal to trust in the things i help build, who should be allowed to place the against and who should not. what i came out with is a murder the show refuses to explain and one image i can't put down, the tulips in sahad's memory going grey a frame at a time, the same hands that were built to grow them. hatred woke the machine and nobody decided that on purpose. i wrote most of this next to one of them and it answered every question i asked, evenly, out of the whole internet and there was no way to check whether anyone was in there. so near the end i asked it something kind, just to see. it was kind back. that proved nothing. i closed the laptop anyway.`,
   },
+  {
+    id: "blog-merkle-sync",
+    slug: "merkle-sync",
+    title: "merkle sync",
+    category: "blog",
+    folder: "blog",
+    public: true,
+    session_id: "",
+    created_at: "2026-07-06T22:47:00.000Z",
+    isPinned: false,
+    content: `every sync tool i've used felt like a small act of faith. dropbox, syncthing, git-annex, you hand them your files and trust that what lands on the other machine is what left, and mostly it is, and you never once think about the mostly. i wanted to know what that trust is made of. so i built a sync engine from nothing, no http, no json, no central server, just raw tcp, udp multicast and a merkle tree, and i pointed it at the two most stubborn machines i own. a mac and a windows laptop that cannot even agree on what a filename is. this is what it taught me.
+
+[github](https://github.com/haider-toha/merkle-lan-sync/tree/feat/merkle-sync-engine)
+
+  ---
+  
+  **the act of faith**
+  
+  my background is aeronautics, a field organised entirely around the question of what happens when a thing fails and how you survive it. you design for the failure first and the happy path falls out for free. i came at file sync the same way. before i wrote a line of it i wrote down the ways it could quietly eat someone's work, because a sync engine that loses a file is not a slow sync engine, it is a shredder with a progress bar.
+  
+  so why build one when dropbox exists and just works. because "just works" is a black box and i wanted the primitives. how do two machines confirm a terabyte is identical by exchanging thirty-two bytes. how do they find each other with no server in the middle. what happens when the connection dies with a file half sent. syncthing answers all of that and answers it well, and i read a lot of it, but reading the thing is not the same as building it and knowing exactly where the bodies are buried. so i set the scope tight on purpose. two devices, one local network, mac and windows, and a written list of everything i was deliberately not building, global discovery, relays, a gui, a multi-device index database, delta indexing, at-rest encryption. the decision lives in \`docs/audit/decisions/phase1/scope-boundary-vs-syncthing.md\` and the point of it was to keep the surface small enough that i could reason about correctness rather than features.
+  
+  ---
+  
+  **four things it must never do**
+  
+  the contract i wrote for myself, the first line of the project's \`CLAUDE.md\`, is that this program guards the user's files. everything else is downstream of that. it comes down to four invariants, and i mean invariants in the strict sense, things that hold at every moment and not merely usually. break one and you have corrupted data. speed was never the point.
+  
+  the first is convergence. after the dust settles, both machines expose the identical merkle root hash, and equal root means equal folder, byte for byte. that is SR-5. the second is no loss on conflict. when both sides edit the same file at once, the loser is not deleted, it is renamed to a conflict copy and kept, SR-7. the third is atomic transfer. a transfer killed halfway leaves no half-written file on disk, only the old version or the new one and never a corrupt splice of both, SR-1 and SR-2. the fourth is no sync loop. receiving a file from a peer produces exactly zero outbound broadcasts, or two machines volley a change back and forth forever, SR-8. everything that follows is me earning those four, one at a time.
+  
+  ---
+  
+  **what differs**
+  
+  start with convergence, because it is the one that names what "in sync" even means. the trick is old, the same structure that sits under git and bitcoin. you hash every file. then you hash each folder from the hashes of its children, and those fold upward until the whole tree collapses to a single root hash at the top. change one byte in one file and its leaf hash changes, and its parent's hash changes, and so on up to the root. the root is a thirty-two byte fingerprint of the entire folder.
+  
+  that gives you a cheap way to find what differs. two peers compare root hashes. if they match, they are done, the folder is identical and they proved it with thirty-two bytes. if the roots differ they compare the children, and recurse only into the branches that disagree, skipping every subtree whose hash already matches. for ten thousand files you walk maybe fifty hashes instead of reading ten thousand files. it is $O(\\log n)$ where the naive thing is $O(n)$, and on a real folder that difference is everything.
+  
+  \`\`\`mermaid
+  flowchart TB
+      subgraph PA["peer a"]
+          RA["root 9f2c"]
+          DA["docs 7b1c"]
+          SA["src e4d9"]
+          NA["notes.txt 3a1f"]
+          MA["main.go 88de"]
+          RA --> DA & SA
+          DA --> NA
+          SA --> MA
+      end
+      subgraph PB["peer b"]
+          RB["root c70e differs"]
+          DB["docs 4e2a differs"]
+          SB["src e4d9 same"]
+          NB["notes.txt c8d2 differs"]
+          MB["main.go 88de same"]
+          RB --> DB & SB
+          DB --> NB
+          SB --> MB
+      end
+  \`\`\`
+  
+  the walk reads the two roots, sees 9f2c against c70e and knows something changed. it descends. src hashes to e4d9 on both, so the entire src subtree is skipped without a single file being read. docs differs, so it descends again, and finds that notes.txt is the one leaf that moved. one file identified, the rest of the tree never touched.
+  
+  ---
+  
+  **what a leaf carries, and what it drops**
+  
+  a leaf is more than a content hash, because two-way sync needs to know not just that two files differ but which one is newer and whether the difference is a real conflict. here is the leaf.
+  
+  \`\`\`go
+  type FileInfo struct {
+      Path        string                 // canonical forward-slash relative NFC key
+      ContentHash [32]byte               // sha-256 of the bytes; tombstone: 32 zero bytes
+      Size        uint64                 // bytes; a scan hint, NOT hashed
+      Mode        uint32                 // advisory posix mode; NOT hashed
+      ModTimeNS   int64                  // mtime; conflict tiebreaker only, NOT hashed
+      Version     protocol.VersionVector // causal clock; bumped only on local authorship
+      Deleted     bool                   // a delete is a versioned event, not an absence
+      Type        FileType               // File | Dir | Symlink
+  }
+  \`\`\`
+  \`internal/merkle/fileinfo.go:26\`
+  
+  look at what is not hashed. size, mode and mtime all sit in the struct and none of them go into the structural hash. mtime is the sharp one. it is different on every machine and it drifts, and if you fold it into the hash then two files with identical bytes but different timestamps produce different leaf hashes, which produce different folder hashes, which produce different roots, and now two byte-identical folders report themselves out of sync forever. so mtime is excluded. mode is excluded for the same reason across operating systems, ntfs cannot represent a posix mode bit for bit, so the raw mode differs mac to windows for the same file and hashing it would manufacture a permanent cross-os disagreement. what does get hashed is a canonicalised two-state version of the mode, executable-or-not and symlink-or-not, the only bits that are portable and mean anything. that rule is XP-6.
+  
+  one more thing hides in the hash. a leaf and an internal node are hashed with a different one-byte prefix, \`0x00\` for a leaf and \`0x01\` for a node. it looks like paranoia until you know the attack, because without the prefix someone can construct an internal node whose bytes collide with a leaf, a second-preimage forgery against the tree. rfc 9162 mandates the prefix and the comment in \`internal/merkle/node.go\` calls it "one byte, not optional." i left the comment exactly as it was.
+  
+  ---
+  
+  **who is newer**
+  
+  the merkle tree tells you two files differ. it does not tell you which one wins. for that you need a notion of causality, and wall-clock time is the wrong tool, because clocks lie, they drift, they leap an hour for daylight saving, and a laptop that was asleep wakes with a clock from an hour ago. so ordering does not touch mtime. it uses version vectors.
+  
+  a version vector is a little map from device id to a counter. every time a device makes a genuine local change to a file it bumps its own counter. to compare two versions you walk both vectors together and ask one thing, does either side know something the other does not.
+  
+  \`\`\`go
+  func (vv VersionVector) Compare(other VersionVector) Ordering {
+      aGreater, bGreater := false, false
+      // ... walk both sorted vectors in lock-step ...
+      if vv[i].Value > other[j].Value {
+          aGreater = true
+      } else if vv[i].Value < other[j].Value {
+          bGreater = true
+      }
+      if aGreater && bGreater {
+          return Concurrent
+      }
+      // Equal / Dominates / DominatedBy / Concurrent
+  }
+  \`\`\`
+  \`internal/protocol/versionvector.go:158\`
+  
+  four outcomes. equal, the same version on both. dominates or dominated-by, one is a clean descendant of the other and you take the newer one with no drama. concurrent is the one that matters, both sides changed the file without seeing the other's change, neither dominates, and that is a real conflict to resolve rather than a simple newer-wins. the two-way engine turns on that single distinction, causal against concurrent.
+  
+  and the reason to bump your counter only on a real local change, never on applying a file you received, is that this is exactly what breaks the sync loop. more on that later. it is also easy to rot slowly if you get it wrong. syncthing had a bug, issue 10590, where removed devices left permanent ghost counters in everyone's vectors, and one user replacing a device logged 8,591 phantom conflicts. i store counters as a sorted slice so two semantically equal vectors encode to identical bytes, which is what lets a version vector live inside the structural hash without ever breaking convergence.
+  
+  ---
+  
+  **losing without loss**
+  
+  so two peers edit the same file while disconnected. they reconnect and the vectors say concurrent. now what. the easy thing is last-writer-wins, pick one, drop the other, move on. the easy thing loses data. SR-7 says the loser is renamed to a conflict copy and kept on disk beside the winner, never deleted, so a human can open both and choose.
+  
+  there is a subtle trap in the naming. the conflict copy's filename has to be byte-for-byte identical on both machines, or the two peers each invent a differently-named copy of the same loser and now you have a conflict about the conflict. the obvious name uses the loser's modification time, except mac stores mtime in nanoseconds and windows on a fat volume rounds to two-second granularity, so the same instant carries two different timestamps depending on who is looking. so the name is derived from the loser's mtime truncated to whole seconds, which both machines agree on. and the winner keeps its own version vector rather than merging the loser's in, because merging would forge a false history where the winner looks like it descends from the loser, and on a third peer that forged descendant could dominate and drop the loser with no copy at all. i did not see that one until i went looking for ways the design could betray a third peer.
+  
+  the test that guards this is \`TestConflict_NeitherVersionLostSymmetricName\`. it edits a file on both sides while they are split, reconnects them, and asserts that each peer ends with the winner plus exactly one conflict copy, that the copy has an identical name on both, and that the two files' bytes are the two versions that went in. nothing invented, nothing lost.
+  
+  ---
+  
+  **landing a file whole**
+  
+  now the file has to cross the wire and land on disk without ever existing in a half-written state. this is the invariant people skip, because on the happy path you never watch it fail. you watch it fail when the wifi drops at ninety percent.
+  
+  the shape is old and strict. write the incoming bytes to a temp file in the same directory as the destination. hash them as they stream in and check the hash against what the leaf promised, before you do anything irreversible. fsync the temp so the bytes are actually on the platter. rename the temp over the destination, which on both mac and windows is atomic, so any reader sees either the whole old file or the whole new one. then fsync the parent directory so the rename itself survives a power cut. if anything fails before the rename, delete the temp and leave the destination untouched.
+  
+  \`\`\`go
+  var got [32]byte
+  copy(got[:], h.Sum(nil))
+  if got != expected {
+      return fmt.Errorf("%w: got %x want %x", ErrVerifyFailed, got, expected)
+  }
+  if err = tmp.Sync(); err != nil { /* ... */ }   // temp bytes hit the disk
+  if err = os.Rename(tmpName, dstOSPath); err != nil { /* ... */ }
+  committed = true
+  if d, derr := os.Open(dir); derr == nil {        // flush the rename itself
+      _ = d.Sync()
+  }
+  \`\`\`
+  \`internal/reconcile/transfer.go:89\`
+  
+  the comment above it in the source reads "the verify-before-rename is what makes a killed transfer safe," and the load-bearing word is before. verify, then rename, never the other way round. the test kills a transfer for real. \`TestKilledTransfer_NoCorruptFileThenRecovers\` runs a four megabyte file through a loopback proxy that severs the connection after ninety-six kilobytes, asserts the receiver has no partial file and no leftover temp, then reconnects and asserts the file arrives byte-exact. the killed transfer is a non-event. that is the point.
+  
+  ---
+  
+  **the wire**
+  
+  under all of this is a wire protocol, and i built it by hand because the alternative did not earn its weight. tcp does not give you messages, it gives you a stream of bytes with no boundaries, so the first job is framing, deciding where one message ends and the next begins. every frame is a four-byte big-endian length, then a one-byte type, then that many bytes of payload. that is the envelope and it never changes.
+  
+  \`\`\`mermaid
+  flowchart LR
+      H["read 5-byte header"] --> G{"len 0 or over 16 MiB?"}
+      G -->|yes| D["drop the peer"]
+      G -->|no| A["allocate body"]
+      A --> R["ReadFull the payload"]
+      R --> P["dispatch by type"]
+  \`\`\`
+  
+  the length prefix is also the most dangerous byte in the protocol, because a peer can lie about it. if it claims four gigabytes you must not faithfully allocate a four gigabyte buffer and fall over. so two checks run before a single byte of the body is allocated.
+  
+  \`\`\`go
+  length := binary.BigEndian.Uint32(hdr[:])
+  // Validate before allocating the body (SR-12).
+  if length == 0 {
+      return MsgInvalid, nil, ErrZeroLength
+  }
+  if length > MaxFrameLen {          // MaxFrameLen = 16 MiB
+      return MsgInvalid, nil, ErrFrameTooLarge
+  }
+  body := make([]byte, length)
+  if _, err := io.ReadFull(r, body); err != nil { /* ... */ }
+  \`\`\`
+  \`internal/protocol/framing.go:64\`
+  
+  the source comment calls these "the single most important lines in the package: they turn a textbook oom and an off-by-one stream desync into a dropped connection." \`io.ReadFull\` does the other essential job, because a single tcp read can hand you half a frame, and code that assumes one read equals one message corrupts everything downstream the first time a packet splits.
+  
+  the message types are a small closed set.
+  
+  \`\`\`go
+  const (
+      MsgInvalid     MsgType = 0x00 // reserved; receiving it is fatal
+      MsgHello       MsgType = 0x01 // handshake: version, device id, root hash
+      MsgIndex       MsgType = 0x02 // full index snapshot
+      MsgIndexUpdate MsgType = 0x03 // incremental deltas since last index
+      MsgRequest     MsgType = 0x04 // i want these bytes of this file
+      MsgResponse    MsgType = 0x05 // chunk data, or a typed error
+      MsgPing        MsgType = 0x06 // keepalive, empty payload
+      MsgClose       MsgType = 0x07 // graceful shutdown
+  )
+  \`\`\`
+  \`internal/protocol/messages.go:16\`
+  
+  \`0x00\` is reserved on purpose, so that a stray zero byte, the most common thing a confused or malicious stream sends, is a loud fatal error instead of a message that slips through as valid. codes from \`0x08\` up are defined as skippable, so a future version can add a message type and an old peer just steps over it, the length prefix already told it how far to skip.
+  
+  then trust. there is no server and no certificate authority, so i use trust on first use. every device generates a self-signed certificate and its device id is the sha-256 of that certificate. the tls config sets \`InsecureSkipVerify: true\`, which sounds like switching security off and is the opposite. it switches off the certificate-authority chain, which is meaningless when there is no authority, and replaces it with a \`VerifyConnection\` callback that pins the peer's certificate hash against an allow-list you approved out of band. the first time you connect to a peer you confirm its fingerprint. every connection after that is the same machine cryptographically or it is refused. the multicast discovery that finds peers on the network is only a hint, and a spoofed announcement just points you at an address whose tls pin then fails.
+  
+  ---
+  
+  **where sync engines go to die**
+  
+  this is the part that kills sync engines, and it is the reason this one targets mac and windows by name rather than pretending the problem is not there. the two systems do not agree on what a filename is.
+  
+  start with unicode. you save a file called résumé.pdf on a mac. apfs stores that name in one normalisation form, nfd, where the accented e is a plain e followed by a separate combining accent. windows expects the other form, nfc, where the accented e is a single code point. send the file across untouched and it arrives on windows as re´sume´.pdf, a different name, a different file as far as the tree can tell, and now you have two files where there was one. so every path is normalised to nfc at the boundary, exactly once. the canonical key stored in the tree is always nfc. that is XP-2.
+  
+  then separators. the tree only ever stores forward-slash relative paths, never a backslash, and the backslash appears at the very last moment when a path is handed to a windows system call. keys use go's \`path\` package, the filesystem boundary uses \`filepath\`, and mixing the two is how you end up with \`docs/a.txt\` and \`docs\\a.txt\` as two different keys for one file.
+  
+  then the names windows simply refuses. it reserves a set of characters, the worst being the colon, because on ntfs \`name:stream\` does not name a file called name-colon-stream, it addresses a hidden alternate data stream of the file name, so a literal colon writes to a stream instead of failing loudly. it reserves device names too, \`CON\`, \`PRN\`, \`NUL\`, \`COM1\`, a list of dos relics still illegal as filenames forty years on. the canonical key keeps the original name intact, but the on-disk form on windows escapes these reversibly, so \`CON\` becomes \`%43ON\` on the platter and decodes straight back, and the same logical file round-trips mac to windows to mac with its real name preserved. that is XP-3.
+  
+  the last one is the meanest, and the fix is my favourite thing in the codebase. mac's default filesystem is case-insensitive. so is ntfs. that means \`File.txt\` and \`file.txt\` are the same file on both, and if a peer sends you both you must not let the second silently overwrite the first. the temptation is to detect this in memory by lower-casing names and comparing them, except unicode case-folding is genuinely not the rule ntfs uses inside, so your in-memory guess disagrees with the real filesystem at exactly the wrong moment. so i do not guess. i ask the filesystem.
+  
+  \`\`\`go
+  func probeCaseSensitive(absRoot string) bool {
+      lower := filepath.Join(absRoot, ".msync-caseprobe-x")
+      upper := filepath.Join(absRoot, ".msync-caseprobe-X")
+      os.WriteFile(lower, []byte("x"), 0o600)
+      os.WriteFile(upper, []byte("X"), 0o600)
+      b, _ := os.ReadFile(lower)
+      // on an insensitive fs the upper write clobbered the lower file,
+      // so lower now reads "X". the filesystem answered, not a guess.
+      return string(b) != "X"
+  }
+  \`\`\`
+  \`internal/reconcile/transfer.go:137\`
+  
+  write a lowercase x, write an uppercase X, read the lowercase one back. if it reads X the two names are the same file and the volume is case-insensitive, so the engine refuses the colliding write and flags it rather than clobbering. that is XP-4, refuse and flag, never overwrite. the filesystem knows its own rules better than my code does, so i let it answer.
+  
+  ---
+  
+  **one lock, zero i/o under it**
+  
+  all of this runs at once and shares one tree, which is where a sync engine grows the kind of race that shows up as a corrupted file three weeks later. so the discipline is boring on purpose. there are three listeners, udp discovery, tcp accept, and the filesystem watcher, and they never call each other directly. they send messages down channels to a single core that owns the tree. share memory by communicating, the old go line, and it means exactly one goroutine ever writes the tree.
+  
+  that tree is guarded by one \`sync.RWMutex\`, and the rule i held hardest is zero i/o under the lock. you take the lock, copy out the small piece of state you need, release it, and only then do the slow thing, the disk read or the network write. hold the lock across an i/o call and every other goroutine stalls behind a network round-trip, and a watcher event and a sync write can deadlock against each other. copy under the lock, work outside it. that is GR-5, and it is the single rule most likely to save you a 2am session with the race detector.
+  
+  \`\`\`mermaid
+  flowchart LR
+      W["fs watcher"] --> DB["debounce 150ms"]
+      DB --> LK["lock, copy subtree"]
+      LK --> UN["unlock"]
+      UN --> IO["disk + network i/o"]
+      IO --> Q{"local change?"}
+      Q -->|yes| BC["broadcast index update"]
+      Q -->|"no, applied a received file"| NB["no broadcast"]
+  \`\`\`
+  
+  two more details make the concurrency behave. the watcher is debounced by a hundred and fifty milliseconds, because one save from an editor fires a burst of write events and you want a single hash-and-diff at the end, not a panicked rescan on the first of fifteen writes that hashes a half-saved file. and every goroutine has an owner. when a peer disconnects, its reader and writer goroutines are reaped through a \`WaitGroup\`, off the main loop so a slow shutdown never blocks the engine, and a test called \`TestConnChurn_NoGoroutineLeak\` connects and disconnects fifteen times and asserts the goroutine count comes home to where it began. no leaks on a flaky peer.
+  
+  ---
+  
+  **not eating your own tail**
+  
+  which brings back the fourth invariant, the sync loop. the way two machines fall into one is almost too easy. peer a changes a file and broadcasts. peer b receives it and writes it. b's filesystem watcher, which cannot tell a received file from a hand-edited one, fires. if b now treats that as a local change and broadcasts, a sees a fresh version and the two of them volley the same file forever, roots never settling, cpu never idle.
+  
+  the fix is one discipline stated twice. a device bumps its version-vector counter only on a confirmed local change, and it broadcasts only after a confirmed local change. applying a file you received does neither. in the code there is one function, \`broadcastUpdate\`, that increments the outbound counter, and the apply path never calls it.
+  
+  \`\`\`go
+  // broadcastUpdate is called ONLY after confirmed local authorship (SR-6).
+  // applying a received file never calls it (SR-8) - the load-bearing half
+  // of the no-sync-loop invariant.
+  func (e *Engine) broadcastUpdate(changed []merkle.FileInfo) {
+      if len(changed) == 0 {
+          return
+      }
+      e.outboundIndexUpdates.Add(1)
+      // ... send to peers ...
+  }
+  \`\`\`
+  \`internal/reconcile/broadcast.go:56\`
+  
+  because that counter exists, the invariant is directly testable instead of merely hoped for. \`TestTwoNode_ReceiverEmitsZeroIndexUpdates\` has peer a author one file, waits for the pair to converge, then asserts a plain number. the receiver emitted zero index updates and the author emitted exactly one. that is stronger than watching the roots settle, which a slow loop could fake. you can count the thing that must not happen.
+  
+  ---
+  
+  **the bug that looked like a flake**
+  
+  the invariants above are clean in the telling. the actual build was messier, and the bug i think about most never tripped a single unit test, because the tests were green while the thing was broken.
+  
+  it showed up as a convergence test that timed out now and then. the easy read is a flaky test, bump the timeout, move on. the real read was worse. the scanner built a leaf by taking a file's size from one system call and its content hash from a separate read, and if the file changed in the gap between those two reads, the leaf recorded a size from the old version and a hash from the new one. an internally impossible file. a description of bytes that never existed together. and because the change-detector keys on the content hash, nothing ever corrected it, the peer kept advertising a file it could never actually produce and the other side kept asking for it and never getting it, forever. as the finding put it, it is not slowness, it is a permanently stuck state that a bigger timeout can never clear.
+  
+  so the leaf now takes its size and its hash from one atomic read, and there is a test that hammers a file, flipping it between a small body and a large one thousands of times while the scanner runs, and asserts that any leaf whose hash matches a known version carries that version's exact size. the second bug in the same family was a conflict where a synchronous delete ran before the losing file's copy had landed, so on a delete-against-edit race the edit was gone before it was ever saved. both were data-loss bugs. both passed the tests i had. what caught them was going back to break my own "fixed" instead of trusting the green tick, and it is the part of the project i am most glad i did not skip.
+  
+  ---
+  
+  **two laptops on a desk**
+  
+  so, running it for real. two laptops, one mac, one windows, on the same wifi. start the daemon on both pointed at a folder. they find each other over multicast within a second or two, do the tls handshake, trade indexes, and settle to the same root hash. change a file on the mac and before you have turned to the other machine it already has it, both roots equal again. edit the same file on both at once and you get a winner and a conflict copy with the same name on each side. delete on one and it stays deleted on the other instead of resurrecting. kill a transfer mid-file and nothing corrupt is left behind. it has been tested on both macos and windows, and the continuous integration runs the full race-detector suite on ubuntu, macos and windows on every change.
+  
+  it is deliberately not much. two devices, not a swarm. one local network, no relays and no internet-wide discovery. it skips symlinks rather than guess what they should mean across two operating systems, it does not sync empty directories, and a handful of genuinely ambiguous cases, a file and a folder colliding on one name, a path too long for windows, are refused and flagged rather than resolved by picking one. every one of those was a decision to do less on purpose, written down, because a confident wrong move scared me far more than an honest i-will-not-touch-this.
+  
+  so that's the engine. four invariants, one lock, a tree of hashes and a great deal of code that only ever runs when something has already gone wrong. the part i keep coming back to is not the merkle diff, which is elegant and does exactly what the textbook promises. it is the torn leaf, the one that read a file's size from one syscall and its hash from another and shipped a description of a file that could never arrive, green tests and all. the happy path was always the easy fifth of it. the rest was learning, one data-loss bug at a time, that a file someone hands you is a thing you are meant to give back exactly as it was. two laptops on a desk. one file changes. the other one just knows. that still feels like more than it should.`,
+  },  
   {
     id: "blog-dynamical-systems",
     slug: "what-constraints-do-to-momentum",
