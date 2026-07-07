@@ -1056,33 +1056,40 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
     session_id: "",
     created_at: "2026-07-06T22:47:00.000Z",
     isPinned: false,
-    content: `every sync tool i've used felt like a small act of faith. dropbox, syncthing, git-annex, you hand them your files and trust that what lands on the other machine is what left, and mostly it is, and you never once think about the mostly. i wanted to know what that trust is made of. so i built a sync engine from nothing, no http, no json, no central server, just raw tcp, udp multicast and a merkle tree, and i pointed it at the two most stubborn machines i own. a mac and a windows laptop that cannot even agree on what a filename is. this is what it taught me.
+    content: `a from-scratch two-way file sync engine for two machines on one local network. no http, no json, no central server, just raw tcp, udp multicast and a merkle tree. i ran it between a mac and a windows laptop, which disagree on what a filename is.
 
 [github](https://github.com/haider-toha/merkle-lan-sync/tree/feat/merkle-sync-engine)
 
   ---
   
-  **the act of faith**
+  **why build it**
   
-  my background is aeronautics, a field organised entirely around the question of what happens when a thing fails and how you survive it. you design for the failure first and the happy path falls out for free. i came at file sync the same way. before i wrote a line of it i wrote down the ways it could quietly eat someone's work, because a sync engine that loses a file is not a slow sync engine, it is a shredder with a progress bar.
+  dropbox exists and just works, but i wanted the primitives underneath it. how do two machines confirm a terabyte is identical by exchanging thirty-two bytes. how do they find each other with no server in the middle. what happens when the connection dies with a file half sent. syncthing answers all of that and answers it well, but reading it is not the same as building it.
   
-  so why build one when dropbox exists and just works. because "just works" is a black box and i wanted the primitives. how do two machines confirm a terabyte is identical by exchanging thirty-two bytes. how do they find each other with no server in the middle. what happens when the connection dies with a file half sent. syncthing answers all of that and answers it well, and i read a lot of it, but reading the thing is not the same as building it and knowing exactly where the bodies are buried. so i set the scope tight on purpose. two devices, one local network, mac and windows, and a written list of everything i was deliberately not building, global discovery, relays, a gui, a multi-device index database, delta indexing, at-rest encryption.
-  
-  ---
-  
-  **four things it must never do**
-  
-  the contract i wrote for myself, the first line of the project's \`CLAUDE.md\`, is that this program guards the user's files. everything else is downstream of that. it comes down to four invariants, and i mean invariants in the strict sense, things that hold at every moment and not merely usually. break one and you have corrupted data. speed was never the point.
-  
-  the first is convergence. after the dust settles, both machines expose the identical merkle root hash, and equal root means equal folder, byte for byte. that is SR-5. the second is no loss on conflict. when both sides edit the same file at once, the loser is not deleted, it is renamed to a conflict copy and kept, SR-7. the third is atomic transfer. a transfer killed halfway leaves no half-written file on disk, only the old version or the new one and never a corrupt splice of both, SR-1 and SR-2. the fourth is no sync loop. receiving a file from a peer produces exactly zero outbound broadcasts, or two machines volley a change back and forth forever, SR-8. everything that follows is me earning those four, one at a time.
+  my background is aeronautics, so i started from the failure modes, not the happy path. before writing a line i listed the ways this could lose data, because a sync engine that loses a file is worse than no sync engine. the scope is tight on purpose. two devices, one local network, mac and windows, and a hard list of what i was not building, global discovery, relays, a gui, a multi-device index database, delta indexing, at-rest encryption.
   
   ---
   
-  **what differs**
+  **the four invariants**
   
-  start with convergence, because it is the one that names what "in sync" even means. the trick is old, the same structure that sits under git and bitcoin. you hash every file. then you hash each folder from the hashes of its children, and those fold upward until the whole tree collapses to a single root hash at the top. change one byte in one file and its leaf hash changes, and its parent's hash changes, and so on up to the root. the root is a thirty-two byte fingerprint of the entire folder.
+  data integrity comes first, ahead of speed and everything else. it comes down to four invariants in the strict sense, things that have to hold at every moment and not merely usually. break one and you get corrupted data.
   
-  that gives you a cheap way to find what differs. two peers compare root hashes. if they match, they are done, the folder is identical and they proved it with thirty-two bytes. if the roots differ they compare the children, and recurse only into the branches that disagree, skipping every subtree whose hash already matches. for ten thousand files you walk maybe fifty hashes instead of reading ten thousand files. it is $O(\\log n)$ where the naive thing is $O(n)$, and on a real folder that difference is everything.
+  | invariant | guarantee | if it breaks |
+  | --- | --- | --- |
+  | convergence | once both sides stop changing, equal root hash means equal folder byte for byte | the folders silently diverge |
+  | no loss on conflict | concurrent edits keep both versions, the loser is renamed not deleted | an edit is lost |
+  | atomic transfer | a killed transfer leaves the old file or the new one, never a splice | a half-written, corrupt file |
+  | no sync loop | applying a received file emits zero broadcasts | two peers echo a change forever |
+
+  the rest of this is how each one is enforced.
+  
+  ---
+  
+  **the merkle tree**
+  
+  start with convergence, since it defines what "in sync" means. the structure is old, the same one under git and bitcoin. you hash every file, then hash each folder from the hashes of its children, and those fold upward until the whole tree reduces to a single root hash. change one byte in one file and its leaf hash changes, and its parent's, and so on up to the root. the root is a thirty-two byte fingerprint of the whole folder.
+  
+  that gives you a cheap way to find what differs. two peers compare root hashes. if they match they are done, the folder is identical, proven with thirty-two bytes. if the roots differ they compare the children and recurse only into the branches that disagree, skipping every subtree whose hash already matches. for ten thousand files you walk maybe fifty hashes instead of reading ten thousand. it is $O(\\log n)$ against $O(n)$ for the naive scan.
   
   \`\`\`mermaid
   flowchart TB
@@ -1112,9 +1119,9 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
   
   ---
   
-  **what a leaf carries, and what it drops**
+  **the leaf**
   
-  a leaf is more than a content hash, because two-way sync needs to know not just that two files differ but which one is newer and whether the difference is a real conflict. here is the leaf.
+  a leaf carries more than a content hash. two-way sync also needs to know which side is newer and whether a difference is a real conflict. here is the leaf.
   
   \`\`\`go
   type FileInfo struct {
@@ -1130,17 +1137,17 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
   \`\`\`
   \`internal/merkle/fileinfo.go:26\`
   
-  look at what is not hashed. size, mode and mtime all sit in the struct and none of them go into the structural hash. mtime is the sharp one. it is different on every machine and it drifts, and if you fold it into the hash then two files with identical bytes but different timestamps produce different leaf hashes, which produce different folder hashes, which produce different roots, and now two byte-identical folders report themselves out of sync forever. so mtime is excluded. mode is excluded for the same reason across operating systems, ntfs cannot represent a posix mode bit for bit, so the raw mode differs mac to windows for the same file and hashing it would manufacture a permanent cross-os disagreement. what does get hashed is a canonicalised two-state version of the mode, executable-or-not and symlink-or-not, the only bits that are portable and mean anything. that rule is XP-6.
+  look at what is not hashed. size, mode and mtime all sit in the struct but none go into the structural hash. mtime is the one that matters. it differs on every machine and it drifts, and folding it into the hash means two files with identical bytes but different timestamps get different leaf hashes, which give different folder hashes, which give different roots, so two byte-identical folders report themselves out of sync forever. mode is excluded for the same reason, ntfs cannot represent a posix mode bit for bit, so the raw mode differs mac to windows for the same file and hashing it would create a permanent cross-os disagreement. what does get hashed is a canonicalised two-state mode, executable-or-not and symlink-or-not, the only bits that are portable.
   
-  one more thing hides in the hash. a leaf and an internal node are hashed with a different one-byte prefix, \`0x00\` for a leaf and \`0x01\` for a node. it looks like paranoia until you know the attack, because without the prefix someone can construct an internal node whose bytes collide with a leaf, a second-preimage forgery against the tree. rfc 9162 mandates the prefix and the comment in \`internal/merkle/node.go\` calls it "one byte, not optional." i left the comment exactly as it was.
+  leaves and internal nodes are hashed with a different one-byte prefix, \`0x00\` for a leaf and \`0x01\` for a node. without it an attacker can construct an internal node whose bytes collide with a leaf, a second-preimage forgery against the tree. rfc 9162 mandates the prefix.
   
   ---
   
-  **who is newer**
+  **version vectors**
   
-  the merkle tree tells you two files differ. it does not tell you which one wins. for that you need a notion of causality, and wall-clock time is the wrong tool, because clocks lie, they drift, they leap an hour for daylight saving, and a laptop that was asleep wakes with a clock from an hour ago. so ordering does not touch mtime. it uses version vectors.
+  the merkle tree tells you two files differ, not which one wins. for that you need causality, and wall-clock time is the wrong tool. clocks drift between machines, jump an hour for daylight saving, and a laptop that was asleep wakes with a stale clock. so ordering never touches mtime, it uses version vectors.
   
-  a version vector is a little map from device id to a counter. every time a device makes a genuine local change to a file it bumps its own counter. to compare two versions you walk both vectors together and ask one thing, does either side know something the other does not.
+  a version vector is a map from device id to a counter. every time a device makes a genuine local change to a file it bumps its own counter. to compare two versions you walk both vectors together and ask whether either side knows something the other does not.
   
   \`\`\`go
   func (vv VersionVector) Compare(other VersionVector) Ordering {
@@ -1159,27 +1166,63 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
   \`\`\`
   \`internal/protocol/versionvector.go:158\`
   
-  four outcomes. equal, the same version on both. dominates or dominated-by, one is a clean descendant of the other and you take the newer one with no drama. concurrent is the one that matters, both sides changed the file without seeing the other's change, neither dominates, and that is a real conflict to resolve rather than a simple newer-wins. the two-way engine turns on that single distinction, causal against concurrent.
+  compare returns one of four orderings.
+
+  | ordering | example (a vs b) | meaning | action |
+  | --- | --- | --- | --- |
+  | equal | a=2 b=1 vs a=2 b=1 | same version | nothing to do |
+  | dominates | a=2 b=1 vs a=1 b=1 | a has seen everything b has | take a |
+  | dominated-by | a=1 b=1 vs a=2 b=1 | b is strictly newer | take b |
+  | concurrent | a=2 b=1 vs a=1 b=2 | each side has a change the other lacks | real conflict |
+
+  concurrent is the case that matters, and the whole two-way engine turns on that distinction, causal against concurrent.
   
-  and the reason to bump your counter only on a real local change, never on applying a file you received, is that this is exactly what breaks the sync loop. more on that later. it is also easy to rot slowly if you get it wrong. syncthing had a bug, issue 10590, where removed devices left permanent ghost counters in everyone's vectors, and one user replacing a device logged 8,591 phantom conflicts. i store counters as a sorted slice so two semantically equal vectors encode to identical bytes, which is what lets a version vector live inside the structural hash without ever breaking convergence.
+  the counter bumps only on a real local change, never on applying a file you received, which is exactly what prevents the sync loop. the failure mode is subtle. syncthing issue 10590 left permanent stale counters in everyone's vectors after a device was removed, and one user replacing a device logged 8,591 phantom conflicts. i store counters as a sorted slice so two semantically equal vectors encode to identical bytes, which is what lets a version vector sit inside the structural hash without breaking convergence.
   
   ---
   
-  **losing without loss**
+  **conflicts**
   
-  so two peers edit the same file while disconnected. they reconnect and the vectors say concurrent. now what. the easy thing is last-writer-wins, pick one, drop the other, move on. the easy thing loses data. SR-7 says the loser is renamed to a conflict copy and kept on disk beside the winner, never deleted, so a human can open both and choose.
+  two peers edit the same file while disconnected, reconnect, and the vectors say concurrent. last-writer-wins is the easy answer and it loses data. so the loser is renamed to a conflict copy and kept on disk beside the winner, never deleted, and a human opens both and chooses.
+
+  \`\`\`mermaid
+  sequenceDiagram
+      participant A as peer a
+      participant B as peer b
+      Note over A,B: disconnected
+      A->>A: edit file, a=2
+      B->>B: edit file, b=2
+      Note over A,B: reconnect
+      A-->>B: index file, a=2
+      B-->>A: index file, b=2
+      Note over A,B: concurrent, neither dominates
+      A->>A: keep winner + conflict copy
+      B->>B: keep winner + conflict copy
+  \`\`\`
   
-  there is a subtle trap in the naming. the conflict copy's filename has to be byte-for-byte identical on both machines, or the two peers each invent a differently-named copy of the same loser and now you have a conflict about the conflict. the obvious name uses the loser's modification time, except mac stores mtime in nanoseconds and windows on a fat volume rounds to two-second granularity, so the same instant carries two different timestamps depending on who is looking. so the name is derived from the loser's mtime truncated to whole seconds, which both machines agree on. and the winner keeps its own version vector rather than merging the loser's in, because merging would forge a false history where the winner looks like it descends from the loser, and on a third peer that forged descendant could dominate and drop the loser with no copy at all. i did not see that one until i went looking for ways the design could betray a third peer.
+  the naming has a trap. the conflict copy's filename has to be byte-for-byte identical on both machines, or each peer invents a differently-named copy of the same loser. the obvious name uses the loser's modification time, except mac stores mtime in nanoseconds and windows on a fat volume rounds to two-second granularity, so the same instant carries two different timestamps depending on the machine. so the name uses the loser's mtime truncated to whole seconds, which both agree on. and the winner keeps its own version vector rather than merging the loser's in, because merging would forge a false history where the winner looks like it descends from the loser, and on a third peer that forged descendant could dominate and drop the loser with no copy at all.
   
-  the test that guards this is \`TestConflict_NeitherVersionLostSymmetricName\`. it edits a file on both sides while they are split, reconnects them, and asserts that each peer ends with the winner plus exactly one conflict copy, that the copy has an identical name on both, and that the two files' bytes are the two versions that went in. nothing invented, nothing lost.
+  the test that guards this is \`TestConflict_NeitherVersionLostSymmetricName\`. it edits a file on both sides while they are split, reconnects them, and asserts that each peer ends with the winner plus exactly one conflict copy, that the copy has an identical name on both, and that the two files' bytes are the two versions that went in.
   
   ---
   
-  **landing a file whole**
+  **atomic transfer**
   
-  now the file has to cross the wire and land on disk without ever existing in a half-written state. this is the invariant people skip, because on the happy path you never watch it fail. you watch it fail when the wifi drops at ninety percent.
+  the file has to cross the wire and land on disk without ever existing in a half-written state. this is the invariant people skip, because it only fails when a transfer is interrupted, the wifi dropping at ninety percent.
   
-  the shape is old and strict. write the incoming bytes to a temp file in the same directory as the destination. hash them as they stream in and check the hash against what the leaf promised, before you do anything irreversible. fsync the temp so the bytes are actually on the platter. rename the temp over the destination, which on both mac and windows is atomic, so any reader sees either the whole old file or the whole new one. then fsync the parent directory so the rename itself survives a power cut. if anything fails before the rename, delete the temp and leave the destination untouched.
+  the durable-write recipe is old and strict.
+
+  \`\`\`
+  tmp := temp file in the destination's directory
+  for chunk in stream:
+      write chunk to tmp
+      hash.update(chunk)
+  if hash.sum != expected:
+      delete tmp; abort          # nothing irreversible yet
+  fsync(tmp)                     # bytes are on disk
+  rename(tmp, destination)       # atomic on mac and windows
+  fsync(parent directory)        # the rename survives a power cut
+  \`\`\`
   
   \`\`\`go
   var got [32]byte
@@ -1196,13 +1239,13 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
   \`\`\`
   \`internal/reconcile/transfer.go:89\`
   
-  the comment above it in the source reads "the verify-before-rename is what makes a killed transfer safe," and the load-bearing word is before. verify, then rename, never the other way round. the test kills a transfer for real. \`TestKilledTransfer_NoCorruptFileThenRecovers\` runs a four megabyte file through a loopback proxy that severs the connection after ninety-six kilobytes, asserts the receiver has no partial file and no leftover temp, then reconnects and asserts the file arrives byte-exact. the killed transfer is a non-event. that is the point.
+  verify-before-rename is what makes a killed transfer safe. the order matters, verify then rename, never the reverse. \`TestKilledTransfer_NoCorruptFileThenRecovers\` runs a four megabyte file through a loopback proxy that severs the connection after ninety-six kilobytes, asserts the receiver has no partial file and no leftover temp, then reconnects and asserts the file arrives byte-exact.
   
   ---
   
-  **the wire**
+  **the wire protocol**
   
-  under all of this is a wire protocol, and i built it by hand because the alternative did not earn its weight. tcp does not give you messages, it gives you a stream of bytes with no boundaries, so the first job is framing, deciding where one message ends and the next begins. every frame is a four-byte big-endian length, then a one-byte type, then that many bytes of payload. that is the envelope and it never changes.
+  under all of this is a wire protocol, hand-rolled because a protocol library would have been more weight than two peers on a lan need. tcp does not give you messages, it gives you a stream of bytes with no boundaries, so the first job is framing, deciding where one message ends and the next begins. every frame is a four-byte big-endian length, then a one-byte type, then that many bytes of payload. that envelope never changes.
   
   \`\`\`mermaid
   flowchart LR
@@ -1213,11 +1256,11 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
       R --> P["dispatch by type"]
   \`\`\`
   
-  the length prefix is also the most dangerous byte in the protocol, because a peer can lie about it. if it claims four gigabytes you must not faithfully allocate a four gigabyte buffer and fall over. so two checks run before a single byte of the body is allocated.
+  the length prefix is the dangerous field, since a peer controls it. if it claims four gigabytes you must not allocate a four gigabyte buffer. so two checks run before a single byte of the body is allocated.
   
   \`\`\`go
   length := binary.BigEndian.Uint32(hdr[:])
-  // Validate before allocating the body (SR-12).
+  // Validate before allocating the body.
   if length == 0 {
       return MsgInvalid, nil, ErrZeroLength
   }
@@ -1229,7 +1272,7 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
   \`\`\`
   \`internal/protocol/framing.go:64\`
   
-  the source comment calls these "the single most important lines in the package: they turn a textbook oom and an off-by-one stream desync into a dropped connection." \`io.ReadFull\` does the other essential job, because a single tcp read can hand you half a frame, and code that assumes one read equals one message corrupts everything downstream the first time a packet splits.
+  those two checks turn a textbook oom and an off-by-one stream desync into a dropped connection. \`io.ReadFull\` does the other essential job, because a single tcp read can hand you half a frame, and code that assumes one read equals one message corrupts everything downstream the first time a packet splits.
   
   the message types are a small closed set.
   
@@ -1247,23 +1290,24 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
   \`\`\`
   \`internal/protocol/messages.go:16\`
   
-  \`0x00\` is reserved on purpose, so that a stray zero byte, the most common thing a confused or malicious stream sends, is a loud fatal error instead of a message that slips through as valid. codes from \`0x08\` up are defined as skippable, so a future version can add a message type and an old peer just steps over it, the length prefix already told it how far to skip.
+  \`0x00\` is reserved on purpose, so that a stray zero byte, the most common thing a confused or malicious stream sends, is a fatal error instead of a message that slips through as valid. codes from \`0x08\` up are defined as skippable, so a future version can add a message type and an old peer just steps over it, the length prefix already told it how far to skip.
   
-  then trust. there is no server and no certificate authority, so i use trust on first use. every device generates a self-signed certificate and its device id is the sha-256 of that certificate. the tls config sets \`InsecureSkipVerify: true\`, which sounds like switching security off and is the opposite. it switches off the certificate-authority chain, which is meaningless when there is no authority, and replaces it with a \`VerifyConnection\` callback that pins the peer's certificate hash against an allow-list you approved out of band. the first time you connect to a peer you confirm its fingerprint. every connection after that is the same machine cryptographically or it is refused. the multicast discovery that finds peers on the network is only a hint, and a spoofed announcement just points you at an address whose tls pin then fails.
+  then trust. there is no server and no certificate authority, so i use trust on first use. every device generates a self-signed certificate and its device id is the sha-256 of that certificate. the tls config sets \`InsecureSkipVerify: true\`, which sounds like disabling security but does the opposite here. it turns off the certificate-authority chain, which is meaningless when there is no authority, and replaces it with a \`VerifyConnection\` callback that pins the peer's certificate hash against an allow-list you approved out of band. the first time you connect to a peer you confirm its fingerprint. every connection after that is the same machine cryptographically or it is refused. the multicast discovery that finds peers on the network is only a hint, and a spoofed announcement just points you at an address whose tls pin then fails.
   
   ---
   
-  **where sync engines go to die**
+  **filenames across mac and windows**
   
-  this is the part that kills sync engines, and it is the reason this one targets mac and windows by name rather than pretending the problem is not there. the two systems do not agree on what a filename is.
+  filename handling is the source of most cross-platform bugs, which is why this targets mac and windows specifically. the two systems disagree on what a filename is in four ways, all resolved at the tree boundary.
   
-  start with unicode. you save a file called résumé.pdf on a mac. apfs stores that name in one normalisation form, nfd, where the accented e is a plain e followed by a separate combining accent. windows expects the other form, nfc, where the accented e is a single code point. send the file across untouched and it arrives on windows as re´sume´.pdf, a different name, a different file as far as the tree can tell, and now you have two files where there was one. so every path is normalised to nfc at the boundary, exactly once. the canonical key stored in the tree is always nfc. that is XP-2.
+  | problem | what breaks | fix |
+  | --- | --- | --- |
+  | unicode form | résumé.pdf is nfd on apfs and nfc on windows, so one file looks like two | normalise every path to nfc at the boundary, once |
+  | separators | \`docs/a.txt\` and \`docs\\a.txt\` become two keys for one file | store forward-slash only, add the backslash at the os call |
+  | reserved names | windows rejects \`CON\` \`PRN\` \`NUL\`, and \`name:stream\` writes a hidden data stream | escape reversibly on disk, \`CON\` becomes \`%43ON\` and decodes back |
+  | case folding | \`File.txt\` and \`file.txt\` collide on mac and ntfs | probe the filesystem, refuse and flag |
   
-  then separators. the tree only ever stores forward-slash relative paths, never a backslash, and the backslash appears at the very last moment when a path is handed to a windows system call. keys use go's \`path\` package, the filesystem boundary uses \`filepath\`, and mixing the two is how you end up with \`docs/a.txt\` and \`docs\\a.txt\` as two different keys for one file.
-  
-  then the names windows simply refuses. it reserves a set of characters, the worst being the colon, because on ntfs \`name:stream\` does not name a file called name-colon-stream, it addresses a hidden alternate data stream of the file name, so a literal colon writes to a stream instead of failing loudly. it reserves device names too, \`CON\`, \`PRN\`, \`NUL\`, \`COM1\`, a list of dos relics still illegal as filenames forty years on. the canonical key keeps the original name intact, but the on-disk form on windows escapes these reversibly, so \`CON\` becomes \`%43ON\` on the platter and decodes straight back, and the same logical file round-trips mac to windows to mac with its real name preserved. that is XP-3.
-  
-  the last one is the meanest, and the fix is my favourite thing in the codebase. mac's default filesystem is case-insensitive. so is ntfs. that means \`File.txt\` and \`file.txt\` are the same file on both, and if a peer sends you both you must not let the second silently overwrite the first. the temptation is to detect this in memory by lower-casing names and comparing them, except unicode case-folding is genuinely not the rule ntfs uses inside, so your in-memory guess disagrees with the real filesystem at exactly the wrong moment. so i do not guess. i ask the filesystem.
+  case folding is the subtle one. \`File.txt\` and \`file.txt\` are the same file on mac and ntfs, so a second write must not clobber the first. the tempting fix is to lower-case names in memory and compare them, but unicode case-folding is not the rule ntfs uses internally, so an in-memory guess disagrees with the real filesystem at the wrong moment. so instead of guessing, i ask the filesystem.
   
   \`\`\`go
   func probeCaseSensitive(absRoot string) bool {
@@ -1279,15 +1323,15 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
   \`\`\`
   \`internal/reconcile/transfer.go:137\`
   
-  write a lowercase x, write an uppercase X, read the lowercase one back. if it reads X the two names are the same file and the volume is case-insensitive, so the engine refuses the colliding write and flags it rather than clobbering. that is XP-4, refuse and flag, never overwrite. the filesystem knows its own rules better than my code does, so i let it answer.
+  write a lowercase x, write an uppercase X, read the lowercase one back. if it reads X the two names are the same file and the volume is case-insensitive, so the engine refuses the colliding write and flags it instead of clobbering.
   
   ---
   
-  **one lock, zero i/o under it**
+  **one owner for the tree**
   
-  all of this runs at once and shares one tree, which is where a sync engine grows the kind of race that shows up as a corrupted file three weeks later. so the discipline is boring on purpose. there are three listeners, udp discovery, tcp accept, and the filesystem watcher, and they never call each other directly. they send messages down channels to a single core that owns the tree. share memory by communicating, the old go line, and it means exactly one goroutine ever writes the tree.
+  all of this runs concurrently over one tree, which is where a race shows up as a corrupted file weeks later. the design is deliberately boring. three listeners, udp discovery, tcp accept and the filesystem watcher, never call each other directly, they send messages down channels to a single core that owns the tree. share memory by communicating, the old go line, so exactly one goroutine ever writes the tree.
   
-  that tree is guarded by one \`sync.RWMutex\`, and the rule i held hardest is zero i/o under the lock. you take the lock, copy out the small piece of state you need, release it, and only then do the slow thing, the disk read or the network write. hold the lock across an i/o call and every other goroutine stalls behind a network round-trip, and a watcher event and a sync write can deadlock against each other. copy under the lock, work outside it. that is GR-5, and it is the single rule most likely to save you a 2am session with the race detector.
+  the tree is guarded by one \`sync.RWMutex\`, and the rule that matters most is zero i/o under the lock. take the lock, copy the small piece of state you need, release it, then do the slow thing, the disk read or the network write. hold the lock across an i/o call and every other goroutine stalls behind a network round-trip, and a watcher event and a sync write can deadlock. copy under the lock, work outside it.
   
   \`\`\`mermaid
   flowchart LR
@@ -1300,19 +1344,19 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
       Q -->|"no, applied a received file"| NB["no broadcast"]
   \`\`\`
   
-  two more details make the concurrency behave. the watcher is debounced by a hundred and fifty milliseconds, because one save from an editor fires a burst of write events and you want a single hash-and-diff at the end, not a panicked rescan on the first of fifteen writes that hashes a half-saved file. and every goroutine has an owner. when a peer disconnects, its reader and writer goroutines are reaped through a \`WaitGroup\`, off the main loop so a slow shutdown never blocks the engine, and a test called \`TestConnChurn_NoGoroutineLeak\` connects and disconnects fifteen times and asserts the goroutine count comes home to where it began. no leaks on a flaky peer.
+  two more details matter for concurrency. the watcher is debounced by a hundred and fifty milliseconds, because one save from an editor fires a burst of write events and you want a single hash-and-diff at the end, not a rescan on the first of fifteen writes that hashes a half-saved file. and every goroutine has an owner. when a peer disconnects, its reader and writer goroutines are reaped through a \`WaitGroup\`, off the main loop so a slow shutdown never blocks the engine, and \`TestConnChurn_NoGoroutineLeak\` connects and disconnects fifteen times and asserts the goroutine count returns to its starting value.
   
   ---
   
-  **not eating your own tail**
+  **breaking the sync loop**
   
-  which brings back the fourth invariant, the sync loop. the way two machines fall into one is almost too easy. peer a changes a file and broadcasts. peer b receives it and writes it. b's filesystem watcher, which cannot tell a received file from a hand-edited one, fires. if b now treats that as a local change and broadcasts, a sees a fresh version and the two of them volley the same file forever, roots never settling, cpu never idle.
+  which brings back the fourth invariant. the loop is easy to fall into. peer a changes a file and broadcasts. peer b receives it and writes it. b's filesystem watcher, which cannot tell a received file from a hand-edited one, fires. if b treats that as a local change and broadcasts, a sees a fresh version, and the two send the same file back and forth forever, roots never settling.
   
-  the fix is one discipline stated twice. a device bumps its version-vector counter only on a confirmed local change, and it broadcasts only after a confirmed local change. applying a file you received does neither. in the code there is one function, \`broadcastUpdate\`, that increments the outbound counter, and the apply path never calls it.
+  the fix is one rule in two places. a device bumps its version-vector counter only on a confirmed local change, and it broadcasts only after a confirmed local change. applying a received file does neither. one function, \`broadcastUpdate\`, increments the outbound counter, and the apply path never calls it.
   
   \`\`\`go
-  // broadcastUpdate is called ONLY after confirmed local authorship (SR-6).
-  // applying a received file never calls it (SR-8) - the load-bearing half
+  // broadcastUpdate is called ONLY after confirmed local authorship.
+  // applying a received file never calls it - the load-bearing half
   // of the no-sync-loop invariant.
   func (e *Engine) broadcastUpdate(changed []merkle.FileInfo) {
       if len(changed) == 0 {
@@ -1324,27 +1368,36 @@ i can't improve on that and i have decided i shouldn't try. i went in wanting a 
   \`\`\`
   \`internal/reconcile/broadcast.go:56\`
   
-  because that counter exists, the invariant is directly testable instead of merely hoped for. \`TestTwoNode_ReceiverEmitsZeroIndexUpdates\` has peer a author one file, waits for the pair to converge, then asserts a plain number. the receiver emitted zero index updates and the author emitted exactly one. that is stronger than watching the roots settle, which a slow loop could fake. you can count the thing that must not happen.
+  because that counter exists, the invariant is directly testable, not just hoped for. \`TestTwoNode_ReceiverEmitsZeroIndexUpdates\` has peer a author one file, waits for the pair to converge, then asserts the receiver emitted zero index updates and the author exactly one. that is stronger than watching the roots settle, which a slow loop could fake.
   
   ---
   
-  **the bug that looked like a flake**
+  **the torn read**
   
-  the invariants above are clean in the telling. the actual build was messier, and the bug i think about most never tripped a single unit test, because the tests were green while the thing was broken.
+  the invariants above are the clean version. the build was messier, and the worst bug never tripped a single unit test, the suite stayed green while the code was broken.
   
-  it showed up as a convergence test that timed out now and then. the easy read is a flaky test, bump the timeout, move on. the real read was worse. the scanner built a leaf by taking a file's size from one system call and its content hash from a separate read, and if the file changed in the gap between those two reads, the leaf recorded a size from the old version and a hash from the new one. an internally impossible file. a description of bytes that never existed together. and because the change-detector keys on the content hash, nothing ever corrected it, the peer kept advertising a file it could never actually produce and the other side kept asking for it and never getting it, forever. as the finding put it, it is not slowness, it is a permanently stuck state that a bigger timeout can never clear.
+  it showed up as a convergence test that timed out now and then. it looked like a flaky test. it was not. the scanner built a leaf by taking a file's size from one system call and its content hash from a separate read, and if the file changed between those two reads, the leaf recorded the old size with the new hash, a file that never existed. because the change-detector keys on the content hash, nothing ever corrected it, the peer advertised a file it could not produce and the other side requested it forever. it is not a timing issue, it is a permanently stuck state no timeout can clear.
+
+  \`\`\`mermaid
+  sequenceDiagram
+      participant S as scanner
+      participant F as file on disk
+      S->>F: stat, size = 100
+      Note over F: file overwritten, now 400 bytes
+      S->>F: read bytes, hash of the 400-byte file
+      Note over S: leaf = size 100 + hash of 400
+      Note over S: describes a file that never existed
+  \`\`\`
   
-  so the leaf now takes its size and its hash from one atomic read, and there is a test that hammers a file, flipping it between a small body and a large one thousands of times while the scanner runs, and asserts that any leaf whose hash matches a known version carries that version's exact size. the second bug in the same family was a conflict where a synchronous delete ran before the losing file's copy had landed, so on a delete-against-edit race the edit was gone before it was ever saved. both were data-loss bugs. both passed the tests i had. what caught them was going back to break my own "fixed" instead of trusting the green tick, and it is the part of the project i am most glad i did not skip.
+  so the leaf now takes its size and hash from one atomic read, and a test hammers a file, flipping it between a small and a large body thousands of times while the scanner runs, and asserts that any leaf whose hash matches a known version carries that version's exact size. the second bug in the same family was a synchronous delete that ran before the losing file's copy had landed, so on a delete-against-edit race the edit was gone before it was saved. both were data-loss bugs that passed the tests i had. what caught them was going back to break my own fix instead of trusting the green tick.
   
   ---
   
-  **two laptops on a desk**
+  **running it**
   
-  so, running it for real. two laptops, one mac, one windows, on the same wifi. start the daemon on both pointed at a folder. they find each other over multicast within a second or two, do the tls handshake, trade indexes, and settle to the same root hash. change a file on the mac and before you have turned to the other machine it already has it, both roots equal again. edit the same file on both at once and you get a winner and a conflict copy with the same name on each side. delete on one and it stays deleted on the other instead of resurrecting. kill a transfer mid-file and nothing corrupt is left behind. it has been tested on both macos and windows, and the continuous integration runs the full race-detector suite on ubuntu, macos and windows on every change.
+  two laptops, one mac, one windows, on the same wifi. start the daemon on both pointed at a folder. they find each other over multicast within a second or two, do the tls handshake, trade indexes, and settle to the same root hash. change a file on the mac and it shows up on windows within a second, roots equal again. edit the same file on both at once and you get a winner plus a conflict copy with the same name on each side. delete on one and it stays deleted on the other instead of resurrecting. kill a transfer mid-file and nothing corrupt is left behind. ci runs the full race-detector suite on ubuntu, macos and windows on every change.
   
-  it is deliberately not much. two devices, not a swarm. one local network, no relays and no internet-wide discovery. it skips symlinks rather than guess what they should mean across two operating systems, it does not sync empty directories, and a handful of genuinely ambiguous cases, a file and a folder colliding on one name, a path too long for windows, are refused and flagged rather than resolved by picking one. every one of those was a decision to do less on purpose, written down, because a confident wrong move scared me far more than an honest i-will-not-touch-this.
-  
-  so that's the engine. four invariants, one lock, a tree of hashes and a great deal of code that only ever runs when something has already gone wrong. the part i keep coming back to is not the merkle diff, which is elegant and does exactly what the textbook promises. it is the torn leaf, the one that read a file's size from one syscall and its hash from another and shipped a description of a file that could never arrive, green tests and all. the happy path was always the easy fifth of it. the rest was learning, one data-loss bug at a time, that a file someone hands you is a thing you are meant to give back exactly as it was. two laptops on a desk. one file changes. the other one just knows. that still feels like more than it should.`,
+  the scope is deliberately small. two devices, not a swarm. one local network, no relays and no internet-wide discovery. it skips symlinks rather than guess what they mean across two operating systems, it does not sync empty directories, and a handful of genuinely ambiguous cases, a file and a folder colliding on one name, a path too long for windows, are refused and flagged rather than resolved by picking one. refusing an ambiguous case beats silently picking the wrong side.`,
   },  
   {
     id: "blog-dynamical-systems",
