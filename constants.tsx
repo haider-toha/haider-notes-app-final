@@ -1068,7 +1068,7 @@ sahad, given the choice at the very end to become the god of death completely or
   
   dropbox exists and just works, but i wanted the primitives underneath it. how do two machines confirm a terabyte is identical by exchanging thirty-two bytes. how do they find each other with no server in the middle. what happens when the connection dies with a file half sent. syncthing answers all of that and answers it well, but reading it is not the same as building it.
   
-  my background is aeronautics, so i started from the failure modes, not the happy path. before writing a line i listed the ways this could lose data, because a sync engine that loses a file is worse than no sync engine. the scope is tight on purpose. two devices, one local network, mac and windows and a hard list of what i was not building, global discovery, relays, a gui, a multi-device index database, delta indexing, at-rest encryption.
+  before writing a line i listed the ways this could lose data, because a sync engine that loses a file is worse than no sync engine. the scope is tight on purpose. two devices, one local network, mac and windows and a hard list of what i was not building, global discovery, relays, a gui, a multi-device index database, delta indexing, at-rest encryption.
   
   ---
   
@@ -1123,7 +1123,7 @@ sahad, given the choice at the very end to become the god of death completely or
   
   **the leaf**
   
-  a leaf carries more than a content hash. two-way sync also needs to know which side is newer and whether a difference is a real conflict. here is the leaf.
+  a leaf carries more than a content hash. two-way sync also needs to know which side is newer and whether a difference is a real conflict.
   
   \`\`\`go
   type FileInfo struct {
@@ -1378,7 +1378,7 @@ sahad, given the choice at the very end to become the god of death completely or
   
   the invariants above are the clean version. the build was messier and the worst bug never tripped a single unit test, the suite stayed green while the code was broken.
   
-  it showed up as a convergence test that timed out now and then. it looked like a flaky test. it was not. the scanner built a leaf by taking a file's size from one system call and its content hash from a separate read and if the file changed between those two reads, the leaf recorded the old size with the new hash, a file that never existed. because the change-detector keys on the content hash, nothing ever corrected it, the peer advertised a file it could not produce and the other side requested it forever. it is not a timing issue, it is a permanently stuck state no timeout can clear.
+  it showed up as a convergence test that timed out now and then, which looked like flakiness and was not. the scanner built a leaf by taking a file's size from one system call and its content hash from a separate read and if the file changed between those two reads, the leaf recorded the old size with the new hash, a file that never existed. because the change-detector keys on the content hash, nothing ever corrected it, the peer advertised a file it could not produce and the other side requested it forever. no timeout can clear it, the peer is wedged for good.
 
   \`\`\`mermaid
   sequenceDiagram
@@ -1399,7 +1399,7 @@ sahad, given the choice at the very end to become the god of death completely or
   
   two laptops, one mac, one windows, on the same wifi. start the daemon on both pointed at a folder. they find each other over multicast within a second or two, do the tls handshake, trade indexes and settle to the same root hash. change a file on the mac and it shows up on windows within a second, roots equal again. edit the same file on both at once and you get a winner plus a conflict copy with the same name on each side. delete on one and it stays deleted on the other instead of resurrecting. kill a transfer mid-file and nothing corrupt is left behind. ci runs the full race-detector suite on ubuntu, macos and windows on every change.
   
-  the scope is deliberately small. two devices, not a swarm. one local network, no relays and no internet-wide discovery. it skips symlinks rather than guess what they mean across two operating systems, it does not sync empty directories and a handful of genuinely ambiguous cases, a file and a folder colliding on one name, a path too long for windows, are refused and flagged rather than resolved by picking one. refusing an ambiguous case beats silently picking the wrong side.`,
+  the scope is deliberately small. two devices, not a swarm. one local network, no relays and no internet-wide discovery. it skips symlinks rather than guess what they mean across two operating systems, it does not sync empty directories. a handful of genuinely ambiguous cases, a file and a folder colliding on one name, a path too long for windows, are refused and flagged rather than resolved by picking one. refusing an ambiguous case beats silently picking the wrong side.`,
   },  
   {
     id: "blog-dynamical-systems",
