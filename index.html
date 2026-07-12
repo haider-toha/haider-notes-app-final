@@ -1,13 +1,35 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Haider Toha</title>
+
+    <!-- Per-page <title>, description, canonical, Open Graph, Twitter and page-level
+         JSON-LD are injected at build time by scripts/prerender.mjs (and kept in sync
+         on client-side navigation by App.tsx). The tags below are the site-wide
+         constants that are identical on every page. -->
+    <title>Haider Toha — Founding Engineer at SAMMY Labs (YC W25)</title>
+    <meta name="author" content="Haider Toha" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta property="og:site_name" content="Haider Toha" />
+    <meta property="og:locale" content="en_GB" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@HaiderToha" />
+    <meta name="twitter:creator" content="@HaiderToha" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+    <meta name="format-detection" content="telephone=no" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="alternate icon" href="/favicon.svg">
-    
+    <link rel="mask-icon" href="/favicon.svg" color="#F0C000" />
+    <!-- rel="me" ties this domain to the same identity across platforms. -->
+    <link rel="me" href="https://www.linkedin.com/in/haidertoha" />
+    <link rel="me" href="https://github.com/haider-toha" />
+    <link rel="me" href="https://x.com/HaiderToha" />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -62,6 +84,11 @@
       };
     </script>
     <style>
+      /* Prerendered SEO content (see #ssg-root in <body>) is real HTML that non-JS
+         crawlers/recruiter tools read directly. As soon as JS is available we hide it
+         so it never flashes before React mounts the actual app in the same #root. */
+      html.js #ssg-root { display: none !important; }
+
       /* Hide scrollbar for Chrome, Safari and Opera */
       .no-scrollbar::-webkit-scrollbar {
           display: none;
@@ -138,9 +165,14 @@
         font-weight: 100 900;
       }
     </style>
+    <!--SSG-HEAD-->
 </head>
   <body class="bg-apple-bgLight dark:bg-apple-bgDark text-black dark:text-white overflow-hidden">
-    <div id="root" class="h-full w-full"></div>
+    <!-- Progressive enhancement: flag JS availability before first paint so the
+         prerendered #ssg-root (below) is hidden instantly for real browsers while
+         staying fully readable to non-JS crawlers and recruiter/ATS scrapers. -->
+    <script>document.documentElement.classList.add('js');</script>
+    <div id="root" class="h-full w-full"><!--SSG-BODY--></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

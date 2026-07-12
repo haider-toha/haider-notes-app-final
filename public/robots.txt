@@ -1,0 +1,5 @@
+# haidertoha.site — everything here is public and meant to be indexed.
+User-agent: *
+Allow: /
+
+Sitemap: https://www.haidertoha.site/sitemap.xml

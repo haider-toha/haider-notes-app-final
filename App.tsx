@@ -4,6 +4,13 @@ import Sidebar from "./components/Sidebar";
 import MainContent from "./components/MainContent";
 import { portfolioNotes, folders } from "./constants";
 import { Theme } from "./types";
+import {
+  SITE_URL,
+  homeMeta,
+  folderMeta,
+  noteMeta,
+  type PageMeta,
+} from "./seo";
 import { Moon, Sun, PanelLeft, Share } from "lucide-react";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -29,6 +36,40 @@ const getNoteFromParams = (
     if (exact) return exact;
   }
   return portfolioNotes.find((n) => n.slug === slugParam) ?? null;
+};
+
+// Keep the document head in sync with the current view on client-side navigation.
+// The prerendered HTML already ships correct tags for the first load / non-JS
+// crawlers; this mirrors seo.ts so the tab title, share metadata and canonical stay
+// right once React takes over. (Structured-data JSON-LD is left as prerendered.)
+const upsertMeta = (key: "name" | "property", value: string, content: string) => {
+  let el = document.head.querySelector<HTMLMetaElement>(`meta[${key}="${value}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(key, value);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+};
+
+const applyHeadMeta = (meta: PageMeta) => {
+  const url = SITE_URL + meta.path;
+  document.title = meta.title;
+  upsertMeta("name", "description", meta.description);
+  upsertMeta("property", "og:title", meta.title);
+  upsertMeta("property", "og:description", meta.description);
+  upsertMeta("property", "og:url", url);
+  upsertMeta("property", "og:type", meta.ogType);
+  upsertMeta("name", "twitter:title", meta.title);
+  upsertMeta("name", "twitter:description", meta.description);
+
+  let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.setAttribute("rel", "canonical");
+    document.head.appendChild(canonical);
+  }
+  canonical.setAttribute("href", url);
 };
 
 const App: React.FC = () => {
@@ -112,6 +153,17 @@ const App: React.FC = () => {
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
+
+  // Update <title>/description/canonical/OG for the current view as the user
+  // navigates client-side (see applyHeadMeta above).
+  useEffect(() => {
+    const meta = selectedNote
+      ? noteMeta(selectedNote)
+      : folderParam
+        ? folderMeta(selectedFolderId)
+        : homeMeta();
+    applyHeadMeta(meta);
+  }, [selectedNote, folderParam, selectedFolderId]);
 
   const handleSelectNote = (id: string) => {
     const note = portfolioNotes.find((n) => n.id === id);
