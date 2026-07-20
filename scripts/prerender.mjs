@@ -287,15 +287,16 @@ ${contactFooter(seo)}
 
 function headTags(meta, jsonld, seo) {
   const url = seo.absUrl(meta.path);
+  const ogDesc = meta.ogDescription ?? meta.description;
   const tags = [
     `<meta name="description" content="${attrEscape(meta.description)}" />`,
     `<link rel="canonical" href="${url}" />`,
     `<meta property="og:type" content="${meta.ogType}" />`,
     `<meta property="og:title" content="${attrEscape(meta.title)}" />`,
-    `<meta property="og:description" content="${attrEscape(meta.description)}" />`,
+    `<meta property="og:description" content="${attrEscape(ogDesc)}" />`,
     `<meta property="og:url" content="${url}" />`,
     `<meta name="twitter:title" content="${attrEscape(meta.title)}" />`,
-    `<meta name="twitter:description" content="${attrEscape(meta.description)}" />`,
+    `<meta name="twitter:description" content="${attrEscape(ogDesc)}" />`,
   ];
   if (meta.ogType === "article" && meta.publishedTime) {
     tags.push(

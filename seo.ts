@@ -11,7 +11,7 @@ import type { Note } from "./types";
 
 export const SITE_URL = "https://www.haidertoha.site";
 export const AUTHOR_NAME = "Haider Toha";
-export const AUTHOR_TAGLINE = "Founding Engineer at SAMMY Labs (YC W25)";
+export const AUTHOR_TAGLINE = "Founding Engineer at Zymbly (YC W26)";
 export const TWITTER_HANDLE = "@HaiderToha";
 
 // folder id -> human label, used in <title>, breadcrumbs and the site index.
@@ -27,6 +27,7 @@ export const FOLDER_LABELS: Record<string, string> = {
 export interface PageMeta {
   title: string;
   description: string;
+  ogDescription?: string; // if set, used for og:description / twitter:description instead of description
   path: string; // canonical path, always the note's real folder (never "all")
   ogType: "profile" | "article" | "website";
   publishedTime?: string;
@@ -59,16 +60,17 @@ export function truncate(s: string, n = 158): string {
 // A few pages read better with a hand-written description than an auto-truncation.
 const DESCRIPTION_OVERRIDES: Record<string, string> = {
   "about-me":
-    "About Haider Toha — founding engineer at SAMMY Labs (YC W25) in London. Full-stack across TypeScript, Python, React, FastAPI and Postgres, with a background in aeronautics (Imperial College London) and a past role at Goldman Sachs.",
+    "About Haider Toha — founding engineer at Zymbly (YC W26) in London. Full-stack across TypeScript, Python, React, FastAPI and Postgres, with a background in aeronautics (Imperial College London) and past roles at Goldman Sachs and SAMMY Labs.",
   experience:
-    "Haider Toha's experience — founding engineer at SAMMY Labs (YC W25), analyst and software engineering intern at Goldman Sachs, computing teaching assistant at Imperial College London, and an MEng in Aeronautics.",
+    "Haider Toha's experience — founding engineer at Zymbly (YC W26), founding engineer at SAMMY Labs (YC W25), analyst and software engineering intern at Goldman Sachs, and an MEng in Aeronautics.",
 };
 
 export function homeMeta(): PageMeta {
   return {
-    title: `${AUTHOR_NAME} — ${AUTHOR_TAGLINE}`,
+    title: AUTHOR_NAME,
     description:
-      "Haider Toha — founding engineer at SAMMY Labs (YC W25) in London. Full-stack engineer across TypeScript, Python, React, FastAPI and Postgres, with an MEng in Aeronautics from Imperial College London and past roles at Goldman Sachs and Bloomberg. Writing on systems, machine learning and infrastructure.",
+      "Haider Toha — founding engineer at Zymbly (YC W26) in London. Full-stack engineer across TypeScript, Python, React, FastAPI and Postgres, with an MEng in Aeronautics from Imperial College London and past roles at Goldman Sachs and SAMMY Labs. Writing on systems, machine learning and infrastructure.",
+    ogDescription: "", // no description in share previews — just the name
     path: "/",
     ogType: "profile",
   };
@@ -77,7 +79,7 @@ export function homeMeta(): PageMeta {
 const FOLDER_DESCRIPTIONS: Record<string, string> = {
   all: "Every note by Haider Toha — writing, projects, profile and reflections in one place.",
   profile:
-    "Haider Toha — founding engineer at SAMMY Labs (YC W25), London. Background, experience, current focus and the stack he builds on.",
+    "Haider Toha — founding engineer at Zymbly (YC W26), London. Background, experience, current focus and the stack he builds on.",
   blog: "Writing by Haider Toha on systems, machine learning, infrastructure and the things he's thinking through.",
   projects:
     "Projects by Haider Toha — from a parallel Navier-Stokes solver to a real-time global sentiment engine and an FPL analyser.",
@@ -125,8 +127,8 @@ export function personJsonLd(): Record<string, unknown> {
     jobTitle: "Founding Engineer",
     worksFor: {
       "@type": "Organization",
-      name: "SAMMY Labs",
-      description: "Y Combinator (W25)",
+      name: "Zymbly",
+      description: "Y Combinator (W26)",
     },
     alumniOf: [
       {

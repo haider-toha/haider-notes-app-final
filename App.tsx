@@ -54,14 +54,15 @@ const upsertMeta = (key: "name" | "property", value: string, content: string) =>
 
 const applyHeadMeta = (meta: PageMeta) => {
   const url = SITE_URL + meta.path;
+  const ogDesc = meta.ogDescription ?? meta.description;
   document.title = meta.title;
   upsertMeta("name", "description", meta.description);
   upsertMeta("property", "og:title", meta.title);
-  upsertMeta("property", "og:description", meta.description);
+  upsertMeta("property", "og:description", ogDesc);
   upsertMeta("property", "og:url", url);
   upsertMeta("property", "og:type", meta.ogType);
   upsertMeta("name", "twitter:title", meta.title);
-  upsertMeta("name", "twitter:description", meta.description);
+  upsertMeta("name", "twitter:description", ogDesc);
 
   let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   if (!canonical) {

@@ -26,11 +26,13 @@ london, uk
 
 [github](https://github.com/haider-toha) • [email](mailto:mohammedhaidertoha@gmail.com) • [linkedin](https://linkedin.com/in/haidertoha) • [twitter](https://x.com/HaiderToha)
 
-founding engineer at sammy labs (yc w25). i write code across the stack, from typescript on the frontend to python on the backend with postgres underneath. most of my time goes into building features end-to-end, designing the interface, writing the api, optimising the queries and making sure it holds up in production.
+founding forward deployed engineer at zymbly (yc w26). we build voice-first ai agents for aircraft maintenance, the kind that let a technician talk through a fault, surface the right manual page and file compliant paperwork without touching a keyboard. aviation maintenance runs on a global shortage of something like 43,000 technicians and a mountain of admin that eats half a working day. we’re chipping at that.
 
-my background is aeronautics. designing systems that can't afford to fail taught me to think about failure modes first, asking what breaks, when and how you recover gracefully. i’ve since worked at goldman sachs (scale, process, reliability) and built my own ventures from zero (speed, scrappiness, shipping daily). both shaped how i write code.
+my background is aeronautics, so this is the work that makes sense to me in a way most other problems haven’t. i write code across the stack, typescript on the frontend to python on the backend with postgres underneath, and most of my time goes into building features end-to-end, from the interface to the api to making sure it holds under load.
 
-i spend about a third of my time with customers, on calls, debugging their issues live, understanding what's actually blocking them vs what they say is blocking them. the best features i've shipped came from watching someone struggle with the product.
+before this i was at sammy labs (yc w25) working on computational law, compiling statutes, case law and operating procedures into deterministic engines so compliance questions could be answered with a single api call and a provenance trail. and before that goldman sachs, mostly large-scale systems and internal tooling.
+
+i spend a fair bit of time with customers, on calls, debugging issues live, working out what’s actually blocking them versus what they say is blocking them. the best things i’ve shipped came from watching someone struggle with the product.
 
 what i care about is clean abstractions, fast feedback loops and code that's easy to delete. i'd rather ship something small that works than something ambitious that doesn't.
 
@@ -121,8 +123,11 @@ i’ll argue for a decision with the data i have. better data wins immediately.`
     session_id: "",
     created_at: "2026-03-01T14:08:00.000Z",
     isPinned: true,
-    content: `**founding engineer · sammy labs (yc w25)** · london · nov 2025-present  
-own full stack features from react frontend to python backend to postgres. spend about a third of my time on customer calls, debugging issues live and translating pain points into features. i like to move fast and ship daily.
+    content: `**founding forward deployed engineer · zymbly (yc w26)** · london · jul 2026-present  
+building voice-first ai agents for aircraft maintenance. technicians spend half their day on admin and troubleshooting instead of working on the aircraft, searching through 10,000-page manuals, chasing part numbers, filing compliance paperwork. we’re automating that.
+
+**founding engineer · sammy labs (yc w25)** · london · nov 2025-jun 2026  
+built computational law infrastructure, compiling statutes, case law and internal operating procedures into deterministic legal engines. owned the full stack from react frontend to python backend to postgres. spent a lot of time on customer calls translating pain points into features.
 
 **analyst · goldman sachs** · london · jul 2025-nov 2025  
 worked on cloud security and internal tooling for the tech risk & cybersec team. short stint before joining sammy at the seed stage.
@@ -969,7 +974,7 @@ database growth averages ~2kb per article, 1000-3000 articles per hour, 50-150mb
     folder: "blog",
     public: true,
     session_id: "",
-    created_at: "2026-07-05T21:14:00.000Z",
+    created_at: "2026-07-07T21:14:00.000Z",
     content: `i went looking for something to watch a few weeks ago and ended up scrolling the list i keep of shows people have told me to get to, the type of list that only ever gets longer and there was a title on it i did not recognise. pluto. no note beside it, no memory of putting it there. i nearly skipped it. and then it came back to me where it was from. months earlier i had seen a tiktok edit and saved it and forgotten i had, a robot sitting across from an old man and asking to be taught the piano. the man is bitter about the request, tells the robot he is a weapon, that a thing built for the battlefield has no soul, the kind built for mass destruction. and the robot says that is exactly the reason he wants to learn. he does not want to belong to the battlefield and the piano is how he says so. the edit ran it under the piano from kanye's runaway, which happens to be one of my favourite songs and then i closed the app and forgot about it for months. so finally decided to put it on, naoki urasawa's 8-episode netflix anime from 2023. and it was better than i expected.
 
 the robot is north no.2 and i will come back to him. but first there is a man in a lab, standing over the largest mind ever assembled and it will not wake.
