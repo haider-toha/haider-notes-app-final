@@ -26,11 +26,11 @@ london, uk
 
 [github](https://github.com/haider-toha) • [email](mailto:mohammedhaidertoha@gmail.com) • [linkedin](https://linkedin.com/in/haidertoha) • [twitter](https://x.com/HaiderToha)
 
-founding forward deployed engineer at zymbly (yc w26). we build voice-first ai agents for aircraft maintenance, the kind that let a technician talk through a fault, surface the right manual page and file compliant paperwork without touching a keyboard. aviation maintenance runs on a global shortage of something like 43,000 technicians and a mountain of admin that eats half a working day. we’re chipping at that.
+founding forward deployed engineer at [zymbly](https://zymbly.com) (yc w26). we’re building the next generation of software for aviation. right now that looks like the maintenance floor, tools that let a technician talk through a fault, surface the right manual page and file compliant paperwork without touching a keyboard. there’s a global shortage of something like 43,000 technicians and a mountain of admin that eats half a working day, so that’s where we’re starting. the longer bet is software across the rest of how aviation actually runs.
 
 my background is aeronautics, so this is the work that makes sense to me in a way most other problems haven’t. i write code across the stack, typescript on the frontend to python on the backend with postgres underneath, and most of my time goes into building features end-to-end, from the interface to the api to making sure it holds under load.
 
-before this i was at sammy labs (yc w25) working on computational law, compiling statutes, case law and operating procedures into deterministic engines so compliance questions could be answered with a single api call and a provenance trail. and before that goldman sachs, mostly large-scale systems and internal tooling.
+before this i was at [sammy labs](https://sammylabs.com) (yc w25) working on computational law, compiling statutes, case law and operating procedures into deterministic engines so compliance questions could be answered with a single api call and a provenance trail. and before that [goldman sachs](https://www.goldmansachs.com), mostly large-scale systems and internal tooling.
 
 i spend a fair bit of time with customers, on calls, debugging issues live, working out what’s actually blocking them versus what they say is blocking them. the best things i’ve shipped came from watching someone struggle with the product.
 
@@ -123,20 +123,20 @@ i’ll argue for a decision with the data i have. better data wins immediately.`
     session_id: "",
     created_at: "2026-03-01T14:08:00.000Z",
     isPinned: true,
-    content: `**founding forward deployed engineer · zymbly (yc w26)** · london · jul 2026-present  
-building voice-first ai agents for aircraft maintenance. technicians spend half their day on admin and troubleshooting instead of working on the aircraft, searching through 10,000-page manuals, chasing part numbers, filing compliance paperwork. we’re automating that.
+    content: `**founding forward deployed engineer · [zymbly](https://zymbly.com) (yc w26)** · london · jul 2026-present  
+building the next generation of software for aviation. right now that means the maintenance floor, where technicians lose half their day to manuals, parts lookup and compliance paperwork. we’re starting there. the longer bet is software across the rest of how aviation actually runs.
 
-**founding engineer · sammy labs (yc w25)** · london · nov 2025-jun 2026  
+**founding engineer · [sammy labs](https://sammylabs.com) (yc w25)** · london · nov 2025-jun 2026  
 built computational law infrastructure, compiling statutes, case law and internal operating procedures into deterministic legal engines. owned the full stack from react frontend to python backend to postgres. spent a lot of time on customer calls translating pain points into features.
 
-**analyst · goldman sachs** · london · jul 2025-nov 2025  
+**analyst · [goldman sachs](https://www.goldmansachs.com)** · london · jul 2025-nov 2025  
 worked on cloud security and internal tooling for the tech risk & cybersec team. short stint before joining sammy at the seed stage.
 
-**intern · goldman sachs** · birmingham · summer 2024  
+**intern · [goldman sachs](https://www.goldmansachs.com)** · birmingham · summer 2024  
 built nlp and semantic search tooling that reduced time-to-answer for research analysts. first exposure to building production systems at scale.
 
 # education
-**meng aeronautics · imperial** · london · 2021-2025`,
+**meng aeronautics · [imperial](https://www.imperial.ac.uk)** · london · 2021-2025`,
   },
   {
     id: "project-self-engineering-agent",

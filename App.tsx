@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router";
 import Sidebar from "./components/Sidebar";
 import MainContent from "./components/MainContent";
 import { portfolioNotes, folders } from "./constants";

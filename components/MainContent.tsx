@@ -908,6 +908,33 @@ const MainContent: React.FC<MainContentProps> = ({
     // used to reject prose like "$5 to $10" or "a * b *" that isn't really math/italic.
     const tight = (s: string) => s.length > 0 && !/^\s|\s$/.test(s);
 
+    // Render a markdown link token, or null if it isn't one.
+    const renderLink = (token: string, key: string | number) => {
+      const linkMatch = token.match(/^\[(.*?)\]\((.*?)\)$/);
+      if (!linkMatch) return null;
+      // Only http(s) links open in a new tab; mailto:/relative open in place.
+      const isExternal = /^https?:\/\//i.test(linkMatch[2]);
+      return (
+        <a
+          key={key}
+          href={linkMatch[2]}
+          {...(isExternal
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : {})}
+          className="text-apple-yellow hover:underline cursor-pointer"
+        >
+          {linkMatch[1]}
+        </a>
+      );
+    };
+
+    // Re-parse links inside bold/italic so e.g. **work at [acme](url)** works.
+    const withNestedLinks = (text: string, keyPrefix: string) =>
+      text.split(/(\[.*?\]\(.*?\))/g).map((chunk, i) => {
+        const link = renderLink(chunk, `${keyPrefix}-${i}`);
+        return link ?? <span key={`${keyPrefix}-${i}`}>{chunk}</span>;
+      });
+
     return segments.map((part, j) => {
       // Block math
       if (part.startsWith("\x00BLOCKMATH:") && part.endsWith("\x00")) {
@@ -941,7 +968,7 @@ const MainContent: React.FC<MainContentProps> = ({
       if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
         return (
           <strong key={j} className="font-bold">
-            {part.slice(2, -2)}
+            {withNestedLinks(part.slice(2, -2), `b${j}`)}
           </strong>
         );
       }
@@ -955,30 +982,15 @@ const MainContent: React.FC<MainContentProps> = ({
         if (tight(inner)) {
           return (
             <em key={j} className="italic text-apple-textGray">
-              {inner}
+              {withNestedLinks(inner, `i${j}`)}
             </em>
           );
         }
         return <span key={j}>{part}</span>;
       }
-      if (part.startsWith("[") && part.includes("](") && part.endsWith(")")) {
-        const linkMatch = part.match(/\[(.*?)\]\((.*?)\)/);
-        if (linkMatch) {
-          // Only http(s) links open in a new tab; mailto:/relative open in place.
-          const isExternal = /^https?:\/\//i.test(linkMatch[2]);
-          return (
-            <a
-              key={j}
-              href={linkMatch[2]}
-              {...(isExternal
-                ? { target: "_blank", rel: "noopener noreferrer" }
-                : {})}
-              className="text-apple-yellow hover:underline cursor-pointer"
-            >
-              {linkMatch[1]}
-            </a>
-          );
-        }
+      {
+        const link = renderLink(part, j);
+        if (link) return link;
       }
       return <span key={j}>{part}</span>;
     });
