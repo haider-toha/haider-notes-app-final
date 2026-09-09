@@ -41,7 +41,7 @@ The selected approach is a focused page with a narrow glimpse of its neighbor, a
 
 ## Verified implementation
 
-The default route opens about me; contents stays on every paper face. Display equations have 16px less combined vertical margin. Short desktop windows fit the whole sheet, with a subtle fade indicating writing that continues below. Diagrams and images also respect the available reading height; expansion preserves close inspection.
+The default route opens about me; contents appears once per desktop spread and on every mobile page. Display equations have 16px less combined vertical margin. Short desktop windows fit the whole sheet, with a subtle fade indicating writing that continues below. Diagrams and images also respect the available reading height; expansion preserves close inspection.
 
 The final Chromium audit covers 50 page/viewport combinations across ten sizes: four desktop windows (1440×1050, 1366×768, 1280×720, 1024×600) and the six phone orientations above. The exact-source check preserves all 27 notes and 199,424 characters. The figure and math checks cover 18 diagrams, three live simulations, 178 equations and 3,686 handwritten glyph instances without fallback. Permanent mobile regression coverage is in `scripts/check-notebook-mobile.mjs`.
 

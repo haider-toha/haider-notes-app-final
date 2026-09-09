@@ -245,7 +245,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     else move(Math.floor((index + contentsPages) / step) * step);
   };
 
-  const renderContentsLink = (index: number) => <button className="notebook-contents-link"
+  const renderContentsLink = (index: number) => !mobile && index % 2 === 1 ? null : <button className="notebook-contents-link"
     aria-label={index < contentsPages ? 'Back to reading' : 'Open contents'} disabled={turning}
     onClick={() => {
       if (index < contentsPages) selectPage(readingPage.current - contentsPages);

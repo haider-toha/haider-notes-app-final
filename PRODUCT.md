@@ -53,7 +53,7 @@ The default landing surface is the about-me reading page. `/` and `/notebook` op
 
 Contents lists all 27 notes in folder groups across the two leaves. Only the left leaf has the “contents” title; an equal-height spacer on the right keeps both columns aligned. Larger group headings, indented entries, and handwritten page references establish the hierarchy. These leaves turn through the same engine as the reading pages.
 
-A small handwritten control inside each page's upper outer margin reads “← contents” during reading and navigates to `/contents`. On contents, “continue reading →” restores the remembered source page at its canonical note URL. Visiting contents preserves the saved reading position. Reading page numbers start at 1 and exclude the two preliminary leaves.
+A small handwritten control at the upper left of each desktop spread or mobile page reads “← contents” during reading and navigates to `/contents`. On contents, “continue reading →” restores the remembered source page at its canonical note URL. Visiting contents preserves the saved reading position. Reading page numbers start at 1 and exclude the two preliminary leaves.
 
 ## Reading and Media
 

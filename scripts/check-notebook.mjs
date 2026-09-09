@@ -14,7 +14,7 @@ const errors = [];
 async function checkNavigationPlacement(page) {
   assert.equal(await page.locator('.notebook-spread > .notebook-contents-link').count(), 0, 'Navigation must belong to page faces, not float over the spread');
   const controls = page.locator('.notebook-leaf:not([inert]) > .notebook-sheet > .notebook-contents-link');
-  assert.equal(await controls.count(), page.viewportSize().width < 700 ? 1 : 2, 'Every visible face has its own navigation');
+  assert.equal(await controls.count(), 1, 'Each desktop spread or mobile page has one contents control');
   assert(await controls.evaluateAll(buttons => buttons.every(button => {
     const control = button.getBoundingClientRect();
     const sheet = button.closest('.notebook-sheet');
@@ -62,8 +62,9 @@ try {
   assert(await page.locator('.notebook-leaf').evaluateAll(leaves => leaves.some(e => e.style.clipPath.includes('polygon'))), 'Drag must render a flexible fold');
   assert(await page.locator('.notebook-leaf').evaluateAll(leaves => leaves.filter(leaf => leaf.style.clipPath.includes('polygon')).every(leaf => {
     const control = leaf.querySelector('.notebook-sheet > .notebook-contents-link');
+    if (leaf.querySelector('.notebook-sheet')?.dataset.pageSide === 'right') return control === null;
     return control && getComputedStyle(control).visibility === 'visible' && getComputedStyle(control).opacity === '1';
-  })), 'Folded faces carry their own visible contents controls');
+  })), 'Only left desktop faces carry contents controls through a fold');
   await page.mouse.move(rect.x + 60, y, { steps: 30 }); await page.mouse.up();
   await page.waitForFunction(() => document.querySelector('.lined-notebook > .notebook-accessible-status').textContent.startsWith('Pages 3'));
   await delay(page);
@@ -71,7 +72,7 @@ try {
   await checkNavigationPlacement(page);
   assert(await page.locator('.notebook-spread').evaluate(e => parseFloat(e.style.getPropertyValue('--stack-left'))) > initialStack, 'Turned pages thicken left stack');
   await page.reload(); await delay(page, 500); assert.equal(await status(page), expected(2), 'Remember place after refresh');
-  await page.locator('.notebook-leaf:not([inert]) > [data-page-side=right] > .notebook-contents-link').click(); await delay(page);
+  await page.locator('.notebook-leaf:not([inert]) > [data-page-side=left] > .notebook-contents-link').click(); await delay(page);
   assert.equal(new URL(page.url()).pathname, '/contents');
   assert.equal(await status(page), 'Contents.');
   assert.equal(await page.locator('.notebook-leaf:has(.notebook-contents-page)').count(), 2, 'Contents are two real book leaves');
