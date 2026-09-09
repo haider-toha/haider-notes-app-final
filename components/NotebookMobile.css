@@ -38,6 +38,7 @@
   overscroll-behavior: contain;
   touch-action: auto;
   -webkit-overflow-scrolling: touch;
+  background-attachment: local;
 }
 
 .lined-notebook.is-mobile .notebook-running-head {
@@ -150,45 +151,6 @@
 .lined-notebook.is-mobile .notebook-mobile-grip[data-side='right'] { right: 0; }
 .lined-notebook.is-mobile .notebook-mobile-grip:active { cursor: grabbing; }
 
-.lined-notebook.is-mobile .notebook-mobile-page-controls {
-  position: absolute;
-  z-index: 5;
-  left: 8px;
-  right: 8px;
-  bottom: 3px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  pointer-events: none;
-}
-
-.lined-notebook.is-mobile .notebook-mobile-turn {
-  min-width: 72px;
-  min-height: 44px;
-  padding: 4px 8px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--ink);
-  font: 400 20px/29px var(--hand);
-  cursor: pointer;
-  pointer-events: auto;
-  touch-action: manipulation;
-}
-
-.lined-notebook.is-mobile .notebook-mobile-turn:hover {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.lined-notebook.is-mobile .notebook-mobile-turn:disabled,
-.lined-notebook.is-mobile .notebook-mobile-turn[aria-disabled='true'] {
-  opacity: .35;
-  cursor: default;
-  text-decoration: none;
-}
-
 .lined-notebook.is-mobile .notebook-page-number {
   bottom: 17px;
   pointer-events: none;
@@ -219,7 +181,7 @@
   font-size: 23px;
 }
 
-/* The face-owned grips and footer controls replace the spread's hit areas. */
+/* The face-owned grips replace the spread's hit areas. */
 .lined-notebook.is-mobile .notebook-edge { display: none; }
 
 
@@ -234,4 +196,12 @@
   height: 18px;
   background: linear-gradient(transparent, #f1eee3);
   pointer-events: none;
+}
+
+/* The first leaf has no turned paper or neighboring fold on its left. */
+.lined-notebook.is-mobile .is-first-page .stack-read { display: none; }
+.lined-notebook.is-mobile .is-first-page,
+.lined-notebook.is-mobile .is-first-page .notebook-leaf { border-radius: 14px; }
+.lined-notebook.is-mobile .is-first-page .notebook-leaf > .notebook-sheet {
+  background: linear-gradient(90deg, #f1eee3 0 94%, #ece8db 100%);
 }

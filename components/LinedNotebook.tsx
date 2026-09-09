@@ -254,13 +254,9 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     {index < contentsPages ? 'continue reading →' : '← contents'}
   </button>;
 
-  const renderMobileControls = (index: number) => compact && <>
+  const renderMobileGrips = () => compact && <>
     <div className="notebook-mobile-grip" data-side="left" aria-hidden="true" />
     <div className="notebook-mobile-grip" data-side="right" aria-hidden="true" />
-    <div className="notebook-mobile-page-controls">
-      <button className="notebook-mobile-turn" aria-label="Previous notebook page" disabled={turning || index === 0} onClick={() => move(index - 1)}>← prev</button>
-      <button className="notebook-mobile-turn" aria-label="Next notebook page" disabled={turning || index >= pageCount - 1} onClick={() => move(index + 1)}>next →</button>
-    </div>
   </>;
 
   const rememberScroll = (index: number, event: React.UIEvent<HTMLDivElement>) => {
@@ -279,7 +275,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
       {renderContentsLink(index)}
       <div className="notebook-running-head" aria-hidden="true" />
       <div className="notebook-writing" onScroll={event => rememberScroll(index, event)}><NotebookContents sections={sections} part={index as 0 | 1} onNavigate={selectPage} /></div>
-      {renderMobileControls(index)}
+      {renderMobileGrips()}
       <span className="notebook-page-number">{index === 0 ? 'i' : 'ii'}</span>
     </article>;
     return <article className="notebook-sheet" data-page-side={index % 2 ? 'right' : 'left'} data-note-id={content.note.id} data-page-index={sourceIndex}>
@@ -289,14 +285,14 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
             <div className="notebook-writing" onScroll={event => rememberScroll(index, event)}>
               {(nearby || detached) && <NotebookContent page={content} active={detached || (index >= page && index < page + step)} onNavigate={selectPage} />}
             </div>
-            {renderMobileControls(index)}
+            {renderMobileGrips()}
             <span className="notebook-page-number">{sourceIndex + 1}</span>
           </article>;
   };
 
   return <main className={`lined-notebook${compact ? ' is-mobile' : ''}`}>
     <section className="notebook-desk" aria-label="Interactive lined notebook">
-      <div className={`notebook-spread ${mobile ? 'is-portrait' : ''} ${turning ? 'is-turning' : ''}`} style={paperStyle} tabIndex={0} aria-label="Notebook. Drag either outer edge or use left and right arrow keys to turn pages."
+      <div className={`notebook-spread ${mobile ? 'is-portrait' : ''} ${page === 0 ? 'is-first-page' : ''} ${turning ? 'is-turning' : ''}`} style={paperStyle} tabIndex={0} aria-label="Notebook. Drag either outer edge or use left and right arrow keys to turn pages."
         onKeyDown={e => {
           if ((e.target as HTMLElement).closest('button, a, input, textarea, select, iframe, [role=dialog]')) return;
           if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
@@ -376,7 +372,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
         }}>
         <div className="notebook-paper-stack stack-read" aria-hidden="true" />
         <div className="notebook-paper-stack stack-unread" aria-hidden="true" />
-        {compact && <span className="notebook-mobile-facing" aria-hidden="true">{page >= contentsPages ? facingInk(sheetTexts[Math.max(0, page - contentsPages - 1)]) : 'contents\n\nprofile\n\nprojects\n\nblog'}</span>}
+        {compact && page > 0 && <span className="notebook-mobile-facing" aria-hidden="true">{page >= contentsPages ? facingInk(sheetTexts[Math.max(0, page - contentsPages - 1)]) : 'contents\n\nprofile\n\nprojects\n\nblog'}</span>}
         <div className="notebook-mount" ref={host} />
         {!turning && <>
           <button className="notebook-edge edge-back" aria-label="Turn previous page" aria-disabled={page === 0} onClick={e => { if (e.detail === 0) move(page - step); }}></button>

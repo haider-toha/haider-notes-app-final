@@ -17,7 +17,7 @@ Live at **[haidertoha.site](https://www.haidertoha.site)**.
 
 The routes `/` and `/notebook` open the about-me page, including on return visits. `/contents` opens the two contents leaves. `/all` and published note URLs open reading pages. The quiet ink control at the upper left of each desktop spread or mobile page navigates to `/contents` or back to the remembered page’s canonical note URL.
 
-On phones, the actual paper fits the available viewport and is capped at 1.85 times its width. Handwriting stays at 23px; longer passages scroll inside the page. Each face has 44px previous/next controls in its bottom margin, while 20px side grips handle folding. Pull and hold the right grip outward to detach a sheet; scroll its prose normally and drag its header or grips to move it. Wide equations and tables retain horizontal scrolling, and browser pinch remains available. Short, coarse-pointer landscape screens use the same focused layout. Engine resizing waits until an active fold finishes; mobile rules preserve standard desktop geometry. Short desktop viewports cap paper height to the available desk space; taller desktop pages remain 720px. The small equation-to-prose spacing refinement applies across layouts. See the [mobile notebook research and interaction contract](docs/mobile-notebook.md).
+On phones, the actual paper fits the available viewport and is capped at 1.85 times its width. Handwriting stays at 23px; longer passages scroll inside the page. The paper turns through finger drags on its 20px side grips; no previous/next buttons are shown. Pull and hold the right grip outward to detach a sheet; scroll its prose normally and drag its header or grips to move it. Wide equations and tables retain horizontal scrolling, and browser pinch remains available. Short, coarse-pointer landscape screens use the same focused layout. Engine resizing waits until an active fold finishes; mobile rules preserve standard desktop geometry. Short desktop viewports cap paper height to the available desk space; taller desktop pages remain 720px. The small equation-to-prose spacing refinement applies across layouts. See the [mobile notebook research and interaction contract](docs/mobile-notebook.md).
 
 ## Tech
 
@@ -70,7 +70,7 @@ Run `npx tsc --noEmit` and `node scripts/check-notebook-content.mjs` for type an
 
 After changing Mermaid source or typography, run `scripts/measure-notebook-diagrams.mjs` against the dev server. Mathematical font changes use `scripts/collect-notebook-math-glyphs.mjs` and `scripts/build-notebook-math-font.py`; keep their generated files and OFL licenses together.
 
-Mobile acceptance should exercise real touch scrolling, horizontal equation panning, both contents leaves, footer turns, grip folds, detached-sheet reading and reattachment, pinch, reduced motion, and portrait/landscape resizing. Compare desktop contents, prose, diagram, matrix, and simulation views against their baselines, accounting for the approved equation-spacing refinement and short-viewport height cap.
+Mobile acceptance should exercise real touch scrolling, horizontal equation panning, both contents leaves, forward/backward grip folds, detached-sheet reading and reattachment, pinch, reduced motion, and portrait/landscape resizing. Compare desktop contents, prose, diagram, matrix, and simulation views against their baselines, accounting for the approved equation-spacing refinement and short-viewport height cap.
 
 ## Deployment
 

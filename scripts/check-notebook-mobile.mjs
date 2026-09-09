@@ -16,7 +16,7 @@ const status = page => page.locator('.lined-notebook > .notebook-accessible-stat
 const expected = index => `Pages ${index + 1} of ${notebookPages.length}.`;
 async function settle(page) { await page.waitForTimeout(850); }
 async function open(page, path) {
-  await page.goto(origin + path);
+  await page.goto(origin + path, { waitUntil: 'domcontentloaded', timeout: 45000 });
   await page.waitForSelector('.notebook-spread');
   await page.evaluate(() => document.fonts.ready);
   await settle(page);
@@ -55,20 +55,22 @@ async function geometry(page) {
     const sheet = document.querySelector(`${selector} .notebook-sheet`);
     return { mobile: root.classList.contains('is-mobile'), outerOverflow: root.scrollHeight - root.clientHeight, horizontalOverflow: document.documentElement.scrollWidth - innerWidth,
       paper: box(sheet), mount: box(document.querySelector('.notebook-mount')), body: box(sheet.querySelector('.notebook-writing')),
-      controls: [...sheet.querySelectorAll('.notebook-mobile-turn')].map(box) };
+      folio: box(sheet.querySelector('.notebook-page-number')), buttons: sheet.querySelectorAll('.notebook-mobile-turn').length };
   }, visible);
   assert(result.mobile, 'Touch phones must use the focused mobile page, including landscape');
   assert(result.outerOverflow <= 1, `Only the paper body scrolls; outer overflow ${result.outerOverflow}px`);
   assert(result.horizontalOverflow <= 1, 'No horizontal document overflow');
   assert(result.paper.y >= 0 && result.paper.bottom <= page.viewportSize().height + 1, 'Whole page and folio fit the viewport');
   assert(Math.abs(result.paper.height - result.mount.height) <= 1, 'Engine and paper use the same height');
-  assert(result.controls.length === 2 && result.controls.every(control => control.width >= 44 && control.height >= 44 && control.y >= 0 && control.bottom <= page.viewportSize().height + 1), 'Both 44px footer navigation targets are on screen');
+  assert.equal(result.buttons, 0, 'Mobile has no previous/next buttons');
+  assert(result.folio.y >= 0 && result.folio.bottom <= page.viewportSize().height + 1, 'Page number stays on screen');
   return result;
 }
 try {
   for (const [width, height] of sizes) {
     const page = await browser.newPage({ viewport: { width, height }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
     page.setDefaultTimeout(8000);
+    page.setDefaultNavigationTimeout(45000);
     console.log(`Checking ${width}×${height}`);
     const client = await page.context().newCDPSession(page);
     page.on('pageerror', error => failures.push(`${width}×${height}: ${error.message}`));
@@ -78,12 +80,16 @@ try {
       await page.getByRole('button', { name: 'Open contents', exact: true }).click(); await settle(page);
       assert.equal(await status(page), 'Contents.');
       const layout = await geometry(page);
+      assert.equal(await page.locator('.notebook-mobile-facing').count(), 0, 'First leaf has no preceding page');
+      assert(await page.locator('.stack-read').isHidden(), 'First leaf has no turned-page stack');
+      assert.equal(await page.locator(`${visible} .notebook-writing`).evaluate(e => getComputedStyle(e).backgroundAttachment), 'local', 'Ruled lines scroll with the writing');
       assert.equal(await page.locator('.notebook-contents-page button').count(), notebookSections.length);
       await scrollBody(page, client);
       assert(await page.locator(`${visible} .notebook-writing`).evaluate(e => e.scrollTop) > 0, 'Contents scrolls with native touch');
-      await page.getByRole('button', { name: 'Next notebook page', exact: true }).click(); await settle(page);
+      await edgeTurn(page, client, 'right');
       assert.equal(await page.locator(`${visible} [data-contents-part]`).getAttribute('data-contents-part'), '1');
-      await page.getByRole('button', { name: 'Previous notebook page', exact: true }).click(); await settle(page);
+      assert(await page.locator('.notebook-mobile-facing').isVisible(), 'Turned pages restore the neighboring paper');
+      await edgeTurn(page, client, 'left');
       assert.equal(await page.locator(`${visible} [data-contents-part]`).getAttribute('data-contents-part'), '0');
       await open(page, '/profile/about-me');
       await scrollBody(page, client);

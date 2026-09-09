@@ -23,14 +23,14 @@ An independent reviewer compared three approaches:
 | One readable page with book context | Best option, provided the binding, adjacent ink and stack form a coherent book rather than a rounded card. |
 | Scaled desktop spread with pan and zoom | Adds horizontal navigation to paragraphs and conflicts with folding, selection and loose-sheet coordinates. |
 
-The selected approach is a focused page with a narrow glimpse of its neighbor, a visible binding, and the existing changing stacks. The actual page engine fits the viewport; typography is not scaled down. Long writing scrolls inside its leaf. Height is capped to avoid turning the paper into a receipt-shaped surface on tall phones. The reviewer required explicit touch grips, 44px corner turn alternatives, native pinch, preserved scroll positions, and deferred geometry changes during a fold.
+The selected approach is a focused page with a narrow glimpse of its neighbor, a visible binding, and the existing changing stacks. The actual page engine fits the viewport; typography is not scaled down. Long writing scrolls inside its leaf. Height is capped to avoid turning the paper into a receipt-shaped surface on tall phones. The review called for explicit touch grips, native pinch, preserved scroll positions, and deferred geometry changes during a fold. The initially implemented corner turn buttons were subsequently removed at the user’s request.
 
 ## Interaction contract
 
 - About me opens first, with contents accessible at the top of the page and at `/contents`. The same source offsets and route history work across devices.
 - The writing area owns native vertical scrolling; wide equations and tables retain horizontal scrolling. Browser pinch remains available.
 - Blank side grips own page folding. A deliberate outward pull and hold from the outer grip can release a sheet. An ordinary vertical prose gesture cannot do so.
-- Previous/next controls are handwritten in each page's bottom margin and use the same physical page-turn engine.
+- Mobile has no previous/next buttons; finger drags on the paper edges use the physical page-turn engine.
 - Loose-sheet text remains scrollable. Its binding grip and header move the paper; its body does not hijack scrolling.
 - Geometry changes wait for an active fold to finish. Mobile landscape uses the focused reading layout.
 - Phone appearance rules are scoped to the mobile layout. The shared equation-spacing adjustment and short-viewport height cap are deliberate exceptions to desktop visual parity. Desktop screenshot and geometry baselines cover contents, prose, diagram, matrix and simulation pages.
@@ -46,3 +46,5 @@ The default route opens about me; contents appears once per desktop spread and o
 The final Chromium audit covers 50 page/viewport combinations across ten sizes: four desktop windows (1440×1050, 1366×768, 1280×720, 1024×600) and the six phone orientations above. The exact-source check preserves all 27 notes and 199,424 characters. The figure and math checks cover 18 diagrams, three live simulations, 178 equations and 3,686 handwritten glyph instances without fallback. Permanent mobile regression coverage is in `scripts/check-notebook-mobile.mjs`.
 
 WebKit smoke checks also pass at 390×844, 320×568, 844×390 and 1280×720: about me, contents navigation, live resizing, complete paper bounds and no runtime errors. These are browser-emulated checks, not a physical iPhone test.
+
+The first mobile contents leaf has no preceding-page sliver, left stack or binding fold. Subsequent leaves restore the neighboring paper. Mobile ruling uses a local background attachment so the lines travel with the writing during scrolling.
