@@ -57,16 +57,20 @@ All authored content originates in this repository. It is converted into a copy-
 
 The separate `/notebook` route recreates the supplied open cream lined notebook in HTML/CSS. Its fixed handwriting font is Reenie Beanie, self-hosted with its license; printed page numbers use system sans-serif. The notebook is the only visible surface: no toolbar, selector, footer, corner labels, or hover curls.
 
-Soft pages turn by deliberate corner dragging/tapping or keyboard navigation, with folds, reverse faces and moving shadows based on the supplied screen recording. Reduced motion uses immediate page changes. The existing about-me text and external links remain interactive; two scratchpad pages retain browser-local drafts. This is a preview, not a conversion of the full manuscript.
+Soft pages turn by deliberate outer-edge dragging/tapping or keyboard navigation, with folds, reverse faces and moving shadows based on the supplied screen recording. Reduced motion uses immediate page changes. The existing about-me text and external links remain interactive; all pages display content authored in `constants.tsx`, with no scratchpads, editing controls or draft storage. This is a preview, not a conversion of the full manuscript.
 
 The photographed `/book-test` prototype remains a separate working route with its original assets.
 
 ### Reading density
 
-Keep the opening identity page, then group consecutive source paragraphs into fuller reading pages. A paragraph break must not automatically create a new page. Preserve the authored text, paragraph spacing, links, and order; balance the final two reading pages to avoid leaving a tiny trailing paragraph by itself. The current profile occupies three body pages, followed by the existing scratchpad spread. Do not add filler copy or reduce the handwriting size to fill paper.
+Keep the opening identity page, then group consecutive source paragraphs into fuller reading pages. A paragraph break must not automatically create a new page. Preserve the authored text, paragraph spacing, links, and order; balance the final two reading pages to avoid leaving a tiny trailing paragraph by itself. The profile starts on the identity page and continues across fuller reading pages. Do not add filler copy or reduce the handwriting size to fill paper.
 
 ### Removable sheet interaction
 
 A deliberate outward pull from an outer edge meets resistance; holding beyond the threshold releases one live sheet. Normal inward drags retain the approved page-turn behavior. On narrow touch screens a deliberate vertical edge pull can release the sheet without requiring off-screen movement. Only one sheet is loose at a time. The underlying sheet's real writing remains visible where another sheet exists.
 
-Move the loose sheet freely and drag its binding edge back to the spine to reattach. There is no recovery button or added visible toolbar. Motion uses damped springs and movement-dependent angular response. Preserve the source page's exact heading alignment, padding, paper appearance and scroll position during separation and reattachment. Writing remains browser-local and editable while detached; a refresh restores the bound book without discarding saved drafts.
+Move the loose sheet freely and drag its binding edge back to the spine to reattach. There is no recovery button or added visible toolbar. Motion uses damped springs and movement-dependent angular response. Preserve the source page's exact heading alignment, padding, paper appearance and scroll position during separation and reattachment. Content and links remain readable while detached; a refresh restores the bound book.
+
+### Opening page
+
+The first page is a spacious identity page: “haider toha” as the main heading, “london, uk” below, then GitHub/email/LinkedIn/Twitter near the top. After a two-rule gap, include the original opening paragraph about Haider’s current work; continue subsequent paragraphs on the following pages without duplication. Remove repeated introductions, “haider’s notebook,” the generic tagline and “explore all notes.” Do not add an on-page contents list: the intended direction for section navigation is protruding bookmarks, to be implemented separately once their destinations are defined.
