@@ -8,14 +8,16 @@ Live at **[haidertoha.site](https://www.haidertoha.site)**.
 
 - Lined paper, flexible page turns, changing paper stacks and removable sheets.
 - Two preliminary contents leaves list every note, with one title on the left and an ink link to open contents or return to reading.
-- Home opens the contents; “continue reading →” restores your remembered reading page.
-- Responsive two-page desktop spreads and single-page mobile reading.
+- Home opens the about-me page; the contents link stays at the top of every reading page.
+- Two-page desktop spreads and viewport-fit mobile reading with a visible binding, neighboring-page sliver, and page stacks.
 - Transparent hand-drawn diagrams, live physics simulations and handwritten equations.
 - Accessible expanded media with zoom, pan, keyboard controls and visible close buttons.
 - Existing note URLs (`/:folder/:slug`) open their notebook pages; build-time HTML preserves SEO and link previews.
 - Exact source-content checks and browser regressions in `scripts/check-notebook*.mjs`.
 
-The routes `/`, `/contents`, and `/notebook` open the two contents leaves, including on return visits. `/all` and published note URLs open reading pages. The quiet ink control inside each page’s upper outer margin navigates to `/contents` or back to the remembered page’s canonical note URL.
+The routes `/` and `/notebook` open the about-me page, including on return visits. `/contents` opens the two contents leaves. `/all` and published note URLs open reading pages. The quiet ink control inside each page’s upper outer margin navigates to `/contents` or back to the remembered page’s canonical note URL.
+
+On phones, the actual paper fits the available viewport and is capped at 1.85 times its width. Handwriting stays at 23px; longer passages scroll inside the page. Each face has 44px previous/next controls in its bottom margin, while 20px side grips handle folding. Pull and hold the right grip outward to detach a sheet; scroll its prose normally and drag its header or grips to move it. Wide equations and tables retain horizontal scrolling, and browser pinch remains available. Short, coarse-pointer landscape screens use the same focused layout. Engine resizing waits until an active fold finishes; mobile rules preserve standard desktop geometry. Short desktop viewports cap paper height to the available desk space; taller desktop pages remain 720px. The small equation-to-prose spacing refinement applies across layouts. See the [mobile notebook research and interaction contract](docs/mobile-notebook.md).
 
 ## Tech
 
@@ -54,6 +56,7 @@ App.tsx                 # notebook routes, canonical links and metadata
 components/
   LinedNotebook.tsx      # page engine, reading state and live leaves
   NotebookContents.tsx  # two preliminary contents leaves
+  NotebookMobile.css    # scoped phone geometry, paper context and touch controls
   notebookPages.ts      # source-preserving pagination
   MainContent.tsx       # note renderer (markdown, math, diagrams)
 constants.tsx           # all content (folders + notes)
@@ -66,6 +69,8 @@ scripts/prerender.mjs   # build-time static-HTML generation
 Run `npx tsc --noEmit` and `node scripts/check-notebook-content.mjs` for type and exact-content checks. With the Vite server running, the browser scripts in `scripts/check-notebook*.mjs` cover page interactions, routes, figures, handwritten math, and expanded media. They require Playwright; `PLAYWRIGHT_MODULE` can point to an external installation, and `NOTEBOOK_ORIGIN` overrides the default local server URL.
 
 After changing Mermaid source or typography, run `scripts/measure-notebook-diagrams.mjs` against the dev server. Mathematical font changes use `scripts/collect-notebook-math-glyphs.mjs` and `scripts/build-notebook-math-font.py`; keep their generated files and OFL licenses together.
+
+Mobile acceptance should exercise real touch scrolling, horizontal equation panning, both contents leaves, footer turns, grip folds, detached-sheet reading and reattachment, pinch, reduced motion, and portrait/landscape resizing. Compare desktop contents, prose, diagram, matrix, and simulation views against their baselines, accounting for the approved equation-spacing refinement and short-viewport height cap.
 
 ## Deployment
 

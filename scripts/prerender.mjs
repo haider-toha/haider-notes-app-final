@@ -234,12 +234,12 @@ function siteIndex(notes, folders, seo) {
 function homeBody(notes, folders, seo) {
   const about = notes.find((n) => n.slug === "about-me");
   return `<div id="ssg-root">
-${siteIndex(notes, folders, seo)}
 <article>
 <h1>Haider Toha</h1>
 <p class="ssg-meta">${escapeHtml(seo.AUTHOR_TAGLINE)} · London, United Kingdom</p>
 ${about ? renderMarkdown(about.content) : ""}
 </article>
+${siteIndex(notes, folders, seo)}
 ${contactFooter(seo)}
 </div>`;
 }

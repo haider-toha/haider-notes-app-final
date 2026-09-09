@@ -53,13 +53,15 @@ try {
         height: svg.getBoundingClientRect().height,
         width: svg.getBoundingClientRect().width,
         availableWidth: svg.closest('.notebook-content').clientWidth,
+        availableHeight: Math.max(96, svg.closest('.notebook-writing').clientHeight - 48),
+        viewBox: svg.getAttribute('viewBox'),
       })));
       for (const style of styles) {
         assert.match(style.font, /Reenie Beanie/, `${entry.note.id}: figure labels use the notebook handwriting`);
         assert.equal(style.size, '24px', `${entry.note.id}: readable figure label base size`);
         assert.equal(style.background, 'rgba(0, 0, 0, 0)', `${entry.note.id}: notebook paper remains visible through SVG`);
         assert(style.labelBackgrounds.every(color => color === 'rgba(0, 0, 0, 0)'), `${entry.note.id}: edge label backgrounds stay transparent`);
-        assert(style.height <= 451 && style.width <= style.availableWidth + 1, `${entry.note.id}: the complete diagram fits the paper without horizontal panning`);
+        assert(style.height <= Math.min(450, style.availableHeight) + 1 && style.width <= style.availableWidth + 1, `${entry.note.id}: the complete diagram fits the paper without horizontal panning`);
       }
       diagrams += mermaidCount;
     }
@@ -90,6 +92,42 @@ try {
       assert(await image.evaluate(image => image.naturalWidth > 0));
     }
   }
+  // A short writing area must scale the entire tall diagram, not crop its nodes.
+  const tallIndex = notebookPages.findIndex(entry => entry.content.includes('```mermaid'));
+  await openLeaf(tallIndex);
+  const touchClient = await page.context().newCDPSession(page);
+  let intactViewBox, intactNodeCount;
+  for (const [width, height, mobile] of [[1440,1050,false], [1366,768,false], [1280,720,false], [1024,600,false], [390,844,true], [320,568,true], [430,932,true], [844,390,true], [568,320,true], [932,430,true]]) {
+    const fitted = page;
+    await touchClient.send('Emulation.setTouchEmulationEnabled', { enabled: mobile });
+    await fitted.setViewportSize({ width, height });
+    await fitted.waitForTimeout(200);
+    assert.equal(await fitted.locator('.lined-notebook').evaluate(element => element.classList.contains('is-mobile')), mobile, 'Responsive phone mode matches touch viewport');
+    {
+      const svg = fitted.locator('.notebook-leaf:not([inert]) svg[id^="mermaid-"]').first();
+      await svg.waitFor({ timeout: 20000 });
+      await fitted.evaluate(() => document.fonts.ready);
+      await fitted.waitForTimeout(100);
+      const size = await svg.evaluate(element => ({
+        height: element.getBoundingClientRect().height,
+        width: element.getBoundingClientRect().width,
+        writingHeight: element.closest('.notebook-writing').clientHeight,
+        writingWidth: element.closest('.notebook-writing').clientWidth,
+        viewBox: element.getAttribute('viewBox'), nodes: element.querySelectorAll('.node').length,
+        aspectRatio: element.getAttribute('preserveAspectRatio') || 'xMidYMid meet',
+      }));
+      intactViewBox ??= size.viewBox; intactNodeCount ??= size.nodes;
+      assert(size.height <= Math.max(96, size.writingHeight - 48) + 1, `${width}×${height}: diagram fits the writing area with its controls`);
+      assert(size.width <= size.writingWidth + 1, `${width}×${height}: full diagram fits horizontally`);
+      assert.equal(size.viewBox, intactViewBox, 'Responsive fitting preserves the complete diagram viewBox');
+      assert.equal(size.nodes, intactNodeCount, 'Responsive fitting preserves every diagram node');
+      assert.match(size.aspectRatio, /meet/, 'Diagram fitting preserves all edges instead of slicing');
+    }
+  }
+  await touchClient.send('Emulation.setTouchEmulationEnabled', { enabled: false });
+  await touchClient.detach();
+  await page.setViewportSize({ width: 1440, height: 1050 });
+  await page.waitForTimeout(200);
   // Rapid page turns force nearby diagrams to unmount and remount while
   // Mermaid's shared async renderer is busy (also exercised under StrictMode).
   const firstFigure = notebookPages.findIndex(entry => entry.content.includes('```mermaid'));
@@ -141,5 +179,5 @@ try {
   await recovery.locator(`.notebook-leaf:has([data-page-index="${firstFigure}"])`).locator('svg[id^="mermaid-"]').first().waitFor({ timeout: 20000 });
   assert.equal(await recovery.locator('.lined-notebook > .notebook-accessible-status').innerText(), savedStatus, 'Restoring a failed diagram preserves the reading place');
   await recovery.close();
-  console.log(`PASS: ${diagrams} live Mermaid figures, ${simulations} animated dynamical systems, local image, equations, tables and opening links reached through real page turns, rapid remounts, and failed-module recovery.`);
+  console.log(`PASS: ${diagrams} live Mermaid figures, ${simulations} animated dynamical systems, full diagram fitting with intact viewBox/nodes at 10 desktop/mobile sizes, local image, equations, tables and links through real page turns, rapid remounts, and failed-module recovery.`);
 } finally { await browser.close(); }

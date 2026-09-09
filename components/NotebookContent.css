@@ -10,10 +10,13 @@
 .notebook-content table { font: 15px/1.6 -apple-system, BlinkMacSystemFont, sans-serif; }
 .notebook-content th, .notebook-content td { padding: 8px; border-color: #b7b0a0; }
 .notebook-content .katex { font-size: 1em; }
-.notebook-content .katex-display { margin: 14px 0; }
-.notebook-content img { max-height: 440px; object-fit: contain; }
+/* Both the scroll wrapper and KaTeX add vertical margins. Keep their combined
+   separation modest without touching fraction, bracket or superscript geometry. */
+.notebook-content span:has(> .katex-display) { margin-block: 12px; }
+.notebook-content .katex-display { margin: 10px 0; }
+.notebook-content img { max-height: min(440px, var(--notebook-figure-height, 440px)); object-fit: contain; }
 .notebook-content iframe { display: block; background: transparent; }
-.notebook-content svg[id^="mermaid-"] { max-width: 100%; height: auto; max-height: 450px; }
+.notebook-content svg[id^="mermaid-"] { max-width: 100%; height: auto; max-height: min(450px, var(--notebook-figure-height, 450px)); }
 .notebook-content button[title="Expand diagram"] { opacity: 1; background: transparent; color: var(--ink); width: 44px; height: 44px; display: grid; place-items: center; }
 .notebook-content button[title="Expand diagram"]:hover { background: #303f530d; }
 .notebook-content .notebook-location { white-space: pre-line; }

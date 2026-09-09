@@ -36,14 +36,15 @@ export default function App() {
   const slug = parts.length > 1 ? parts[1] : undefined;
   const noteSection = slug ? notebookSections.find(section => section.slug === slug || section.id === slug) : undefined;
   const folder = parts[0];
-  const showContents = parts.length === 0 || (parts.length === 1 && ['contents', 'notebook'].includes(folder));
+  const home = parts.length === 0 || (parts.length === 1 && folder === 'notebook');
+  const showContents = parts.length === 1 && folder === 'contents';
   const folderSection = !slug && folder && !['notebook', 'contents', 'all'].includes(folder)
     ? notebookSections.find(section => section.folder === folder) : undefined;
-  const valid = showContents || (parts.length === 1 && folder === 'all') || !!noteSection || !!folderSection;
+  const valid = home || showContents || (parts.length === 1 && folder === 'all') || !!noteSection || !!folderSection;
   const offset = Number(new URLSearchParams(location.search).get('at') ?? 0);
   const requestedPage = noteSection
     ? decodeNotebookPlace(JSON.stringify({ noteId: noteSection.id, offset })) ?? noteSection.firstPage
-    : folderSection?.firstPage ?? (folder === 'all' ? 0 : undefined);
+    : folderSection?.firstPage ?? (home || folder === 'all' ? 0 : undefined);
 
   // A page turn updates the shareable URL without issuing another imperative
   // engine navigation. Browser history POPs still restore their own position.

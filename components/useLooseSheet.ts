@@ -6,7 +6,7 @@ type Grip = { id: number; x: number; y: number; origin: Pose; canAttach: boolean
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 /** A single removable sheet. Pointer position drives a damped spring, not React frames. */
-export function useLooseSheet(reducedMotion: boolean, onAttach: (index: number) => DOMRect) {
+export function useLooseSheet(reducedMotion: boolean, onAttach: (index: number) => DOMRect, mobileLayout = false) {
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const sheetRef = useRef<Sheet | null>(null);
   const element = useRef<HTMLDivElement>(null);
@@ -104,7 +104,7 @@ export function useLooseSheet(reducedMotion: boolean, onAttach: (index: number) 
     motion.current = { x, y, time: now, vx: motion.current.vx * .55 + vx * .45, vy: motion.current.vy * .55 + vy * .45 };
     const dx = x - g.x, dy = y - g.y;
     if (!current.released) {
-      const pull = dx * (current.left ? -1 : 1) + (innerWidth <= 700 ? Math.max(0, Math.abs(dy) - 40) * .8 : 0);
+      const pull = dx * (current.left ? -1 : 1) + (mobileLayout ? Math.max(0, Math.abs(dy) - 40) * .8 : 0);
       const resistance = 70 * (1 - Math.exp(-Math.max(0, pull) / 130));
       target.current = { x: g.origin.x + resistance * (current.left ? -1 : 1), y: g.origin.y + dy * .12, angle: clamp(dy * .015, -2, 2), lift: clamp(pull / 160, 0, .8) };
       const threshold = Math.min(120, current.width * .32);

@@ -20,7 +20,8 @@ try {
     await page.waitForFunction(id => [...document.querySelectorAll('.notebook-leaf:not([inert]) [data-note-id]')].some(element => element.dataset.noteId === id), note.id);
   }
   const checkContents = () => page.waitForFunction(() => document.querySelector('.lined-notebook > .notebook-accessible-status').textContent === 'Contents.');
-  for (const path of ['/', '/notebook', '/contents']) { await open(path); await checkContents(); }
+  for (const path of ['/', '/notebook']) { await open(path); await checkNote(portfolioNotes[0]); }
+  await open('/contents'); await checkContents();
   assert((await page.title()).toLowerCase().includes('contents'), 'Contents has route-specific metadata');
   assert((await page.locator('link[rel=canonical]').getAttribute('href')).endsWith('/contents'));
   for (const note of portfolioNotes) {
@@ -42,7 +43,7 @@ try {
   await page.reload();
   await page.waitForFunction(expected => document.querySelector('.lined-notebook > .notebook-accessible-status')?.textContent === expected, savedReadingStatus);
   await open('/');
-  await checkContents(); await page.reload(); await checkContents();
+  await checkNote(portfolioNotes[0]); await page.reload(); await checkNote(portfolioNotes[0]);
   for (const section of notebookSections) {
     const contents = page.getByRole('button', { name: 'Open contents', exact: true }).first();
     if (await contents.count()) { await contents.click(); await page.waitForURL(`${origin}/contents`); }
@@ -56,8 +57,8 @@ try {
   await open('/missing-note-path');
   await page.waitForURL(`${origin}/`);
   await open('/book-test');
-  await page.waitForURL(`${origin}/`); await checkContents();
+  await page.waitForURL(`${origin}/`); await checkNote(portfolioNotes[0]);
   await assert.rejects(access(new URL('../public/book-test', import.meta.url)), { code: 'ENOENT' }, 'Retired prototype assets must not ship');
   assert.deepEqual(errors, [], 'Route and contents navigation produce no runtime errors');
-  console.log(`PASS: root/alias always open contents, /contents route, routed reading-position refresh, all ${portfolioNotes.length} canonical note routes, ${folders.length} folder routes, old /all links, every contents entry and browser history.`);
+  console.log(`PASS: root/alias open about me even after saved reading, /contents route, routed reading-position refresh, all ${portfolioNotes.length} canonical note routes, ${folders.length} folder routes, old /all links, every contents entry and browser history.`);
 } finally { await browser.close(); }

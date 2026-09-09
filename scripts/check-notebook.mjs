@@ -31,7 +31,9 @@ async function open(width = 1440, reducedMotion = 'no-preference') {
   const page = await browser.newPage({ viewport: { width, height: 1050 }, reducedMotion });
   page.on('pageerror', e => errors.push(e.message));
   await page.goto(url); await delay(page, 500); await page.evaluate(() => document.fonts.ready);
-  assert.equal(await status(page), 'Contents.', 'The site always opens to its contents');
+  assert.equal(await status(page), expected(0, width), 'The site opens on about me');
+  await page.getByRole('button', { name: 'Open contents', exact: true }).first().click(); await delay(page);
+  assert.equal(await status(page), 'Contents.');
   await checkNavigationPlacement(page);
   await page.getByRole('button', { name: 'Back to reading', exact: true }).first().click(); await delay(page);
   return page;
@@ -99,7 +101,7 @@ try {
     assert.equal(await p.evaluate(() => document.getAnimations().length), 0, 'Reduced motion has no decorative animations');
     assert(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'No horizontal overflow');
     await visit(p, notebookSections[0]); assert.equal(await status(p), expected(0,width));
-    await p.goto(url);
+    await p.goto(new URL('/contents', url).href);
     await p.waitForFunction(() => document.querySelector('.lined-notebook > .notebook-accessible-status')?.textContent === 'Contents.');
     await p.locator('.notebook-spread').focus();
     for (let turn = 0; turn < (width < 700 ? 2 : 1); turn++) {
@@ -113,8 +115,7 @@ try {
   }
   const p = await browser.newPage(); p.on('pageerror', e => errors.push(e.message));
   await p.addInitScript(() => { Object.defineProperty(window,'localStorage',{get(){throw new DOMException('blocked','SecurityError')}}); });
-  await p.goto(url); await delay(p,500); assert.equal(await status(p), 'Contents.');
-  await p.getByRole('button', { name: 'Back to reading', exact: true }).first().click(); await delay(p);
+  await p.goto(url); await delay(p,500);
   assert.equal(await status(p), expected(0));
   await visit(p, notebookSections.at(-1));
   await p.close();

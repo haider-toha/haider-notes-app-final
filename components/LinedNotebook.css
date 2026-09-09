@@ -1,12 +1,12 @@
 @font-face { font-family: 'Reenie Beanie'; src: url('/fonts/reenie.ttf') format('truetype'); font-weight: 400; font-display: swap; }
 .lined-notebook { --hand: 'Reenie Beanie', cursive; --ink: #303f53; height: 100dvh; overflow: auto; background: #fff; color: #494941; font: 13px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; }
 .lined-notebook :focus-visible { outline: 2px solid #536b87; outline-offset: 4px; }
-.notebook-desk { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; padding: 28px 32px 32px; }
+.notebook-desk { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; padding: 28px 32px 32px; }
 .notebook-spread { position: relative; width: min(1080px, 100%); min-width: 0; margin: auto; border-radius: 18px; background: #e5e0d1; box-shadow: 0 2px 0 #f5f2e7, 0 4px 0 #d2cdbf, 0 6px 0 #eeeadd, 0 8px 0 #c5c0b3, 0 16px 24px #514b3926, 0 32px 60px #514b3910; touch-action: pan-y; }
 .notebook-mount { width: 100%; min-width: 0; }
 .notebook-engine { height: 720px; width: 100%; }
 /* Override the engine's initial inline minimum so narrow screens can resize. */
-.notebook-engine.stf__parent { min-width: 0 !important; }
+.notebook-engine.stf__parent { min-width: 0 !important; min-height: 0 !important; }
 /* The renderer owns leaf transforms and clipping; styles stay on the contents. */
 .notebook-leaf { background: #f1eee3; overflow: hidden; }
 .notebook-sheet { display: flex; flex-direction: column; --rule: 29px; position: relative; width: 100%; height: 100%; box-sizing: border-box; padding: 28px 36px 45px; color: var(--ink); background: #f1eee3; }
@@ -83,4 +83,9 @@
 }
 @media (max-width: 700px) {
   .is-portrait .notebook-running-head span { max-width: 100%; }
+}
+
+/* An overflowing leaf fades gently into its margin until its last line is read. */
+.lined-notebook:not(.is-mobile) .notebook-sheet[data-more-below='true'] > .notebook-writing {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
 }

@@ -49,7 +49,7 @@ This is a static React site deployed on Vercel. `constants.tsx` supplies the aut
 
 ## Contents and Navigation
 
-The default landing surface is two preliminary contents leaves, numbered i and ii. `/`, `/contents`, and `/notebook` always open them, including on return visits. `/all`, folder routes, and published note URLs open reading pages.
+The default landing surface is the about-me reading page. `/` and `/notebook` open it, including on return visits. `/contents` opens two preliminary contents leaves, numbered i and ii, and remains accessible through the top-of-page contents link. `/all`, folder routes, and published note URLs open reading pages.
 
 Contents lists all 27 notes in folder groups across the two leaves. Only the left leaf has the “contents” title; an equal-height spacer on the right keeps both columns aligned. Larger group headings, indented entries, and handwritten page references establish the hierarchy. These leaves turn through the same engine as the reading pages.
 
@@ -65,11 +65,15 @@ Mermaid diagrams render live with transparent backgrounds, blue-black ink, and t
 
 ## Page Interaction
 
-Desktop displays two pages; narrow screens display one. Deliberate outer-edge drags, taps, or arrow keys turn flexible sheets. The page stays flat on hover. Reduced motion changes pages immediately.
+Desktop displays two pages with its existing geometry and appearance. Phones focus on one page while showing its binding, a sliver of neighboring ink, and changing paper stacks. The full paper silhouette fits the available viewport, capped at 1.85 times page width. Body handwriting stays at 23px; long passages scroll inside the leaf without changing source pagination or page references. Short, coarse-pointer phone landscape uses the same focused layout.
 
-An outward edge pull meets resistance, then releases one live sheet after a hold. On narrow touch screens, a deliberate vertical edge pull can release it. Move the sheet freely and align its binding edge with the spine to reattach. Preserve its writing, heading alignment, padding, and scroll position throughout. The real underlying leaf remains visible. Only one sheet can be loose at a time; refreshing restores the bound book.
+Desktop outer-edge drags, taps, or arrow keys turn flexible sheets. Mobile adds 44px previous/next controls in each face's bottom margin and explicit 20px side grips for folding. Ordinary prose gestures retain native vertical scrolling; wide equations and tables retain horizontal scrolling, and browser pinch remains available. The page stays flat on hover. Reduced motion changes pages immediately, and viewport-driven geometry changes wait until an active fold finishes.
+
+An outward edge pull meets resistance, then releases one live sheet after a hold. On mobile this is a deliberate outward pull from the right grip, not a vertical prose gesture. Scroll detached prose normally and use its header or grips to move the paper. Align its binding edge with the spine to reattach. Preserve its writing, heading alignment, padding, and scroll position throughout. The real underlying leaf remains visible. Only one sheet can be loose at a time; refreshing restores the bound book.
 
 Completed turns settle briefly. Read pages thicken the left stack while unread pages thin the right; cut edges remain visible along the outside and bottom. Faint mirrored reverse ink is decorative and slightly stronger on lifted sheets. These details never intercept reading or page grabs, and reduced motion skips their animation.
+
+The [mobile research and interaction contract](docs/mobile-notebook.md) records the focused-page decision and its acceptance targets. Mobile appearance stays scoped to phones. Preserve desktop behavior and standard geometry, with the approved shared equation-spacing refinement and a height cap on short desktop viewports to keep paper bottoms visible.
 
 ## Verification
 
