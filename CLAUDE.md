@@ -20,7 +20,7 @@ npm run preview  # serve the built dist/ locally
 
 There is **no test runner, no linter, and no typecheck script**. `tsc` is configured with `noEmit` (type-check only) but is not wired into a script; Vite does not type-check on build. If you want to verify types, run `npx tsc --noEmit`.
 
-> Note: an untracked `pnpm-lock.yaml` exists alongside the tracked `package-lock.json`. Stick to `npm` unless told otherwise.
+> Use `npm` and the tracked `package-lock.json`; do not create a second package-manager lockfile.
 
 ## Editing content (the main task in this repo)
 
@@ -69,3 +69,11 @@ There is **no `tailwind.config.js`, no PostCSS, no CSS build step.** Tailwind is
 ### Dark mode
 
 Driven by the `dark` class on `<html>`. `App.tsx` toggles it and initializes from `prefers-color-scheme`. `MainContent.tsx` uses a `MutationObserver` on the `<html>` class to re-render Mermaid diagrams with theme-appropriate colors when the mode changes.
+
+## Interactive notebook constraints
+
+`/notebook` uses `components/LinedNotebook.tsx` and its CSS; `/book-test` is a separate photographed prototype. Preserve the approved minimal desktop design: Reenie Beanie only, no toolbar/footer, standard page numbers, external-link arrows and matching subtle curved underlines.
+
+Pack consecutive profile paragraphs into page-length passages; never restore one paragraph per page. Keep source text and links intact, and balance the final reading pages. Verify actual rendered height after the font loads. Keep the opening identity page and browser-local scratchpads.
+
+Page grabs must work along either outer edge without hover curls. The page-flip engine takes corner coordinates: preserve the grab anchor plus pointer displacement mapping. Feeding raw mid-edge positions into the engine makes a tiny grab fold half the sheet. Verify small pulls settle back, full pulls turn, and typing/links still work after pagination changes.
