@@ -17,7 +17,7 @@
 .notebook-running-head { flex-shrink: 0; min-height: 29px; display: flex; justify-content: flex-end; align-items: flex-start; font: 18px/24px var(--hand); }
 .notebook-leaf.--right .notebook-running-head { justify-content: flex-start; }
 .notebook-running-head span { max-width: 100%; white-space: normal; overflow-wrap: anywhere; border-bottom: 1px solid #9e9b8e; padding: 0 8px; }
-.notebook-writing { margin-top: 13px; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: repeating-linear-gradient(to bottom, transparent 0, transparent 28px, #aaa79770 28px, #aaa79770 29px); font: 400 24px/var(--rule) var(--hand); }
+.notebook-writing { margin-top: 13px; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: repeating-linear-gradient(to bottom, transparent 0, transparent 28px, #aaa79770 28px, #aaa79770 29px); font: 400 24px/var(--rule) var(--hand); background-attachment: local; }
 .notebook-writing > p { margin: 0; padding: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .notebook-writing a { color: #355b78; text-decoration: none; padding-bottom: 4px; background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%209%22%20preserveAspectRatio%3D%22none%22%3E%3Cpath%20d%3D%22M1%203%20Q28%206%2051%204%20T99%203%22%20fill%3D%22none%22%20stroke%3D%22%23355b78%22%20stroke-width%3D%221%22%20stroke-linecap%3D%22round%22%20vector-effect%3D%22non-scaling-stroke%22%2F%3E%3C%2Fsvg%3E"); background-position: left bottom; background-size: 100% 7px; background-repeat: no-repeat; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .notebook-writing a:hover { color: #132b40; }

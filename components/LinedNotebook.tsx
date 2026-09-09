@@ -67,7 +67,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     leaf.className = 'notebook-leaf';
     return leaf;
   }));
-  const pointer = useRef<{ id: number; back: boolean; start: { x: number; y: number }; anchor: { x: number; y: number }; mode: 'pending' | 'turn' | 'loose' } | null>(null);
+  const pointer = useRef<{ id: number; back: boolean; corner: boolean; start: { x: number; y: number }; anchor: { x: number; y: number }; mode: 'pending' | 'turn' | 'loose' } | null>(null);
   const loose = useLooseSheet(reducedMotion, index => {
     book.current?.turnToPage(index);
     const rect = host.current!.getBoundingClientRect();
@@ -254,9 +254,14 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     {index < contentsPages ? 'continue reading →' : '← contents'}
   </button>;
 
-  const renderMobileGrips = () => compact && <>
-    <div className="notebook-mobile-grip" data-side="left" aria-hidden="true" />
-    <div className="notebook-mobile-grip" data-side="right" aria-hidden="true" />
+  // Native targets prevent touch hit adjustment from redirecting an edge grab
+  // onto a nearby link. They remain outside keyboard and accessibility navigation.
+  const renderMobileGrips = (index: number) => compact && <>
+    <button type="button" tabIndex={-1} className="notebook-mobile-grip" data-side="left" aria-hidden="true" />
+    <button type="button" tabIndex={-1} className="notebook-mobile-grip" data-side="right" aria-hidden="true" />
+    {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(corner =>
+      <button key={corner} type="button" tabIndex={-1} className="notebook-mobile-corner" data-corner={corner} aria-hidden="true" />)}
+    {index > 0 && <button className="notebook-mobile-previous" aria-label="Previous notebook page" disabled={turning} onClick={() => move(index - 1)}>← previous</button>}
   </>;
 
   const rememberScroll = (index: number, event: React.UIEvent<HTMLDivElement>) => {
@@ -275,7 +280,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
       {renderContentsLink(index)}
       <div className="notebook-running-head" aria-hidden="true" />
       <div className="notebook-writing" onScroll={event => rememberScroll(index, event)}><NotebookContents sections={sections} part={index as 0 | 1} onNavigate={selectPage} /></div>
-      {renderMobileGrips()}
+      {renderMobileGrips(index)}
       <span className="notebook-page-number">{index === 0 ? 'i' : 'ii'}</span>
     </article>;
     return <article className="notebook-sheet" data-page-side={index % 2 ? 'right' : 'left'} data-note-id={content.note.id} data-page-index={sourceIndex}>
@@ -285,7 +290,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
             <div className="notebook-writing" onScroll={event => rememberScroll(index, event)}>
               {(nearby || detached) && <NotebookContent page={content} active={detached || (index >= page && index < page + step)} onNavigate={selectPage} />}
             </div>
-            {renderMobileGrips()}
+            {renderMobileGrips(index)}
             <span className="notebook-page-number">{sourceIndex + 1}</span>
           </article>;
   };
@@ -300,18 +305,19 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
           }
         }}
         onPointerDown={e => {
-          if (e.button !== 0 || pointer.current || (e.target as HTMLElement).closest('a, button:not(.notebook-edge), input, textarea, select, iframe, .notebook-diagram, [role=dialog]') || turning) return;
-          if (compact && !(e.target as HTMLElement).closest('.notebook-edge, .notebook-mobile-grip')) return;
+          if (e.button !== 0 || pointer.current || (e.target as HTMLElement).closest('a, button:not(.notebook-edge):not(.notebook-mobile-grip):not(.notebook-mobile-corner), input, textarea, select, iframe, .notebook-diagram, [role=dialog]') || turning) return;
+          if (compact && !(e.target as HTMLElement).closest('.notebook-edge, .notebook-mobile-grip, .notebook-mobile-corner')) return;
           const rect = host.current!.getBoundingClientRect();
           const x = e.clientX - rect.left;
-          if (x > (compact ? 24 : 70) && x < rect.width - (compact ? 24 : 70)) return;
+          const corner = compact && (e.target as HTMLElement).closest('.notebook-mobile-corner');
+          if (!corner && x > (compact ? 24 : 70) && x < rect.width - (compact ? 24 : 70)) return;
           const back = x < rect.width / 2;
           const start = point(e);
           // The renderer expects a CORNER position. Feeding it a mid-edge
           // pointer position instantly folds half a sheet before any real drag.
           // Start flat at the outer boundary and apply only pointer displacement.
           const anchor = { x: back ? 1 : rect.width - 1, y: start.y < rect.height / 2 ? 1 : rect.height - 1 };
-          pointer.current = { id: e.pointerId, back, start, anchor, mode: 'pending' };
+          pointer.current = { id: e.pointerId, back, corner: !!corner, start, anchor, mode: 'pending' };
           e.currentTarget.setPointerCapture(e.pointerId);
           e.preventDefault();
         }}
@@ -330,7 +336,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
                 drag.mode = 'loose';
               }
             } else {
-              if (compact && (outward > -8 || Math.abs(dx) < Math.abs(dy) * 0.8)) return;
+              if (compact && (outward > -8 || (!drag.corner && Math.abs(dx) < Math.abs(dy) * 0.8))) return;
               if (!compact && mobile && outward > -8 && Math.abs(dy) <= 24) return;
               if ((drag.back && page === 0) || (!drag.back && page >= lastPage)) return;
               drag.mode = 'turn';
@@ -370,6 +376,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
           pointer.current = null;
           resizeBook.current();
         }}>
+        {compact && page === 0 && <span className="notebook-mobile-cover" aria-hidden="true" />}
         <div className="notebook-paper-stack stack-read" aria-hidden="true" />
         <div className="notebook-paper-stack stack-unread" aria-hidden="true" />
         {compact && page > 0 && <span className="notebook-mobile-facing" aria-hidden="true">{page >= contentsPages ? facingInk(sheetTexts[Math.max(0, page - contentsPages - 1)]) : 'contents\n\nprofile\n\nprojects\n\nblog'}</span>}
@@ -402,8 +409,8 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
         if (e.key === 'Enter') { e.preventDefault(); loose.finish(); }
       }}
       onPointerDown={e => {
-        if (!loose.sheet?.released || (e.target as HTMLElement).closest('a, button, input, textarea, select, iframe')) return;
-        if (compact && !(e.target as HTMLElement).closest('.notebook-mobile-grip, .notebook-running-head')) return;
+        if (!loose.sheet?.released || (e.target as HTMLElement).closest('a, button:not(.notebook-mobile-grip):not(.notebook-mobile-corner), input, textarea, select, iframe')) return;
+        if (compact && !(e.target as HTMLElement).closest('.notebook-mobile-grip, .notebook-mobile-corner, .notebook-running-head')) return;
         e.preventDefault(); e.stopPropagation();
         e.currentTarget.setPointerCapture(e.pointerId);
         loose.pickUp(e.pointerId, e.clientX, e.clientY);

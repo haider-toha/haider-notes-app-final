@@ -2,7 +2,7 @@
 
 The notebook is the main site. `/` and `/notebook` land on the about-me reading page, even when a reading position is saved. `/contents` opens the two preliminary contents leaves; the contents link remains at the top of every reading page. `/all`, existing folder URLs, and published note URLs open reading pages.
 
-The open notebook is the entire visible interface. White desk, ivory ruled paper, a narrow binding, stacked paper edges, blue-black ink (#303f53), and understated blue links (#355b78). Desktop has no toolbar or footer. Mobile turns by dragging the paper edges, with no previous/next buttons. No font picker, decorative corner folds, or hover animation.
+The open notebook is the entire visible interface. White desk, ivory ruled paper, a narrow binding, stacked paper edges, blue-black ink (#303f53), and understated blue links (#355b78). Desktop has no toolbar or footer. Mobile turns by dragging the paper edges, with a previous link and no next button. No font picker, decorative corner folds, or hover animation.
 
 Reenie Beanie supplies the handwriting. Notebook Math is a matching OFL derivative that adds missing Greek and mathematical symbols; both fonts and their licenses are served locally. Body text uses 24px type on a 29px ruling (21px on compact desktop, 23px on mobile); the opening title uses 62px (48px on mobile). Page numbers always use 12px system sans-serif with lining, tabular numerals.
 
@@ -12,7 +12,7 @@ Desktop shows two pages in a spread up to 1080px wide. Their standard height is 
 
 Deliberate outer-edge dragging/tapping turns a soft sheet across the spine. StPageFlip 2.0.7 supplies the fold geometry, reverse face, and moving shadows (950ms release animation, 0.28 maximum shadow opacity). The lifecycle adapter cancels the renderer on unmount. Hover keeps the page flat. Reduced motion changes pages immediately.
 
-Desktop's invisible 24px-wide full-height outer-edge controls retain accessible labels and keyboard focus. Mobile uses 20px side grips for finger-driven folds, with no previous/next buttons. The central page number retains its 12px system type. Arrow keys turn pages when the spread has focus; they never intercept links. Hidden pages are inert. Page position remains available to screen readers. Content is authored in `constants.tsx`; there are no scratchpads or browser-local drafts. External links open in a new tab.
+Desktop's invisible 24px-wide full-height outer-edge controls retain accessible labels and keyboard focus. Mobile uses full-height 20px side grips and 44px corner areas for finger-driven folds, with a previous link and no next button. The central page number retains its 12px system type. Arrow keys turn pages when the spread has focus; they never intercept links. Hidden pages are inert. Page position remains available to screen readers. Content is authored in `constants.tsx`; there are no scratchpads or browser-local drafts. External links open in a new tab.
 
 Mobile writing owns native vertical scrolling; equations and tables can pan horizontally, and browser pinch remains available. General book, writing, and loose-sheet touch handling stays `auto`; only side grips and the loose-sheet header claim drag gestures. Fold from the side grips and detach with a deliberate outward pull and hold on the right grip. A vertical gesture over prose must not turn or detach paper. Detached prose remains scrollable. Engine geometry updates wait until the active fold or captured gesture finishes.
 
@@ -32,4 +32,4 @@ The notebook includes all source notes through `notebookPages.ts`. Pagination pr
 
 All equations and simulation labels use Notebook Math, including Greek and operators. Keep every emitted glyph covered by the font generator and glyph audit; never silently substitute typeset glyphs. Simulations retain transparent canvas backgrounds and their original numerical dynamics.
 
-The first mobile contents leaf has no preceding-page sliver, left stack or binding fold. Subsequent leaves restore the neighboring paper. Mobile ruling uses a local background attachment so the lines travel with the writing during scrolling.
+The first mobile contents leaf shows a plain inside cover only to the left of the paper, with no invented preceding-page ink or read stack. Subsequent leaves restore the neighboring paper. Desktop and mobile ruling use a local background attachment so the lines travel with the writing during scrolling.

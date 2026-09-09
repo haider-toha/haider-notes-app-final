@@ -14,14 +14,18 @@ const sizes = process.argv.includes('--animated-only') ? [] : [[390, 844], [320,
 const visible = '.notebook-leaf:not([inert])';
 const status = page => page.locator('.lined-notebook > .notebook-accessible-status').innerText();
 const expected = index => `Pages ${index + 1} of ${notebookPages.length}.`;
-async function settle(page) { await page.waitForTimeout(850); }
+async function settle(page) {
+  await page.waitForTimeout(100);
+  await page.waitForFunction(() => !document.querySelector('.notebook-spread')?.classList.contains('is-turning'));
+  await page.waitForTimeout(100);
+}
 async function open(page, path) {
   await page.goto(origin + path, { waitUntil: 'domcontentloaded', timeout: 45000 });
   await page.waitForSelector('.notebook-spread');
   await page.evaluate(() => document.fonts.ready);
   await settle(page);
 }
-async function touch(page, client, points, { cancel = false, hold = 0 } = {}) {
+async function touch(page, client, points, { cancel = false, hold = 0, whileHeld } = {}) {
   const [start, ...ends] = points;
   await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...start, id: 1 }] });
   let previous = start;
@@ -32,6 +36,7 @@ async function touch(page, client, points, { cancel = false, hold = 0 } = {}) {
     }
     previous = end;
   }
+  if (whileHeld) await whileHeld();
   if (hold) await page.waitForTimeout(hold);
   await client.send('Input.dispatchTouchEvent', { type: cancel ? 'touchCancel' : 'touchEnd', touchPoints: [] });
   await settle(page);
@@ -42,11 +47,15 @@ async function scrollBody(page, client, selector = `${visible} .notebook-writing
   assert(bottom - top > 60, 'A usable writing area must be visible');
   await touch(page, client, [{ x: box.x + box.width / 2, y: bottom - 18 }, { x: box.x + box.width / 2, y: top + 18 }]);
 }
-async function edgeTurn(page, client, side, cancel = false) {
+async function edgeTurn(page, client, side, cancel = false, position = 'middle', inspectFold = false, inset = 10) {
   const box = await page.locator(`${visible} .notebook-mobile-grip[data-side="${side}"]`).boundingBox();
-  const y = Math.max(0, box.y) + Math.min(box.height, page.viewportSize().height - box.y) / 2;
+  const y = position === 'top' ? box.y + 8 : position === 'bottom' ? box.y + box.height - 2 : Math.max(0, box.y) + Math.min(box.height, page.viewportSize().height - box.y) / 2;
   const mount = await page.locator('.notebook-mount').boundingBox();
-  await touch(page, client, [{ x: box.x + box.width / 2, y }, { x: mount.x + mount.width * (side === 'right' ? .2 : .8), y: y - 8 }], { cancel });
+  await touch(page, client, [{ x: side === 'left' ? mount.x + inset : mount.x + mount.width - inset, y }, { x: mount.x + mount.width * (side === 'right' ? .2 : .8), y: y + (position === 'top' ? 28 : -28) }], { cancel, whileHeld: inspectFold ? () => assertFold(page, `${side} ${position} ${inset}px`) : undefined });
+}
+async function assertFold(page, label) {
+  if (screenshots) await page.screenshot({ path: `${screenshots}/fold-${label.replaceAll(' ', '-')}.png` });
+  assert(await page.locator('.notebook-leaf').evaluateAll(leaves => leaves.some(leaf => leaf.style.clipPath.includes('polygon') && leaf.getBoundingClientRect().height > 0)), `${label}: touch renders the same flexible paper polygon as desktop`);
 }
 async function geometry(page) {
   const result = await page.evaluate(selector => {
@@ -55,14 +64,17 @@ async function geometry(page) {
     const sheet = document.querySelector(`${selector} .notebook-sheet`);
     return { mobile: root.classList.contains('is-mobile'), outerOverflow: root.scrollHeight - root.clientHeight, horizontalOverflow: document.documentElement.scrollWidth - innerWidth,
       paper: box(sheet), mount: box(document.querySelector('.notebook-mount')), body: box(sheet.querySelector('.notebook-writing')),
-      folio: box(sheet.querySelector('.notebook-page-number')), buttons: sheet.querySelectorAll('.notebook-mobile-turn').length };
+      folio: box(sheet.querySelector('.notebook-page-number')), first: sheet.dataset.contentsPart === '0',
+      buttons: [...sheet.querySelectorAll('.notebook-mobile-previous,.notebook-mobile-turn')].map(button => ({ name: button.getAttribute('aria-label'), rect: box(button) })) };
   }, visible);
+  assert.equal(await page.getByRole('button', { name: 'Next notebook page', exact: true }).count(), 0, 'Mobile has no Next control');
   assert(result.mobile, 'Touch phones must use the focused mobile page, including landscape');
   assert(result.outerOverflow <= 1, `Only the paper body scrolls; outer overflow ${result.outerOverflow}px`);
   assert(result.horizontalOverflow <= 1, 'No horizontal document overflow');
   assert(result.paper.y >= 0 && result.paper.bottom <= page.viewportSize().height + 1, 'Whole page and folio fit the viewport');
   assert(Math.abs(result.paper.height - result.mount.height) <= 1, 'Engine and paper use the same height');
-  assert.equal(result.buttons, 0, 'Mobile has no previous/next buttons');
+  assert.deepEqual(result.buttons.map(button => button.name), result.first ? [] : ['Previous notebook page'], 'Only Previous appears after the first leaf; Next never appears');
+  assert(result.buttons.every(({rect}) => rect.height >= 44 && rect.width >= 44 && rect.bottom <= page.viewportSize().height + 1), 'Previous remains an on-screen 44px target');
   assert(result.folio.y >= 0 && result.folio.bottom <= page.viewportSize().height + 1, 'Page number stays on screen');
   return result;
 }
@@ -80,7 +92,13 @@ try {
       await page.getByRole('button', { name: 'Open contents', exact: true }).click(); await settle(page);
       assert.equal(await status(page), 'Contents.');
       const layout = await geometry(page);
-      assert.equal(await page.locator('.notebook-mobile-facing').count(), 0, 'First leaf has no preceding page');
+      // The first leaf exposes a plain inside cover, not a phantom ruled sheet.
+      assert.equal(await page.locator('.notebook-mobile-facing').count(), 0, 'First leaf has no preceding ruled page');
+      assert(await page.locator('.notebook-mobile-cover').isVisible(), 'First leaf exposes the inside cover');
+      const cover = await page.locator('.notebook-mobile-cover').boundingBox();
+      assert(cover.x + cover.width <= layout.paper.x + 1 && Math.abs(cover.y - layout.paper.y) <= 1 && Math.abs(cover.y + cover.height - layout.paper.bottom) <= 1, 'The cover is visible only to the left, aligned with the first page');
+      assert(await page.locator('.notebook-mobile-cover').evaluate(element => element.textContent === '' && getComputedStyle(element, '::after').backgroundImage === 'none'), 'Inside cover is plain endpaper with no phantom writing or ruled lines');
+      if (screenshots) await page.screenshot({ path: `${screenshots}/${width}x${height}-inside-cover.png` });
       assert(await page.locator('.stack-read').isHidden(), 'First leaf has no turned-page stack');
       assert.equal(await page.locator(`${visible} .notebook-writing`).evaluate(e => getComputedStyle(e).backgroundAttachment), 'local', 'Ruled lines scroll with the writing');
       assert.equal(await page.locator('.notebook-contents-page button').count(), notebookSections.length);
@@ -127,8 +145,18 @@ try {
     const partial = { x: partialGrip.x + partialGrip.width / 2, y: partialGrip.y + partialGrip.height / 2 };
     await touch(page, client, [partial, { x: partial.x - 80, y: partial.y - 8 }]);
     assert.equal(await status(page), expected(0), 'Partial animated fold returns home');
-    await edgeTurn(page, client, 'right', true);
+    await edgeTurn(page, client, 'right', true, 'middle', true);
     assert.equal(await status(page), expected(0), 'Cancelled animated fold never commits');
+    for (const [position, inset] of [['top',10],['bottom',10],['middle',10],['top',30],['bottom',30]]) {
+      await edgeTurn(page, client, 'right', false, position, true, inset);
+      assert.equal(await status(page), expected(1), `${position} right drag completes forward`);
+      await edgeTurn(page, client, 'left', false, position, true, inset);
+      assert.equal(await status(page), expected(0), `${position} left drag completes backward`);
+    }
+    await edgeTurn(page, client, 'right');
+    await page.getByRole('button', { name: 'Previous notebook page', exact: true }).click();
+    await page.waitForTimeout(50); await assertFold(page, 'Previous button'); await settle(page);
+    assert.equal(await status(page), expected(0), 'Previous animates to the previous leaf');
     await edgeTurn(page, client, 'right'); assert.equal(await status(page), expected(1));
     const route = page.url();
     await page.setViewportSize({ width: 844, height: 390 }); await settle(page);
@@ -137,7 +165,7 @@ try {
     await geometry(page); assert.equal(await status(page), expected(1));
     await edgeTurn(page, client, 'left'); assert.equal(await status(page), expected(0));
     const grip = await page.locator(`${visible} .notebook-mobile-grip[data-side="right"]`).boundingBox();
-    const start = { x: grip.x + grip.width / 2, y: grip.y + 50 };
+    const start = { x: grip.x + grip.width / 2, y: grip.y + 120 };
     await touch(page, client, [start, { x: start.x + 12, y: start.y }, { x: start.x + 12, y: start.y + 200 }], { hold: 250 });
     assert.equal(await page.locator('.notebook-loose.is-released').count(), 1, 'Mobile outward pull and hold detaches paper');
     const beforeScroll = await page.locator('.notebook-loose').boundingBox();
@@ -148,8 +176,13 @@ try {
     const mount = await page.locator('.notebook-mount').boundingBox();
     const from = { x: header.x + header.width / 2, y: header.y + header.height / 2 };
     await touch(page, client, [from, { x: from.x + mount.x - afterScroll.x, y: from.y + mount.y - afterScroll.y }]);
+    await page.locator('.notebook-loose').waitFor({ state: 'detached' });
     assert.equal(await page.locator('.notebook-loose').count(), 0, 'Header drag returns sheet to binding');
-    results.push({ animatedTurns: true, orientationRestore: true, looseSheet: true });
+    await page.getByRole('button', { name: 'Open contents', exact: true }).tap(); await settle(page);
+    assert.equal(new URL(page.url()).pathname, '/contents', 'Native contents tap remains available above the corner targets');
+    await page.getByRole('button', { name: 'Back to reading', exact: true }).tap(); await settle(page);
+    assert.equal(await status(page), expected(0), 'Native continue-reading tap returns to the source page');
+    results.push({ animatedTurns: true, fourCornersAndSides: true, previousAnimation: true, orientationRestore: true, looseSheet: true, nativeContentsTap: true });
   } catch (error) { failures.push(`Animated mobile: ${error.message}`); }
   finally { await page.close(); }
   console.log(JSON.stringify({ results, failures }, null, 2));
