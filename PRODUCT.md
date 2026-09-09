@@ -64,3 +64,9 @@ The photographed `/book-test` prototype remains a separate working route with it
 ### Reading density
 
 Keep the opening identity page, then group consecutive source paragraphs into fuller reading pages. A paragraph break must not automatically create a new page. Preserve the authored text, paragraph spacing, links, and order; balance the final two reading pages to avoid leaving a tiny trailing paragraph by itself. The current profile occupies three body pages, followed by the existing scratchpad spread. Do not add filler copy or reduce the handwriting size to fill paper.
+
+### Removable sheet interaction
+
+A deliberate outward pull from an outer edge meets resistance; holding beyond the threshold releases one live sheet. Normal inward drags retain the approved page-turn behavior. On narrow touch screens a deliberate vertical edge pull can release the sheet without requiring off-screen movement. Only one sheet is loose at a time. The underlying sheet's real writing remains visible where another sheet exists.
+
+Move the loose sheet freely and drag its binding edge back to the spine to reattach. There is no recovery button or added visible toolbar. Motion uses damped springs and movement-dependent angular response. Preserve the source page's exact heading alignment, padding, paper appearance and scroll position during separation and reattachment. Writing remains browser-local and editable while detached; a refresh restores the bound book without discarding saved drafts.

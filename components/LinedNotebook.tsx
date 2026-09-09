@@ -4,6 +4,7 @@ import { PageFlip, loadNotebookPages } from './notebookPageFlip';
 import { Link } from 'react-router';
 import { portfolioNotes } from '../constants';
 import './LinedNotebook.css';
+import { useLooseSheet } from './useLooseSheet';
 
 const paragraphs = portfolioNotes[0].content.split('\n\n');
 // Keep the opening identity page, then combine consecutive paragraphs into
@@ -62,11 +63,18 @@ export default function LinedNotebook() {
     } catch { return ['', '']; }
   });
   const [saveStatus, setSaveStatus] = useState('Only saved in this browser');
-  const pointer = useRef<{ id: number; back: boolean; start: { x: number; y: number }; anchor: { x: number; y: number } } | null>(null);
+  const pointer = useRef<{ id: number; back: boolean; start: { x: number; y: number }; anchor: { x: number; y: number }; mode: 'pending' | 'turn' | 'loose' } | null>(null);
+  const loose = useLooseSheet(reducedMotion, index => {
+    book.current?.turnToPage(index);
+    const rect = host.current!.getBoundingClientRect();
+    const portrait = book.current?.getOrientation() === 'portrait';
+    const width = portrait ? rect.width : rect.width / 2;
+    return new DOMRect(rect.x + (!portrait && index % 2 ? width : 0), rect.y, width, rect.height);
+  });
   const step = mobile ? 1 : 2;
   const move = (next: number) => {
     const target = Math.max(0, Math.min(pageCount - step, next));
-    if (!book.current || turning || target === page) return;
+    if (!book.current || turning || target === page || (loose.sheet && !loose.sheet.released)) return;
     if (reducedMotion) book.current.turnToPage(target);
     else book.current.flip(target, 'bottom');
   };
@@ -145,6 +153,19 @@ export default function LinedNotebook() {
     } catch { setSaveStatus('Could not save. Copy your writing before leaving.'); }
   };
 
+  const renderSheet = (index: number) => {
+    const scratch = index >= scratchStart;
+    return <article className="notebook-sheet">
+            <div className="notebook-running-head"><span>{scratch ? 'a little room for your thoughts' : index === 0 ? 'a few words about me' : 'about me, continued'}</span></div>
+            {scratch && saveStatus.startsWith('Could not save') && <p className="notebook-save-error" role="alert">{saveStatus}</p>}
+            <div className="notebook-writing">
+              {scratch ? <textarea aria-label={`Scratchpad page ${index - scratchStart + 1}`} placeholder="Put pen to paper…" value={drafts[index - scratchStart]} onChange={e => write(index - scratchStart, e.target.value)} spellCheck={false} /> : <p><HandwrittenText text={pages[index]} /></p>}
+              {index === 0 && <div className="notebook-intro"><p>haider's<br />notebook.</p><span>notes, work & things along the way</span><Link to="/profile/about-me">explore all notes<span className="notebook-link-arrow" aria-hidden="true">↗</span></Link></div>}
+            </div>
+            <span className="notebook-page-number">{index + 1}</span>
+          </article>;
+  };
+
   return <main className="lined-notebook">
     <section className="notebook-desk" aria-label="Interactive lined notebook">
       <div className={`notebook-spread ${mobile ? 'is-portrait' : ''} ${turning ? 'is-turning' : ''}`} tabIndex={0} aria-label="Notebook. Drag either outer edge or use left and right arrow keys to turn pages."
@@ -155,30 +176,45 @@ export default function LinedNotebook() {
           }
         }}
         onPointerDown={e => {
-          if (e.button !== 0 || (e.target as HTMLElement).closest('textarea, a') || turning) return;
+          if (e.button !== 0 || pointer.current || (e.target as HTMLElement).closest('textarea, a') || turning) return;
           const rect = host.current!.getBoundingClientRect();
           const x = e.clientX - rect.left;
           if (x > 70 && x < rect.width - 70) return;
           const back = x < rect.width / 2;
-          if ((back && page === 0) || (!back && page >= pageCount - step)) return;
           const start = point(e);
           // The renderer expects a CORNER position. Feeding it a mid-edge
           // pointer position instantly folds half a sheet before any real drag.
           // Start flat at the outer boundary and apply only pointer displacement.
           const anchor = { x: back ? 1 : rect.width - 1, y: start.y < rect.height / 2 ? 1 : rect.height - 1 };
-          pointer.current = { id: e.pointerId, back, start, anchor };
+          pointer.current = { id: e.pointerId, back, start, anchor, mode: 'pending' };
           e.currentTarget.setPointerCapture(e.pointerId);
           e.preventDefault();
-          if (!reducedMotion) book.current?.startUserTouch(anchor);
         }}
         onPointerMove={e => {
-          if (reducedMotion || !book.current) return;
           const drag = pointer.current;
-          if (!drag || drag.id !== e.pointerId) return;
+          if (!drag || drag.id !== e.pointerId || !book.current) return;
           const current = point(e);
-          book.current.userMove({
-            x: drag.anchor.x + current.x - drag.start.x,
-            y: drag.anchor.y + current.y - drag.start.y,
+          const dx = current.x - drag.start.x, dy = current.y - drag.start.y;
+          if (drag.mode === 'pending') {
+            if (Math.hypot(dx, dy) < 8) return;
+            const outward = dx * (drag.back ? -1 : 1);
+            if (!loose.active() && (outward > 8 || (mobile && Math.abs(dy) > 24 && outward > -8))) {
+              const index = mobile ? page : page + (drag.back ? 0 : 1);
+              const rect = host.current!.getBoundingClientRect();
+              if (loose.begin(index, leaves[index], !mobile && drag.back, e.pointerId, rect.x + drag.start.x, rect.y + drag.start.y)) {
+                drag.mode = 'loose';
+              }
+            } else {
+              if (mobile && outward > -8 && Math.abs(dy) <= 24) return;
+              if ((drag.back && page === 0) || (!drag.back && page >= pageCount - step)) return;
+              drag.mode = 'turn';
+              if (!reducedMotion) book.current.startUserTouch(drag.anchor);
+            }
+          }
+          if (drag.mode === 'loose') { loose.move(e.pointerId, e.clientX, e.clientY); return; }
+          if (!reducedMotion && drag.mode === 'turn') book.current.userMove({
+            x: drag.anchor.x + dx,
+            y: drag.anchor.y + dy,
           }, true);
         }}
         onPointerUp={e => {
@@ -186,33 +222,53 @@ export default function LinedNotebook() {
           if (!drag || drag.id !== e.pointerId) return;
           pointer.current = null;
           if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
-          if (reducedMotion) move(page + (drag.back ? -step : step));
+          if (drag.mode === 'loose') { loose.finish(); return; }
+          if (reducedMotion || drag.mode === 'pending') move(page + (drag.back ? -step : step));
           else book.current?.userStop(point(e));
         }}
         onPointerCancel={e => {
-          if (pointer.current) book.current?.userStop(point(e));
+          if (pointer.current?.mode === 'loose') loose.finish(true);
+          else if (pointer.current?.mode === 'turn') book.current?.userStop(point(e));
           pointer.current = null;
         }}>
         <div className="notebook-mount" ref={host} />
         {!turning && <>
-          <button className="notebook-edge edge-back" aria-label="Turn previous page" disabled={page === 0} onClick={e => { if (e.detail === 0) move(page - step); }}></button>
-          <button className="notebook-edge edge-next" aria-label="Turn next page" disabled={page >= pageCount - step} onClick={e => { if (e.detail === 0) move(page + step); }}></button>
+          <button className="notebook-edge edge-back" aria-label="Turn previous page" aria-disabled={page === 0} onClick={e => { if (e.detail === 0) move(page - step); }}></button>
+          <button className="notebook-edge edge-next" aria-label="Turn next page" aria-disabled={page >= pageCount - step} onClick={e => { if (e.detail === 0) move(page + step); }}></button>
         </>}
         {leaves.map((leaf, index) => {
-          const scratch = index >= scratchStart;
-          return createPortal(<article className="notebook-sheet">
-            <div className="notebook-running-head"><span>{scratch ? 'a little room for your thoughts' : index === 0 ? 'a few words about me' : 'about me, continued'}</span></div>
-            {scratch && saveStatus.startsWith('Could not save') && <p className="notebook-save-error" role="alert">{saveStatus}</p>}
-            <div className="notebook-writing">
-              {scratch ? <textarea aria-label={`Scratchpad page ${index - scratchStart + 1}`} placeholder="Put pen to paper…" value={drafts[index - scratchStart]} onChange={e => write(index - scratchStart, e.target.value)} spellCheck={false} /> : <p><HandwrittenText text={pages[index]} /></p>}
-              {index === 0 && <div className="notebook-intro"><p>haider's<br />notebook.</p><span>notes, work & things along the way</span><Link to="/profile/about-me">explore all notes<span className="notebook-link-arrow" aria-hidden="true">↗</span></Link></div>}
-            </div>
-            <span className="notebook-page-number">{index + 1}</span>
-          </article>, leaf, String(index));
+          const removed = loose.sheet?.index === index;
+          const underneath = index + (loose.sheet?.left ? -2 : (mobile ? 1 : 2));
+          return createPortal(<>
+            {renderSheet(index)}
+            {removed && underneath >= 0 && underneath < pageCount && <div className="notebook-underleaf">{renderSheet(underneath)}</div>}
+          </>, leaf, String(index));
         })}
       </div>
     </section>
 
+    {loose.sheet && <div
+      ref={loose.element}
+      className={`notebook-loose ${loose.sheet.left ? 'loose-left' : 'loose-right'} ${loose.sheet.released ? 'is-released' : 'is-attached'}`}
+      style={{ width: loose.sheet.width, height: loose.sheet.height }}
+      tabIndex={0}
+      aria-label="Loose notebook sheet. Drag its binding edge back to the spine to reattach. Arrow keys move the sheet; Enter releases it."
+      onKeyDown={e => {
+        if ((e.target as HTMLElement).closest('a, textarea')) return;
+        const direction: Record<string, [number, number]> = { ArrowLeft: [-20, 0], ArrowRight: [20, 0], ArrowUp: [0, -20], ArrowDown: [0, 20] };
+        if (direction[e.key]) { e.preventDefault(); loose.nudge(...direction[e.key]); }
+        if (e.key === 'Enter') { e.preventDefault(); loose.finish(); }
+      }}
+      onPointerDown={e => {
+        if (!loose.sheet?.released || (e.target as HTMLElement).closest('a, textarea')) return;
+        e.preventDefault(); e.stopPropagation();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        loose.pickUp(e.pointerId, e.clientX, e.clientY);
+      }}
+      onPointerMove={e => loose.move(e.pointerId, e.clientX, e.clientY)}
+      onPointerUp={e => { if (e.currentTarget.hasPointerCapture(e.pointerId)) { e.currentTarget.releasePointerCapture(e.pointerId); loose.finish(); } }}
+      onPointerCancel={() => loose.finish(true)}
+    >{renderSheet(loose.sheet.index)}</div>}
     <span className="notebook-accessible-status" aria-live="polite">Pages {page + 1}{!mobile && `–${page + 2}`} of {pageCount}. {page >= scratchStart ? saveStatus : ''}</span>
   </main>;
 }
