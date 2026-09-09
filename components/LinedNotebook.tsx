@@ -4,6 +4,8 @@ import { PageFlip, loadNotebookPages } from './notebookPageFlip';
 import { portfolioNotes } from '../constants';
 import './LinedNotebook.css';
 import { useLooseSheet } from './useLooseSheet';
+import NotebookBookmarks from './NotebookBookmarks';
+import { reverseInkText, useNotebookDetails } from './notebookDetails';
 
 const paragraphs = portfolioNotes[0].content.split('\n\n');
 // Keep the opening identity page, then combine consecutive paragraphs into
@@ -30,6 +32,16 @@ if (pages.length > 2) {
   pages[pages.length - 2] = previous.join('\n\n');
 }
 const pageCount = pages.length;
+const sheetTexts = [paragraphs.slice(0, 3).join('\n\n'), ...pages.slice(1)];
+const placeKey = 'haider-notebook-place';
+
+function savedPage() {
+  try {
+    const value = localStorage.getItem(placeKey);
+    const index = value === null ? 0 : Number(value);
+    return Number.isInteger(index) ? Math.max(0, Math.min(pageCount - 1, index)) : 0;
+  } catch { return 0; }
+}
 
 function HandwrittenText({ text }: { text: string }) {
   return <>{text.split(/(\[[^\]]+\]\([^)]+\))/g).map((part, i) => {
@@ -40,11 +52,11 @@ function HandwrittenText({ text }: { text: string }) {
 }
 
 export default function LinedNotebook() {
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(savedPage);
   const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 700px)').matches);
   const host = useRef<HTMLDivElement>(null);
   const book = useRef<PageFlip | null>(null);
-  const currentPage = useRef(0);
+  const currentPage = useRef(page);
   const [turning, setTurning] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [leaves] = useState(() => Array.from({ length: pageCount }, () => {
@@ -61,6 +73,7 @@ export default function LinedNotebook() {
     return new DOMRect(rect.x + (!portrait && index % 2 ? width : 0), rect.y, width, rect.height);
   });
   const step = mobile ? 1 : 2;
+  const paperStyle = useNotebookDetails(page, pageCount, mobile, reducedMotion, leaves, turning);
   const lastPage = Math.floor((pageCount - 1) / step) * step;
   const move = (next: number) => {
     const target = Math.max(0, Math.min(lastPage, next));
@@ -103,7 +116,11 @@ export default function LinedNotebook() {
       });
     };
     instance.on('init', sync);
-    instance.on('flip', sync);
+    instance.on('flip', () => {
+      sync();
+      try { localStorage.setItem(placeKey, String(instance.getCurrentPageIndex())); }
+      catch { /* Reading still works when browser storage is unavailable. */ }
+    });
     instance.on('changeOrientation', sync);
     instance.on('changeState', event => setTurning(event.data === 'flipping' || event.data === 'user_fold'));
     const dispose = loadNotebookPages(instance, leaves);
@@ -135,6 +152,7 @@ export default function LinedNotebook() {
 
   const renderSheet = (index: number) => {
     return <article className="notebook-sheet">
+            <span className="notebook-reverse-ink" aria-hidden="true">{reverseInkText(sheetTexts, index)}</span>
             <div className="notebook-running-head" aria-hidden={index === 0 ? true : undefined}>{index !== 0 && <span>about me, continued</span>}</div>
             <div className="notebook-writing">
               {index === 0 ? (
@@ -152,7 +170,7 @@ export default function LinedNotebook() {
 
   return <main className="lined-notebook">
     <section className="notebook-desk" aria-label="Interactive lined notebook">
-      <div className={`notebook-spread ${mobile ? 'is-portrait' : ''} ${turning ? 'is-turning' : ''}`} tabIndex={0} aria-label="Notebook. Drag either outer edge or use left and right arrow keys to turn pages."
+      <div className={`notebook-spread ${mobile ? 'is-portrait' : ''} ${turning ? 'is-turning' : ''}`} style={paperStyle} tabIndex={0} aria-label="Notebook. Drag either outer edge or use left and right arrow keys to turn pages."
         onKeyDown={e => {
           if ((e.target as HTMLElement).closest('button, a')) return;
           if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
@@ -220,6 +238,7 @@ export default function LinedNotebook() {
           <button className="notebook-edge edge-back" aria-label="Turn previous page" aria-disabled={page === 0} onClick={e => { if (e.detail === 0) move(page - step); }}></button>
           <button className="notebook-edge edge-next" aria-label="Turn next page" aria-disabled={page >= lastPage} onClick={e => { if (e.detail === 0) move(page + step); }}></button>
         </>}
+        <NotebookBookmarks currentPage={page} visiblePages={step} onNavigate={index => move(Math.floor(index / step) * step)} />
         {leaves.map((leaf, index) => {
           const removed = loose.sheet?.index === index;
           const underneath = index + (loose.sheet?.left ? -2 : (mobile ? 1 : 2));

@@ -73,4 +73,8 @@ Move the loose sheet freely and drag its binding edge back to the spine to reatt
 
 ### Opening page
 
-The first page is a spacious identity page: “haider toha” as the main heading, “london, uk” below, then GitHub/email/LinkedIn/Twitter near the top. After a two-rule gap, include the original opening paragraph about Haider’s current work; continue subsequent paragraphs on the following pages without duplication. Remove repeated introductions, “haider’s notebook,” the generic tagline and “explore all notes.” Do not add an on-page contents list: the intended direction for section navigation is protruding bookmarks, to be implemented separately once their destinations are defined.
+The first page is a spacious identity page: “haider toha” as the main heading, “london, uk” below, then GitHub/email/LinkedIn/Twitter near the top. After a two-rule gap, include the original opening paragraph about Haider’s current work; continue subsequent paragraphs on the following pages without duplication. Remove repeated introductions, “haider’s notebook,” the generic tagline and “explore all notes.” Do not add an on-page contents list: the intended direction for section navigation is protruding bookmarks, implemented as quiet fabric tabs for the current start, work and off-duty pages.
+
+### Subtle paper details
+
+Completed page turns end in a brief settling flex; the paper edges grow on the left and shrink on the right as reading progresses. Faint mirrored ink from the opposite face is decorative and slightly stronger on lifted sheets. Fabric section tabs reveal labels on hover or focus, support touch activation and dismiss labels with Escape. The notebook remembers the visible reading page across visits, without reintroducing editable pages or drafts. Reduced motion skips the settling animation and transitions.

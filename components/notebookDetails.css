@@ -1,0 +1,49 @@
+/* Only the two bottom paper edges vary; nothing changes the book's geometry. */
+.notebook-spread {
+  --stack-left: 1px;
+  --stack-right: 7px;
+  box-shadow: 0 16px 24px #514b3926, 0 32px 60px #514b3910;
+}
+.notebook-spread::before,
+.notebook-spread::after {
+  content: '';
+  position: absolute;
+  top: calc(100% - 1px);
+  width: 50%;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, #eeebdf 0 1px, #c8c2b3 1px 2px);
+  border-bottom: 1px solid #bab4a5;
+  transition: height 310ms ease-out;
+}
+.notebook-spread::before { left: 0; height: var(--stack-left); border-radius: 0 0 0 16px; }
+.notebook-spread::after { right: 0; height: var(--stack-right); border-radius: 0 0 16px 0; }
+.is-portrait.notebook-spread::before { display: none; }
+.is-portrait.notebook-spread::after { width: 100%; border-radius: 0 0 14px 14px; }
+.notebook-leaf.--left > .notebook-sheet { transform-origin: right center; }
+.notebook-leaf.--right > .notebook-sheet { transform-origin: left center; }
+
+/* Render this decoration with aria-hidden="true". The supplied text is the
+   reverse face, not a copy of the front. */
+.notebook-reverse-ink {
+  position: absolute;
+  inset: 70px 36px 45px;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 400 24px/29px var(--hand);
+  color: #655844;
+  opacity: .021;
+  transform: scaleX(-1);
+  filter: blur(.35px);
+}
+/* --simple is the renderer's flat drawing mode. */
+.is-turning .notebook-leaf:not(.--simple) > .notebook-sheet > .notebook-reverse-ink { opacity: .055; }
+.notebook-loose .notebook-reverse-ink { opacity: calc(.021 + var(--loose-lift) * .039); }
+@media (max-width: 950px) { .notebook-reverse-ink { left: 24px; right: 24px; } }
+@media (min-width: 701px) and (max-width: 950px) { .notebook-reverse-ink { font-size: 21px; } }
+@media (max-width: 700px) { .notebook-reverse-ink { inset: 66px 26px 44px; font-size: 23px; } }
+@media (prefers-reduced-motion: reduce) {
+  .notebook-spread::before, .notebook-spread::after { transition: none; }
+}
