@@ -1,17 +1,21 @@
 # Notes
 
-A personal site built to look and feel exactly like the macOS / iOS **Apple Notes** app. It's a fast, fully static single-page app — the whole "notebook" (profile, writing, projects, finds, reflections) is content, rendered through a faithful recreation of the Notes interface.
+A personal site presented as a handwritten, interactive notebook. All profile, writing, project, finds and reflection content comes from `constants.tsx`.
 
 Live at **[haidertoha.site](https://www.haidertoha.site)**.
 
 ## Features
 
-- Pixel-faithful Apple Notes UI — sidebar folders, note list and editor pane, with the same typography, spacing and yellow accent.
-- Responsive: a two-column split view on desktop, drill-down navigation on mobile.
-- Light / dark mode that follows the system preference.
-- Instant client-side search across every note's title and content.
-- A hand-written markdown renderer with headings, lists, tables, links, click-to-zoom images, fenced code, **KaTeX** math and **Mermaid** diagrams.
-- Deep-linkable notes (`/:folder/:slug`), prerendered to static HTML at build time for SEO and rich link previews.
+- Lined paper, flexible page turns, changing paper stacks and removable sheets.
+- Two preliminary contents leaves list every note, with an ink link to open contents or return to reading.
+- Home opens the contents; “continue reading →” restores your remembered reading page.
+- Responsive two-page desktop spreads and single-page mobile reading.
+- Transparent hand-drawn diagrams, live physics simulations and handwritten equations.
+- Accessible expanded media with zoom, pan, keyboard controls and visible close buttons.
+- Existing note URLs (`/:folder/:slug`) open their notebook pages; build-time HTML preserves SEO and link previews.
+- Exact source-content checks and browser regressions in `scripts/check-notebook*.mjs`.
+
+The routes `/`, `/contents`, and `/notebook` open the two contents leaves, including on return visits. `/all` and published note URLs open reading pages. The quiet ink control inside the paper’s upper-left margin navigates to `/contents` or back to the remembered page’s canonical note URL.
 
 ## Tech
 
@@ -37,7 +41,7 @@ npm run preview  # serve the built dist/ locally
 
 All content lives in `constants.tsx` as two arrays:
 
-- `folders` — the sidebar folders.
+- `folders` — the contents groups.
 - `portfolioNotes` — every note, each with a `slug`, `folder`, `created_at` and markdown `content`.
 
 Add or edit an entry there and it appears automatically; the build also generates that note's prerendered page and a `sitemap.xml` entry.
@@ -46,9 +50,11 @@ Add or edit an entry there and it appears automatically; the build also generate
 
 ```
 index.tsx               # entry point + routes
-App.tsx                 # stateful container (routing, theme, layout)
+App.tsx                 # notebook routes, canonical links and metadata
 components/
-  Sidebar.tsx           # folders + note list + search
+  LinedNotebook.tsx      # page engine, reading state and live leaves
+  NotebookContents.tsx  # two preliminary contents leaves
+  notebookPages.ts      # source-preserving pagination
   MainContent.tsx       # note renderer (markdown, math, diagrams)
 constants.tsx           # all content (folders + notes)
 seo.ts                  # titles, descriptions and structured data

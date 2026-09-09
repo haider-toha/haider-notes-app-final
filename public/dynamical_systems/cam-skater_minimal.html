@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Cam-Wagged Coasting Skater</title>
 <style>
+  @font-face{font-family:"Notebook Math";src:url("/fonts/notebook-math.woff2") format("woff2");font-display:swap;}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:transparent;}
-  body{font-family:Georgia,"Times New Roman",serif;}
+  body{font-family:"Notebook Math",cursive;}
   .wrap{max-width:720px;margin:0 auto;padding:0;}
   #scene{width:100%;height:auto;display:block;background:transparent;border-radius:0;}
   .hidden-refs{display:none !important;}
@@ -239,7 +240,7 @@ function setTheme(dark){
     INK='#1c1b18'; INKSOFT='#6a655c'; FILL='#cdc6b6'; FILL2='#e3ddcf';
     ROD2='#3a3730'; CAMFILL='#efe9dd'; MARK='#a8324a'; TEAL='#2a7f6f'; ORANGE='#b9722a';
     WHITEFILL='#fffefb'; GRIDFILL='#ece7d9'; TRACKFILL='#d7cdb8'; HULLFILL='#f3eee1';
-    cv.style.background='#fffefb';
+    cv.style.background='transparent';
   }
 }
 (function detectTheme(){
@@ -259,7 +260,8 @@ const TRACK_MAX = 1500;
 // world -> screen, camera centred on G_c = (S[0], S[1]); world y is up
 function W2S(wx,wy){ return [CW/2 + (wx-S[0])*SCALE, CH/2 - (wy-S[1])*SCALE]; }
 
-function serif(size, italic){ return (italic?'italic ':'')+size+'px Georgia, serif'; }
+function serif(size, italic){ return size+'px "Notebook Math", cursive'; }
+document.fonts.load('16px "Notebook Math"');
 function lab(txt,x,y,opt){
   opt=opt||{};
   ctx.save();

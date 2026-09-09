@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Gear-Closed Twin-Crank Loop</title>
 <style>
+  @font-face{font-family:"Notebook Math";src:url("/fonts/notebook-math.woff2") format("woff2");font-display:swap;}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:transparent;}
-  body{font-family:Georgia,"Times New Roman",serif;}
+  body{font-family:"Notebook Math",cursive;}
   .wrap{max-width:720px;margin:0 auto;padding:0;}
   #scene{width:100%;height:auto;display:block;background:transparent;border-radius:0;}
   .hidden-refs{display:none !important;}
@@ -235,7 +236,7 @@ function setTheme(dark){
   } else {
     INK='#1c1b18'; INKSOFT='#6a655c'; FILL='#cdc6b6'; FILL2='#e3ddcf';
     ROD2='#3a3730'; GEARFILL='#efe9dd'; MARK='#a8324a'; WHITEFILL='#fffefb';
-    cv.style.background='#fffefb';
+    cv.style.background='transparent';
   }
 }
 (function detectTheme(){
@@ -247,7 +248,8 @@ function setTheme(dark){
   } catch(e){}
 })();
 
-function serif(size, italic){ return (italic?'italic ':'')+size+'px Georgia, serif'; }
+function serif(size, italic){ return size+'px "Notebook Math", cursive'; }
+document.fonts.load('16px "Notebook Math"');
 function lab(txt,x,y,opt={}){
   ctx.save();
   ctx.fillStyle = opt.color||INK;

@@ -55,9 +55,11 @@ All authored content originates in this repository. It is converted into a copy-
 
 ## Lined Notebook Experiment
 
-The separate `/notebook` route recreates the supplied open cream lined notebook in HTML/CSS. Its fixed handwriting font is Reenie Beanie, self-hosted with its license; printed page numbers use system sans-serif. The notebook is the only visible surface: no toolbar, selector, footer, corner labels, or hover curls.
+The main site at `/`, also available at `/notebook`, recreates the supplied open cream lined notebook in HTML/CSS. Its fixed handwriting font is Reenie Beanie, self-hosted with its license; printed page numbers use system sans-serif. The notebook is the only visible surface: no toolbar, selector, footer, corner labels, or hover curls.
 
-Soft pages turn by deliberate outer-edge dragging/tapping or keyboard navigation, with folds, reverse faces and moving shadows based on the supplied screen recording. Reduced motion uses immediate page changes. The existing about-me text and external links remain interactive; all pages display content authored in `constants.tsx`, with no scratchpads, editing controls or draft storage. This is a preview, not a conversion of the full manuscript.
+Soft pages turn by deliberate outer-edge dragging/tapping or keyboard navigation, with folds, reverse faces and moving shadows based on the supplied screen recording. Reduced motion uses immediate page changes. All 27 notes in `constants.tsx` are available in the lined notebook, with exact source-preserving pagination. Links, images, tables, equations, Mermaid diagrams, and the three live dynamical-system simulations retain their original rendering and behavior. This HTML notebook is separate from the photographed manuscript.
+
+The default landing surface is the two contents leaves: `/`, `/contents`, and `/notebook` always open them, including on return visits. `/all` and published note URLs open reading pages. The “← contents” link inside the paper’s upper-left margin navigates to `/contents`; “continue reading →” restores the remembered reading page at its canonical note URL.
 
 The photographed `/book-test` prototype remains a separate working route with its original assets.
 
@@ -71,10 +73,10 @@ A deliberate outward pull from an outer edge meets resistance; holding beyond th
 
 Move the loose sheet freely and drag its binding edge back to the spine to reattach. There is no recovery button or added visible toolbar. Motion uses damped springs and movement-dependent angular response. Preserve the source page's exact heading alignment, padding, paper appearance and scroll position during separation and reattachment. Content and links remain readable while detached; a refresh restores the bound book.
 
-### Opening page
+### First reading page
 
-The first page is a spacious identity page: “haider toha” as the main heading, “london, uk” below, then GitHub/email/LinkedIn/Twitter near the top. After a two-rule gap, include the original opening paragraph about Haider’s current work; continue subsequent paragraphs on the following pages without duplication. Remove repeated introductions, “haider’s notebook,” the generic tagline and “explore all notes.” Do not add an on-page contents list: the intended direction for section navigation is protruding bookmarks, implemented as quiet fabric tabs for the current start, work and off-duty pages.
+The first reading page is a spacious identity page: “haider toha” as the main heading, “london, uk” below, then GitHub/email/LinkedIn/Twitter near the top. After a two-rule gap, include the original opening paragraph about Haider’s current work; continue subsequent paragraphs on the following pages without duplication. Remove repeated introductions, “haider’s notebook,” the generic tagline and “explore all notes.” Keep the identity leaf separate from the two preliminary contents leaves. These real notebook pages list all 27 notes, grouped by folder with page numbers, and turn through the same engine as the reading pages. A small handwritten control inside the paper’s upper-left margin reads “← contents” while reading and “continue reading →” on contents. Contents uses no popup, protruding tab or bookmark ribbon.
 
 ### Subtle paper details
 
-Completed page turns end in a brief settling flex; the paper edges grow on the left and shrink on the right as reading progresses. Faint mirrored ink from the opposite face is decorative and slightly stronger on lifted sheets. Fabric section tabs reveal labels on hover or focus, support touch activation and dismiss labels with Escape. The notebook remembers the visible reading page across visits, without reintroducing editable pages or drafts. Reduced motion skips the settling animation and transitions.
+Completed page turns end in a brief settling flex; the paper edges grow on the left and shrink on the right as reading progresses. Faint mirrored ink from the opposite face is decorative and slightly stronger on lifted sheets. The two contents leaves are numbered i and ii; authored reading pages retain their own numbering from 1. The notebook remembers the visible reading page across visits using a note ID and source offset, without reintroducing editable pages or drafts. Visiting contents preserves that reading position. Reduced motion skips the settling animation and transitions.

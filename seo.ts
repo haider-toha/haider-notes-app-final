@@ -2,7 +2,7 @@
 //
 // This module is intentionally framework- and DOM-free so it can be imported by
 // BOTH sides of the app:
-//   - the client (App.tsx) — to update <title>/meta on client-side navigation.
+//   - the notebook site (App.tsx) — to update <title>/meta on navigation.
 //   - the build-time prerenderer (scripts/prerender.mjs) — to bake real <head>
 //     tags + JSON-LD into the static HTML that non-JS crawlers/recruiter tools read.
 // Keeping the logic here means the two can never drift.

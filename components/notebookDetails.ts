@@ -47,9 +47,13 @@ export function useNotebookDetails(
     return () => { animation.current?.cancel(); animation.current = null; };
   }, [page, portrait, turning, reducedMotion, leaves]);
 
-  const progress = page / Math.max(1, pageCount - 1);
+  const visiblePages = portrait ? 1 : 2;
+  const finalSpread = Math.floor((pageCount - 1) / visiblePages) * visiblePages;
+  const progress = Math.min(1, page / Math.max(1, finalSpread));
+  // Thickness is bounded at book scale, with distinct cut edges on either side.
+  const thickness = Math.min(12, Math.max(6, Math.ceil(pageCount / 12)));
   return {
-    '--stack-left': `${1 + progress * 6}px`,
-    '--stack-right': `${1 + (1 - progress) * 6}px`,
+    '--stack-left': `${1 + progress * thickness}px`,
+    '--stack-right': `${1 + (1 - progress) * thickness}px`,
   } as CSSProperties;
 }

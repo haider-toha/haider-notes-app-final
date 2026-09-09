@@ -1,308 +1,96 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, useLocation } from "react-router";
-import Sidebar from "./components/Sidebar";
-import MainContent from "./components/MainContent";
-import { portfolioNotes, folders } from "./constants";
-import { Theme } from "./types";
-import {
-  SITE_URL,
-  homeMeta,
-  folderMeta,
-  noteMeta,
-  type PageMeta,
-} from "./seo";
-import { Moon, Sun, PanelLeft, Share } from "lucide-react";
-import { Analytics } from "@vercel/analytics/react";
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Navigate, useLocation, useNavigate, useNavigationType } from 'react-router';
+import { Analytics } from '@vercel/analytics/react';
+import LinedNotebook from './components/LinedNotebook';
+import { notebookPages, notebookSections } from './components/notebookPages';
+import { decodeNotebookPlace, encodeNotebookPlace } from './components/notebookPlace';
+import { homeMeta, noteMeta, folderMeta, SITE_URL, type PageMeta } from './seo';
 
-const isValidFolder = (id: string | undefined) =>
-  !!id && folders.some((f) => f.id === id);
-
-// Resolve the note for the current URL. Prefers an exact folder+slug match, then
-// falls back to a slug-only match so links like /blog/about-me (wrong folder),
-// /badfolder/about-me (invalid folder) or /all/about-me still resolve. A separate
-// effect rewrites the address bar to the canonical /<folder>/<slug>.
-const getNoteFromParams = (
-  folderParam: string | undefined,
-  slugParam: string | undefined,
-) => {
-  if (!slugParam) {
-    // No slug: only the "all" landing page auto-selects the first note.
-    return folderParam === "all" ? portfolioNotes[0] ?? null : null;
-  }
-  if (folderParam && folderParam !== "all") {
-    const exact = portfolioNotes.find(
-      (n) => n.folder === folderParam && n.slug === slugParam,
-    );
-    if (exact) return exact;
-  }
-  return portfolioNotes.find((n) => n.slug === slugParam) ?? null;
-};
-
-// Keep the document head in sync with the current view on client-side navigation.
-// The prerendered HTML already ships correct tags for the first load / non-JS
-// crawlers; this mirrors seo.ts so the tab title, share metadata and canonical stay
-// right once React takes over. (Structured-data JSON-LD is left as prerendered.)
-const upsertMeta = (key: "name" | "property", value: string, content: string) => {
-  let el = document.head.querySelector<HTMLMetaElement>(`meta[${key}="${value}"]`);
-  if (!el) {
-    el = document.createElement("meta");
-    el.setAttribute(key, value);
-    document.head.appendChild(el);
-  }
-  el.setAttribute("content", content);
-};
-
-const applyHeadMeta = (meta: PageMeta) => {
-  const url = SITE_URL + meta.path;
-  const ogDesc = meta.ogDescription ?? meta.description;
+function applyHead(meta: PageMeta) {
   document.title = meta.title;
-  upsertMeta("name", "description", meta.description);
-  upsertMeta("property", "og:title", meta.title);
-  upsertMeta("property", "og:description", ogDesc);
-  upsertMeta("property", "og:url", url);
-  upsertMeta("property", "og:type", meta.ogType);
-  upsertMeta("name", "twitter:title", meta.title);
-  upsertMeta("name", "twitter:description", ogDesc);
-
-  let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-  if (!canonical) {
-    canonical = document.createElement("link");
-    canonical.setAttribute("rel", "canonical");
-    document.head.appendChild(canonical);
+  for (const [attribute, name, content] of [
+    ['name', 'description', meta.description],
+    ['property', 'og:title', meta.title],
+    ['property', 'og:description', meta.ogDescription ?? meta.description],
+    ['property', 'og:url', SITE_URL + meta.path],
+    ['property', 'og:type', meta.ogType],
+    ['name', 'twitter:title', meta.title],
+    ['name', 'twitter:description', meta.ogDescription ?? meta.description],
+  ]) {
+    let tag = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${name}"]`);
+    if (!tag) { tag = document.createElement('meta'); tag.setAttribute(attribute, name); document.head.appendChild(tag); }
+    tag.content = content;
   }
-  canonical.setAttribute("href", url);
-};
+  let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
+  canonical.href = SITE_URL + meta.path;
+}
 
-const App: React.FC = () => {
-  const { folder: folderParam, slug } = useParams<{
-    folder?: string;
-    slug?: string;
-  }>();
-  const navigate = useNavigate();
+/** The notebook is the site; existing published note URLs still open their leaf. */
+export default function App() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const navigationType = useNavigationType();
+  const [visiblePage, setVisiblePage] = useState(0);
+  const parts = location.pathname.split('/').filter(Boolean);
+  const slug = parts.length > 1 ? parts[1] : undefined;
+  const noteSection = slug ? notebookSections.find(section => section.slug === slug || section.id === slug) : undefined;
+  const folder = parts[0];
+  const showContents = parts.length === 0 || (parts.length === 1 && ['contents', 'notebook'].includes(folder));
+  const folderSection = !slug && folder && !['notebook', 'contents', 'all'].includes(folder)
+    ? notebookSections.find(section => section.folder === folder) : undefined;
+  const valid = showContents || (parts.length === 1 && folder === 'all') || !!noteSection || !!folderSection;
+  const offset = Number(new URLSearchParams(location.search).get('at') ?? 0);
+  const requestedPage = noteSection
+    ? decodeNotebookPlace(JSON.stringify({ noteId: noteSection.id, offset })) ?? noteSection.firstPage
+    : folderSection?.firstPage ?? (folder === 'all' ? 0 : undefined);
 
-  const [isMobile, setIsMobile] = useState<boolean>(
-    () => typeof window !== "undefined" && window.innerWidth < 768,
-  );
-  const [showSidebar, setShowSidebar] = useState<boolean>(() => {
-    if (typeof window !== "undefined" && window.innerWidth < 768) return !slug;
-    return true;
-  });
-  const [theme, setTheme] = useState<Theme>("light");
-  const prevIsMobile = useRef(isMobile);
-
-  const selectedNote = getNoteFromParams(folderParam, slug);
-  const selectedNoteId = selectedNote?.id ?? null;
-  // Highlight the URL folder when it's valid; "all" stays "all"; otherwise follow
-  // the resolved note's real folder so the sidebar selection never lies.
-  const selectedFolderId =
-    folderParam === "all"
-      ? "all"
-      : isValidFolder(folderParam)
-        ? folderParam!
-        : selectedNote?.folder ?? "all";
-
-  // Track viewport → mobile/desktop.
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Desktop opens the first note when landing on "/" (Apple auto-selects a note).
-  useEffect(() => {
-    if (!isMobile && location.pathname === "/" && portfolioNotes[0]) {
-      navigate(`/all/${portfolioNotes[0].slug}`, { replace: true });
-    }
-  }, [isMobile, location.pathname, navigate]);
-
-  // Rewrite non-canonical note URLs (wrong / invalid folder) to the note's folder.
-  useEffect(() => {
-    if (
-      slug &&
-      selectedNote &&
-      folderParam !== "all" &&
-      folderParam !== selectedNote.folder
-    ) {
-      navigate(`/${selectedNote.folder}/${selectedNote.slug}`, {
-        replace: true,
-      });
-    }
-  }, [slug, selectedNote, folderParam, navigate]);
-
-  // Keep sidebar visibility coherent with viewport + selection.
-  useEffect(() => {
-    const wasMobile = prevIsMobile.current;
-    prevIsMobile.current = isMobile;
-    if (!isMobile) {
-      // mobile → desktop: reveal the sidebar. In steady-state desktop the toolbar
-      // toggle owns this state, so don't clobber it on unrelated re-renders.
-      if (wasMobile) setShowSidebar(true);
-    } else {
-      // Mobile: show the list when nothing is open, hide it while reading a note.
-      setShowSidebar(!slug);
-    }
-  }, [isMobile, slug]);
-
-  // Initialize theme from the system preference.
-  useEffect(() => {
-    if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
+  // A page turn updates the shareable URL without issuing another imperative
+  // engine navigation. Browser history POPs still restore their own position.
+  const navigationRequest = useRef({ key: location.key, page: requestedPage, showContents });
+  const pageTurnReplace = navigationType === 'REPLACE' && location.state?.notebookPageTurn === true;
+  if (!pageTurnReplace && navigationRequest.current.key !== location.key) {
+    navigationRequest.current = { key: location.key, page: requestedPage, showContents };
+  }
+  const currentRoute = useRef({ location, requestedPage, navigate });
+  currentRoute.current = { location, requestedPage, navigate };
+  const onPageChange = useCallback((index: number) => {
+    setVisiblePage(index);
+    const route = currentRoute.current;
+    const visibleCount = document.querySelector('.notebook-spread')?.classList.contains('is-portrait') ? 1 : 2;
+    // A note may start on the right leaf. Keep that explicit note URL while its
+    // requested source page is still visible, including initial spread setup.
+    if (route.requestedPage !== undefined && route.requestedPage >= index && route.requestedPage < index + visibleCount) return;
+    const page = notebookPages[index];
+    if (!page) return;
+    const place = JSON.parse(encodeNotebookPlace(index));
+    const target = `/${page.note.folder}/${page.note.slug}${place.offset ? `?at=${place.offset}` : ''}`;
+    if (route.location.pathname + route.location.search !== target) {
+      route.navigate(target, { replace: true, state: { notebookPageTurn: true } });
     }
   }, []);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }, [theme]);
+    document.documentElement.classList.remove('dark');
+    const meta = showContents ? { ...homeMeta(), ...(folder === 'contents' ? { path: '/contents', title: 'Contents · Haider Toha' } : {}) }
+      : noteSection ? noteMeta(notebookPages[noteSection.firstPage].note)
+      : folderSection || folder === 'all' ? folderMeta(folder)
+      : visiblePage === 0 ? homeMeta() : noteMeta(notebookPages[visiblePage].note);
+    applyHead(meta);
+  }, [location.pathname, noteSection?.id, folderSection?.id, visiblePage]);
 
-  // Update <title>/description/canonical/OG for the current view as the user
-  // navigates client-side (see applyHeadMeta above).
-  useEffect(() => {
-    const meta = selectedNote
-      ? noteMeta(selectedNote)
-      : folderParam
-        ? folderMeta(selectedFolderId)
-        : homeMeta();
-    applyHeadMeta(meta);
-  }, [selectedNote, folderParam, selectedFolderId]);
+  if (!valid) return <Navigate to="/" replace />;
+  if (noteSection && folder !== noteSection.folder) return <Navigate to={`/${noteSection.folder}/${noteSection.slug}${location.search}`} replace />;
 
-  const handleSelectNote = (id: string) => {
-    const note = portfolioNotes.find((n) => n.id === id);
-    if (!note) return;
-    // Preserve the current folder context — if viewing "all", stay in "all".
-    const currentFolder = selectedFolderId === "all" ? "all" : note.folder;
-    navigate(`/${currentFolder}/${note.slug}`);
-    if (isMobile) setShowSidebar(false);
-  };
-
-  const handleSelectFolder = (folderId: string) => {
-    if (folderId === "all") {
-      // "all" is the landing page: open the first note on desktop, list on mobile.
-      if (isMobile) navigate("/all");
-      else if (portfolioNotes[0]) navigate(`/all/${portfolioNotes[0].slug}`);
-    } else {
-      navigate(`/${folderId}`);
-    }
-  };
-
-  const handleBack = () => setShowSidebar(true);
-  const toggleTheme = () => setTheme((p) => (p === "light" ? "dark" : "light"));
-  const toggleDesktopSidebar = () => {
-    if (!isMobile) setShowSidebar((p) => !p);
-  };
-
-  const handleShare = async () => {
-    if (!selectedNote) return;
-    // Always share the canonical /<folder>/<slug> link so it resolves anywhere.
-    const shareUrl = `${window.location.origin}/${selectedNote.folder}/${selectedNote.slug}`;
-    const shareData = {
-      title: selectedNote.title,
-      text: selectedNote.content.substring(0, 200) + "...",
-      url: shareUrl,
-    };
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        alert("link copied to clipboard");
-      }
-    } catch {
-      // user dismissed the share sheet, or clipboard was denied — non-fatal
-    }
-  };
-
-  return (
-    <>
-      <Analytics />
-      <div className="h-full w-full flex flex-col bg-apple-bgLight dark:bg-black overflow-hidden font-sans transition-colors duration-200">
-        {/* Desktop Toolbar — unified, translucent, monochrome glyphs (macOS Notes) */}
-        {!isMobile && (
-          <div className="h-[52px] bg-apple-sidebarLight/80 dark:bg-apple-sidebarDark/70 backdrop-blur-xl flex items-center justify-between px-4 border-b border-black/[0.07] dark:border-white/[0.08] shrink-0 z-20 select-none">
-            <div className="flex items-center">
-              <button
-                onClick={toggleDesktopSidebar}
-                aria-label="Toggle sidebar"
-                title="Toggle sidebar"
-                className="p-1.5 -ml-1.5 rounded-md text-apple-textGray hover:text-black/75 dark:hover:text-white/75 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-              >
-                <PanelLeft className="w-[18px] h-[18px] stroke-[1.8]" />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-0.5">
-              <button
-                onClick={handleShare}
-                aria-label="Share note"
-                title="Share"
-                className="p-1.5 rounded-md text-apple-textGray hover:text-black/75 dark:hover:text-white/75 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-              >
-                <Share className="w-[17px] h-[17px] stroke-[1.8]" />
-              </button>
-              <div className="w-px h-5 bg-apple-separatorLight dark:bg-apple-separatorDark mx-1.5" />
-              <button
-                onClick={toggleTheme}
-                aria-label="Toggle dark mode"
-                title="Toggle appearance"
-                className="p-1.5 rounded-md text-apple-textGray hover:text-black/75 dark:hover:text-white/75 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-              >
-                {theme === "light" ? (
-                  <Moon className="w-[17px] h-[17px] stroke-[1.8]" />
-                ) : (
-                  <Sun className="w-[17px] h-[17px] stroke-[1.8]" />
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Main Split View */}
-        <div className="flex-1 flex overflow-hidden relative">
-          {/* Sidebar Column.
-              Mobile: slides over the content (transform). Desktop: collapses by
-              animating width so the editor smoothly reclaims the space (macOS). */}
-          <div
-            className={`
-            shrink-0 h-full bg-apple-sidebarLight dark:bg-apple-sidebarDark
-            ease-[cubic-bezier(0.42,0,0.58,1)] duration-[250ms]
-            ${
-              isMobile
-                ? `absolute inset-0 z-30 w-full transition-transform ${showSidebar ? "translate-x-0" : "-translate-x-full"}`
-                : `relative overflow-hidden transition-[width] ${showSidebar ? "w-[480px] lg:w-[520px]" : "w-0"}`
-            }
-            ${showSidebar ? "border-r border-apple-separatorLight dark:border-apple-separatorDark" : ""}
-          `}
-          >
-            <div className="h-full w-full md:w-[480px] lg:w-[520px]">
-              <Sidebar
-                notes={portfolioNotes}
-                folders={folders}
-                selectedNoteId={selectedNoteId}
-                selectedFolderId={selectedFolderId}
-                onSelectNote={handleSelectNote}
-                onSelectFolder={handleSelectFolder}
-                isMobile={isMobile}
-                theme={theme}
-                onToggleTheme={toggleTheme}
-              />
-            </div>
-          </div>
-
-          {/* Main Content Column */}
-          <div className="flex-1 h-full bg-apple-bgLight dark:bg-apple-bgDark relative z-10 w-full min-w-0">
-            <MainContent
-              note={selectedNote ?? undefined}
-              onBack={handleBack}
-              isMobile={isMobile}
-              onShare={handleShare}
-              theme={theme}
-              onToggleTheme={toggleTheme}
-            />
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
-
-export default App;
+  return <>
+    <Analytics />
+    <LinedNotebook initialPage={navigationRequest.current.page} showContents={navigationRequest.current.showContents}
+      navigationKey={navigationRequest.current.key} onPageChange={onPageChange}
+      onOpenContents={() => { if (location.pathname !== '/contents') navigate('/contents'); }}
+      onSelectPage={index => {
+        const page = notebookPages[index];
+        const place = JSON.parse(encodeNotebookPlace(index));
+        navigate(`/${page.note.folder}/${page.note.slug}${place.offset ? `?at=${place.offset}` : ''}`);
+      }} />
+  </>;
+}

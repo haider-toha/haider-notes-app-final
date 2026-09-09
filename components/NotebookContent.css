@@ -1,0 +1,47 @@
+.notebook-content { overflow-wrap: anywhere; padding-bottom: 12px; }
+.notebook-content .notebook-note-title { margin: 0 0 29px; font: 400 38px/58px var(--hand); color: var(--ink); }
+.notebook-content [class*="min-h-"] { min-height: 29px; }
+.notebook-content [class*="text-black"], .notebook-content [class*="text-apple-textGray"] { color: inherit; }
+.notebook-content [class*="leading-snug"] { font: 400 29px/29px var(--hand); margin-top: 29px; margin-bottom: 0; }
+.notebook-content strong { font-weight: 700; }
+.notebook-content em { color: inherit; }
+.notebook-content pre { font: 12px/1.6 ui-monospace, monospace; white-space: pre; overflow: auto; background: #e5e1d3; }
+.notebook-content pre code { font-size: inherit; }
+.notebook-content table { font: 15px/1.6 -apple-system, BlinkMacSystemFont, sans-serif; }
+.notebook-content th, .notebook-content td { padding: 8px; border-color: #b7b0a0; }
+.notebook-content .katex { font-size: 1em; }
+.notebook-content .katex-display { margin: 14px 0; }
+.notebook-content img { max-height: 440px; object-fit: contain; }
+.notebook-content iframe { display: block; background: transparent; }
+.notebook-content svg[id^="mermaid-"] { max-width: 100%; height: auto; max-height: 450px; }
+.notebook-content button[title="Expand diagram"] { opacity: 1; background: transparent; color: var(--ink); width: 44px; height: 44px; display: grid; place-items: center; }
+.notebook-content button[title="Expand diagram"]:hover { background: #303f530d; }
+.notebook-content .notebook-location { white-space: pre-line; }
+@media (max-width: 700px) {
+  .notebook-content .notebook-note-title { font-size: 34px; }
+  .notebook-content table { font-size: 13px; }
+}
+
+/* Fit the complete SVG viewBox on the paper; expansion offers close reading. */
+.notebook-diagram > div { justify-content: center; overflow: hidden; }
+.notebook-diagram svg { margin-inline: auto; min-width: 0; flex-shrink: 1; }
+
+/* Every visible equation glyph comes from the notebook's handwritten font.
+   KaTeX still owns fraction, superscript, delimiter and radical geometry. */
+@font-face { font-family: 'Notebook Math'; src: url('/fonts/notebook-math.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+.notebook-content .katex,
+.notebook-content .katex .katex-html * {
+  font-family: 'Notebook Math', 'Reenie Beanie', cursive !important;
+  font-style: normal;
+  color: var(--ink, #303f53);
+}
+.notebook-content .katex .mathbb { font-feature-settings: 'ss01' 1; }
+.notebook-content .katex .mathcal { font-feature-settings: 'ss02' 1; }
+.notebook-content .katex .delimsizing.size1,
+.notebook-content .katex .delim-size1 > span,
+.notebook-content .katex .op-symbol.small-op { font-feature-settings: 'ss03' 1; }
+.notebook-content .katex .delimsizing.size2,
+.notebook-content .katex .op-symbol.large-op { font-feature-settings: 'ss04' 1; }
+.notebook-content .katex .delimsizing.size3 { font-feature-settings: 'ss05' 1; }
+.notebook-content .katex .delimsizing.size4,
+.notebook-content .katex .delim-size4 > span { font-feature-settings: 'ss06' 1; }

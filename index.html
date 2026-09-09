@@ -7,7 +7,7 @@
 
     <!-- Per-page <title>, description, canonical, Open Graph, Twitter and page-level
          JSON-LD are injected at build time by scripts/prerender.mjs (and kept in sync
-         on client-side navigation by App.tsx). The tags below are the site-wide
+         on client-side notebook navigation by App.tsx). The tags below are the site-wide
          constants that are identical on every page. -->
     <title>Haider Toha</title>
     <meta name="author" content="Haider Toha" />
@@ -142,14 +142,13 @@
       }
       /* Slightly more "native" focus ring behavior */
       :focus-visible {
-        outline: 2px solid rgba(255, 212, 38, 0.6);
+        outline: 2px solid #536b87;
         outline-offset: 2px;
         border-radius: 8px;
       }
-      /* Apple Notes text-selection: a translucent yellow highlight that keeps the
-         underlying text color (matches the macOS/iOS yellow accent highlight). */
+      /* Ink-toned selection stays legible on the notebook paper. */
       ::selection {
-        background-color: rgba(255, 212, 38, 0.38);
+        background-color: rgba(83, 107, 135, 0.2);
       }
 
       /*
@@ -167,7 +166,7 @@
     </style>
     <!--SSG-HEAD-->
 </head>
-  <body class="bg-apple-bgLight dark:bg-apple-bgDark text-black dark:text-white overflow-hidden">
+  <body class="bg-white text-[#303f53] overflow-hidden">
     <!-- Progressive enhancement: flag JS availability before first paint so the
          prerendered #ssg-root (below) is hidden instantly for real browsers while
          staying fully readable to non-JS crawlers and recruiter/ATS scrapers. -->

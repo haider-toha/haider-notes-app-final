@@ -1,24 +1,46 @@
-/* Only the two bottom paper edges vary; nothing changes the book's geometry. */
+/* The cut edges sit behind the live leaves; the renderer owns page geometry. */
 .notebook-spread {
   --stack-left: 1px;
-  --stack-right: 7px;
-  box-shadow: 0 16px 24px #514b3926, 0 32px 60px #514b3910;
+  --stack-right: 13px;
+  box-shadow: 0 18px 26px #514b3926, 0 34px 60px #514b3910;
 }
-.notebook-spread::before,
-.notebook-spread::after {
-  content: '';
+.notebook-mount { position: relative; z-index: 1; }
+.notebook-paper-stack {
   position: absolute;
-  top: calc(100% - 1px);
+  top: 2px;
+  bottom: 0;
   width: 50%;
   pointer-events: none;
-  background: repeating-linear-gradient(to bottom, #eeebdf 0 1px, #c8c2b3 1px 2px);
-  border-bottom: 1px solid #bab4a5;
-  transition: height 310ms ease-out;
+  background: #e8e3d5;
 }
-.notebook-spread::before { left: 0; height: var(--stack-left); border-radius: 0 0 0 16px; }
-.notebook-spread::after { right: 0; height: var(--stack-right); border-radius: 0 0 16px 0; }
-.is-portrait.notebook-spread::before { display: none; }
-.is-portrait.notebook-spread::after { width: 100%; border-radius: 0 0 14px 14px; }
+.stack-read { left: 0; --depth: var(--stack-left); border-radius: 18px 0 0 18px; }
+.stack-unread { right: 0; --depth: var(--stack-right); border-radius: 0 18px 18px 0; }
+.notebook-paper-stack::before,
+.notebook-paper-stack::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+.notebook-paper-stack::before {
+  top: calc(100% - 1px);
+  width: calc(100% + var(--depth));
+  height: var(--depth);
+  background: repeating-linear-gradient(to bottom, #eeebdf 0 1px, #c8c2b3 1px 2px, #f5f1e6 2px 3px);
+  border-bottom: 1px solid #bcb5a5;
+}
+.stack-read::before { right: 0; border-radius: 0 0 0 18px; }
+.stack-unread::before { left: 0; border-radius: 0 0 18px 0; }
+.notebook-paper-stack::after {
+  top: 14px;
+  bottom: 0;
+  width: var(--depth);
+  background: repeating-linear-gradient(to right, #eeebdf 0 1px, #c8c2b3 1px 2px, #f5f1e6 2px 3px);
+}
+.stack-read::after { right: 100%; border-radius: 14px 0 0 0; }
+.stack-unread::after { left: 100%; border-radius: 0 14px 0 0; }
+.is-portrait .stack-read { display: none; }
+.is-portrait .stack-unread { width: 100%; border-radius: 14px; }
+.is-portrait .stack-unread::before { border-radius: 0 0 14px 14px; }
 .notebook-leaf.--left > .notebook-sheet { transform-origin: right center; }
 .notebook-leaf.--right > .notebook-sheet { transform-origin: left center; }
 
@@ -44,6 +66,3 @@
 @media (max-width: 950px) { .notebook-reverse-ink { left: 24px; right: 24px; } }
 @media (min-width: 701px) and (max-width: 950px) { .notebook-reverse-ink { font-size: 21px; } }
 @media (max-width: 700px) { .notebook-reverse-ink { inset: 66px 26px 44px; font-size: 23px; } }
-@media (prefers-reduced-motion: reduce) {
-  .notebook-spread::before, .notebook-spread::after { transition: none; }
-}
