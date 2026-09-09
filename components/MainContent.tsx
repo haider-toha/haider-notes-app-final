@@ -748,18 +748,15 @@ const MainContent: React.FC<MainContentProps> = ({ note, mediaActive = true }) =
     const renderLink = (token: string, key: string | number) => {
       const linkMatch = token.match(/^\[(.*?)\]\((.*?)\)$/);
       if (!linkMatch) return null;
-      // Only http(s) links open in a new tab; mailto:/relative open in place.
-      const isExternal = /^https?:\/\//i.test(linkMatch[2]);
       return (
         <a
           key={key}
           href={linkMatch[2]}
-          {...(isExternal
-            ? { target: "_blank", rel: "noopener noreferrer" }
-            : {})}
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-note-link hover:underline cursor-pointer"
         >
-          {linkMatch[1]}
+          {linkMatch[1]}{'\u00a0'}<span className="notebook-link-arrow" aria-hidden="true">↗</span>
         </a>
       );
     };

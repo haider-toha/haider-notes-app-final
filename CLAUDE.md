@@ -76,7 +76,7 @@ The main notebook uses ivory paper, blue-black ink and locally hosted handwritin
 
 ## Interactive notebook constraints
 
-The main site and its contents and reading routes use `components/LinedNotebook.tsx` and its CSS. Preserve the approved minimal desktop design: Reenie Beanie handwriting with Notebook Math for equations and simulation labels, no toolbar/footer, standard page numbers, external-link arrows and matching subtle curved underlines.
+The main site and its contents and reading routes use `components/LinedNotebook.tsx` and its CSS. Preserve the approved minimal desktop design: Reenie Beanie handwriting with Notebook Math for equations and simulation labels, no toolbar/footer, standard page numbers, ↗ markers on every content hyperlink, new-tab link targets and matching subtle curved underlines.
 
 Pack consecutive profile paragraphs into page-length passages; never restore one paragraph per page. Keep source text and links intact, and balance the final reading pages. Verify actual rendered height after the font loads. Keep the opening identity page. All notebook content is authored in `constants.tsx`; do not add scratchpads, editing controls or local draft storage. Handle odd page counts without adding blank editor pages.
 

@@ -313,6 +313,13 @@ function headTags(meta, jsonld, seo) {
 // ---------------------------------------------------------------------------
 
 function renderPage(template, { meta, head, body }) {
+  // Keep the no-JavaScript reading surface consistent with notebook hyperlinks.
+  body = body.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi, (_match, attributes, label) => {
+    const existingRel = attributes.match(/\srel="([^"]*)"/i)?.[1] ?? "";
+    const rel = [...new Set([...existingRel.split(/\s+/).filter(Boolean), "noopener", "noreferrer"])].join(" ");
+    const clean = attributes.replace(/\s(?:target|rel)="[^"]*"/gi, "");
+    return `<a${clean} target="_blank" rel="${rel}">${label}&#160;<span aria-hidden="true">↗</span></a>`;
+  });
   return template
     .replace(/<title[^>]*>[\s\S]*?<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`)
     // Drop the placeholder comments first (Vite may or may not keep them), then

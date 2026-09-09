@@ -96,8 +96,8 @@ try {
       assert.equal(await page.locator('.notebook-mobile-facing').count(), 0, 'First leaf has no preceding ruled page');
       assert(await page.locator('.notebook-mobile-cover').isVisible(), 'First leaf exposes the inside cover');
       const cover = await page.locator('.notebook-mobile-cover').boundingBox();
-      assert(cover.x + cover.width <= layout.paper.x + 1 && Math.abs(cover.y - layout.paper.y) <= 1 && Math.abs(cover.y + cover.height - layout.paper.bottom) <= 1, 'The cover is visible only to the left, aligned with the first page');
-      assert(await page.locator('.notebook-mobile-cover').evaluate(element => element.textContent === '' && getComputedStyle(element, '::after').backgroundImage === 'none'), 'Inside cover is plain endpaper with no phantom writing or ruled lines');
+      assert(cover.x < 0 && cover.width >= layout.paper.width - 1 && Math.abs(cover.x + cover.width - layout.paper.x) <= 1 && Math.abs(cover.y - layout.paper.y) <= 4 && Math.abs(cover.y + cover.height - layout.paper.bottom) <= 4, 'The full open cover sits left of the hinge and extends beyond the viewport');
+      assert(await page.locator('.notebook-mobile-cover').evaluate(element => element.textContent === '' && getComputedStyle(element, '::before').backgroundImage === 'none'), 'Inside cover is plain endpaper with no phantom writing or ruled lines');
       if (screenshots) await page.screenshot({ path: `${screenshots}/${width}x${height}-inside-cover.png` });
       assert(await page.locator('.stack-read').isHidden(), 'First leaf has no turned-page stack');
       assert.equal(await page.locator(`${visible} .notebook-writing`).evaluate(e => getComputedStyle(e).backgroundAttachment), 'local', 'Ruled lines scroll with the writing');

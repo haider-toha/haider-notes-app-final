@@ -288,7 +288,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
             <span className="notebook-reverse-ink" aria-hidden="true">{reverseInkText(sheetTexts, sourceIndex)}</span>
             <div className="notebook-running-head" aria-hidden="true">{sourceIndex !== 0 && <span>{content.note.title}</span>}</div>
             <div className="notebook-writing" onScroll={event => rememberScroll(index, event)}>
-              {(nearby || detached) && <NotebookContent page={content} active={detached || (index >= page && index < page + step)} onNavigate={selectPage} />}
+              {(nearby || detached) && <NotebookContent page={content} active={detached || (index >= page && index < page + step)} />}
             </div>
             {renderMobileGrips(index)}
             <span className="notebook-page-number">{sourceIndex + 1}</span>

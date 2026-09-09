@@ -47,4 +47,4 @@ The final Chromium audit covers 50 page/viewport combinations across ten sizes: 
 
 WebKit smoke checks also pass at 390×844, 320×568, 844×390 and 1280×720: about me, contents navigation, live resizing, complete paper bounds and no runtime errors. These are browser-emulated checks, not a physical iPhone test.
 
-The first mobile contents leaf shows a plain inside cover only to the left of the paper, with no invented preceding-page ink or read stack. Subsequent leaves restore the neighboring paper. Desktop and mobile ruling use a local background attachment so the lines travel with the writing during scrolling.
+The first mobile contents leaf shows a full-width open cover left of the hinge, cropped by the viewport rather than framed around the paper, with no invented preceding-page ink or read stack. Subsequent leaves restore the neighboring paper. Desktop and mobile ruling use a local background attachment so the lines travel with the writing during scrolling.

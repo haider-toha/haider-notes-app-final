@@ -199,8 +199,6 @@
 
 /* The first leaf has no turned paper or neighboring fold on its left. */
 .lined-notebook.is-mobile .is-first-page .stack-read { display: none; }
-.lined-notebook.is-mobile .is-first-page,
-.lined-notebook.is-mobile .is-first-page .notebook-leaf { border-radius: 14px; }
 .lined-notebook.is-mobile .is-first-page .notebook-leaf > .notebook-sheet {
   background: linear-gradient(90deg, #f1eee3 0 94%, #ece8db 100%);
 }
@@ -241,23 +239,34 @@
 }
 .lined-notebook.is-mobile .notebook-mobile-previous:disabled { opacity: 1; cursor: default; }
 .lined-notebook.is-mobile .notebook-mobile-previous:hover { text-decoration: underline; text-underline-offset: 4px; }
-/* A plain endpaper inside a muted cover; there is no invented preceding leaf. */
+/* The open front cover is a full board to the left of the hinge. Most of it
+   sits outside the focused phone viewport; its outer rim never frames the leaf. */
 .lined-notebook.is-mobile .notebook-mobile-cover {
   position: absolute;
   z-index: 0;
-  top: 0;
-  bottom: 0;
-  left: -20px;
-  width: 20px;
-  border-radius: 12px 0 0 12px;
-  background: #6d7666;
-  box-shadow: inset 0 0 0 1px #48513e55, 0 2px 3px #303d3226;
+  top: -3px;
+  bottom: -3px;
+  right: 100%;
+  width: 100%;
+  background: #a49b89;
+  border-radius: 10px 0 0 10px;
+  box-shadow: 0 3px 6px #51493624;
   pointer-events: none;
+}
+.lined-notebook.is-mobile .notebook-mobile-cover::before {
+  content: '';
+  position: absolute;
+  inset: 4px 0 4px 5px;
+  background: #e4ded0;
+  border-radius: 7px 0 0 7px;
 }
 .lined-notebook.is-mobile .notebook-mobile-cover::after {
   content: '';
   position: absolute;
-  inset: 4px 0 4px 4px;
-  border-radius: 8px 0 0 8px;
-  background: #e6e2d3;
+  inset: 0 0 0 auto;
+  width: 9px;
+  background: linear-gradient(90deg, transparent, #74695421 70%, #74695438);
 }
+/* At the hinge the first paper edge is square, just like subsequent leaves. */
+.lined-notebook.is-mobile .is-first-page,
+.lined-notebook.is-mobile .is-first-page .notebook-leaf { border-radius: 2px 14px 14px 2px; }

@@ -242,9 +242,3 @@ export const notebookSections = portfolioNotes.map(note => {
     pageCount: notebookPages[firstPage].partCount,
   };
 });
-
-export function notebookPageForLink(href: string): number | undefined {
-  const match = href.match(/^\/(?:note\/)?([^/?#]+)\/?(?:[?#].*)?$/);
-  if (!match) return undefined;
-  return notebookSections.find(section => section.slug === match[1] || section.id === match[1])?.firstPage;
-}
