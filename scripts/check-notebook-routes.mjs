@@ -1,5 +1,6 @@
 // Audit notebook entry routes, canonical note links, and every contents entry.
 import assert from 'node:assert/strict';
+import { access } from 'node:fs/promises';
 import { loadNotebookData } from './check-notebook-content.mjs';
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const { portfolioNotes, notebookSections, folders } = await loadNotebookData();
@@ -43,7 +44,7 @@ try {
   await open('/');
   await checkContents(); await page.reload(); await checkContents();
   for (const section of notebookSections) {
-    const contents = page.getByRole('button', { name: 'Open contents', exact: true });
+    const contents = page.getByRole('button', { name: 'Open contents', exact: true }).first();
     if (await contents.count()) { await contents.click(); await page.waitForURL(`${origin}/contents`); }
     await page.getByRole('button', { name: `Go to ${section.title}, page ${section.firstPage + 1}`, exact: true }).click();
     await checkNote(portfolioNotes.find(note => note.id === section.id));
@@ -54,6 +55,9 @@ try {
   await page.goForward(); await checkNote(portfolioNotes.find(note => note.id === notebookSections.at(-1).id));
   await open('/missing-note-path');
   await page.waitForURL(`${origin}/`);
+  await open('/book-test');
+  await page.waitForURL(`${origin}/`); await checkContents();
+  await assert.rejects(access(new URL('../public/book-test', import.meta.url)), { code: 'ENOENT' }, 'Retired prototype assets must not ship');
   assert.deepEqual(errors, [], 'Route and contents navigation produce no runtime errors');
   console.log(`PASS: root/alias always open contents, /contents route, routed reading-position refresh, all ${portfolioNotes.length} canonical note routes, ${folders.length} folder routes, old /all links, every contents entry and browser history.`);
 } finally { await browser.close(); }

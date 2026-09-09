@@ -160,17 +160,28 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     else move(Math.floor((index + contentsPages) / step) * step);
   };
 
+  const renderContentsLink = (index: number) => <button className="notebook-contents-link"
+    aria-label={index < contentsPages ? 'Back to reading' : 'Open contents'} disabled={turning}
+    onClick={() => {
+      if (index < contentsPages) selectPage(readingPage.current - contentsPages);
+      else { readingPage.current = index; if (onOpenContents) onOpenContents(); else move(0); }
+    }}>
+    {index < contentsPages ? 'continue reading →' : '← contents'}
+  </button>;
+
   const renderSheet = (index: number) => {
     const sourceIndex = index - contentsPages;
     const content = pages[sourceIndex];
     const nearby = Math.abs(index - page) <= 3 || (destination !== null && Math.abs(index - destination) <= 3);
     const detached = loose.sheet?.index === index;
-    if (index < contentsPages) return <article className="notebook-sheet notebook-contents-sheet" data-contents-part={index}>
+    if (index < contentsPages) return <article className="notebook-sheet notebook-contents-sheet" data-page-side={index % 2 ? 'right' : 'left'} data-contents-part={index}>
+      {renderContentsLink(index)}
       <div className="notebook-running-head" aria-hidden="true" />
       <div className="notebook-writing"><NotebookContents sections={sections} part={index as 0 | 1} onNavigate={selectPage} /></div>
       <span className="notebook-page-number">{index === 0 ? 'i' : 'ii'}</span>
     </article>;
-    return <article className="notebook-sheet" data-note-id={content.note.id} data-page-index={sourceIndex}>
+    return <article className="notebook-sheet" data-page-side={index % 2 ? 'right' : 'left'} data-note-id={content.note.id} data-page-index={sourceIndex}>
+            {renderContentsLink(index)}
             <span className="notebook-reverse-ink" aria-hidden="true">{reverseInkText(sheetTexts, sourceIndex)}</span>
             <div className="notebook-running-head" aria-hidden="true">{sourceIndex !== 0 && <span>{content.note.title}</span>}</div>
             <div className="notebook-writing">
@@ -252,13 +263,6 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
           <button className="notebook-edge edge-back" aria-label="Turn previous page" aria-disabled={page === 0} onClick={e => { if (e.detail === 0) move(page - step); }}></button>
           <button className="notebook-edge edge-next" aria-label="Turn next page" aria-disabled={page >= lastPage} onClick={e => { if (e.detail === 0) move(page + step); }}></button>
         </>}
-        <button className="notebook-contents-link" aria-label={page < contentsPages ? 'Back to reading' : 'Open contents'} disabled={turning}
-          onClick={() => {
-            if (page < contentsPages) selectPage(readingPage.current - contentsPages);
-            else { readingPage.current = page; if (onOpenContents) onOpenContents(); else move(0); }
-          }}>
-          {page < contentsPages ? 'continue reading →' : '← contents'}
-        </button>
         {leaves.map((leaf, index) => {
           const removed = loose.sheet?.index === index;
           const underneath = index + (loose.sheet?.left ? -2 : (mobile ? 1 : 2));

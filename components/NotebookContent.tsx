@@ -9,10 +9,8 @@ interface NotebookContentProps {
   onNavigate?: (page: number) => void;
 }
 
-const noop = () => {};
-
 export default function NotebookContent({ page, active = true, onNavigate }: NotebookContentProps) {
-  const render = (content: string) => <MainContent note={{ ...page.note, content }} bodyOnly mediaActive={active} isMobile={false} onBack={noop} onShare={noop} />;
+  const render = (content: string) => <MainContent note={{ ...page.note, content }} mediaActive={active} />;
   const intro = page.note.id === 'profile-about-me' && page.part === 0;
   const paragraphs = intro ? page.content.trimEnd().split('\n\n') : [];
   return <div className="notebook-content" data-note-id={page.note.id} data-note-part={page.part}

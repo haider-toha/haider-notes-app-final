@@ -71,6 +71,16 @@
 @media (max-width: 700px) { .notebook-contents-link { left: 26px; top: 14px; height: 44px; } }
 
 .notebook-contents-sheet > .notebook-writing { margin-top: 9px; }
-.notebook-leaf.--left .notebook-running-head span { max-width: calc(100% - 92px); }
+.notebook-running-head span { max-width: calc(100% - 92px); }
 .is-portrait .notebook-running-head { justify-content: flex-end; padding-left: 94px; }
 @media (min-width: 701px) and (max-width: 950px) { .notebook-contents-link { left: 24px; } }
+
+@media (min-width: 701px) {
+  .notebook-sheet[data-page-side="right"] > .notebook-contents-link { left: auto; right: 36px; }
+}
+@media (min-width: 701px) and (max-width: 950px) {
+  .notebook-sheet[data-page-side="right"] > .notebook-contents-link { right: 24px; }
+}
+@media (max-width: 700px) {
+  .is-portrait .notebook-running-head span { max-width: 100%; }
+}

@@ -24,7 +24,7 @@ try {
   for (const chart of charts) {
     const dimensions = await page.evaluate(async chart => {
       const { renderMermaid } = await import('/components/MainContent.tsx');
-      const svg = await renderMermaid(chart, false, true);
+      const svg = await renderMermaid(chart);
       const element = new DOMParser().parseFromString(svg, 'image/svg+xml').documentElement;
       const [, , width, height] = element.getAttribute('viewBox').trim().split(/[\s,]+/).map(Number);
       return { width, height };

@@ -18,8 +18,7 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:site" content="@HaiderToha" />
     <meta name="twitter:creator" content="@HaiderToha" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="format-detection" content="telephone=no" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -33,52 +32,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class',
         theme: {
           extend: {
-            colors: {
-              apple: {
-                // Accent (folder icons, links, mobile bar buttons). The original launch
-                // gold — deeper/warmer than Apple's exact systemYellow (#FFCC00), and
-                // legible as link text on white.
-                yellow: '#F0C000',
-                yellowDark: '#FFD60A',
-                // Selected note/folder row — Apple Notes' bright "selected note" yellow,
-                // shown with dark text on top for contrast.
-                selectionLight: '#FFD52E',
-                selectionDark: '#E0A93A',
-                sidebarLight: '#F4F4F6',
-                sidebarDark: '#1C1C1E',
-                bgLight: '#FFFFFF',
-                bgDark: '#000000',
-                editorDark: '#1C1C1E',
-                separatorLight: '#D6D6DA',
-                separatorDark: '#38383A',
-                textGray: '#8E8E93',
-                textDark: '#FFFFFF',
-                searchLight: '#E4E4E9',
-                searchDark: '#2C2C2E',
-                hoverLight: 'rgba(0,0,0,0.045)',
-                hoverDark: 'rgba(255,255,255,0.06)',
-              }
-            },
-            fontFamily: {
-              sans: [
-                '"SF Pro Text"',
-                '"SF Pro Display"',
-                '"SF Pro Icons"',
-                '-apple-system',
-                'BlinkMacSystemFont',
-                'system-ui',
-                '"San Francisco"',
-                '"Helvetica Neue"',
-                '"Segoe UI"',
-                'Roboto',
-                'Helvetica',
-                'Arial',
-                'sans-serif',
-              ],
-            },
+            colors: { note: { muted: '#8E8E93', link: '#355b78' } },
           },
         },
       };
@@ -89,48 +45,6 @@
          so it never flashes before React mounts the actual app in the same #root. */
       html.js #ssg-root { display: none !important; }
 
-      /* Hide scrollbar for Chrome, Safari and Opera */
-      .no-scrollbar::-webkit-scrollbar {
-          display: none;
-      }
-      /* Hide scrollbar for IE, Edge and Firefox */
-      .no-scrollbar {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
-      }
-      /* Subtle, always-available scrollbar (thin rounded thumb, Apple-style).
-         The transparent border + content-box clip make the thumb read as a
-         thin floating pill with breathing room from the edge. */
-      .custom-scrollbar::-webkit-scrollbar {
-          width: 9px;
-          height: 9px;
-      }
-      .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: rgba(0, 0, 0, 0.22);
-          border-radius: 9999px;
-          border: 2px solid transparent;
-          background-clip: content-box;
-      }
-      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background-color: rgba(0, 0, 0, 0.38);
-      }
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: rgba(255, 255, 255, 0.22);
-      }
-      .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background-color: rgba(255, 255, 255, 0.4);
-      }
-      /* Firefox */
-      .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
-      }
-      .dark .custom-scrollbar {
-          scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
-      }
       body {
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -151,18 +65,6 @@
         background-color: rgba(83, 107, 135, 0.2);
       }
 
-      /*
-        Font notes:
-        - On macOS/iOS: SF Pro is used automatically via -apple-system.
-        - On Windows: if you install SF Pro (or another SF-like font) locally, the "SF Pro Text/Display"
-          entries below will be picked up by the browser automatically.
-      */
-      @font-face {
-        font-family: "SF Pro Text";
-        src: local("SF Pro Text"), local("SF Pro Display");
-        font-style: normal;
-        font-weight: 100 900;
-      }
     </style>
     <!--SSG-HEAD-->
 </head>

@@ -8,75 +8,69 @@ web
 
 ## Users
 
-Visitors to Haider Toha's personal website who want to explore his profile, writing, projects, finds, and reflections. The site must remain usable on desktop and mobile browsers.
+Visitors to Haider Toha's personal website who want to explore his profile, writing, projects, finds, and reflections. Reading and navigation must work on desktop and mobile browsers.
 
 ## Product Purpose
 
-Present Haider's existing personal-site content as a digital version of a real handwritten notebook. Success means a visitor can browse photographed pages as naturally as a physical book while links, note navigation, references, images, video, and interactive media still behave like a website.
+Present all of Haider's published notes as a live handwritten notebook. Visitors turn lined pages, follow links, read equations, explore figures, and watch simulations within the same book.
 
 ## Positioning
 
-The photographed physical notebook is the actual content surface rather than a decorative skin around typeset web content. Digital interaction is layered onto the photographed handwriting without replacing it.
+The notebook is the website's primary interface. Ivory ruled paper, handwriting, a narrow binding, and flexible leaves give the content a physical reading experience. Text and media remain live HTML, SVG, and canvas so they stay selectable, accessible, and interactive.
 
 ## Operating Context
 
-All authored content originates in this repository. It is converted into a copy-ready manuscript, copied into a physical notebook by hand, photographed, and then mapped back into the web experience. The source photographs and physical page order are production assets, not illustrative placeholders.
+This is a static React site deployed on Vercel. `constants.tsx` supplies the authored notes and folder groups. Source-preserving pagination creates reading leaves; the shared renderer handles prose, links, tables, code, equations, images, and diagrams. Build-time HTML provides crawlable content and note metadata. There is no CMS or application backend.
 
 ## Capabilities and Constraints
 
-- Preserve the existing published content faithfully; do not rewrite or redesign its substance.
-- The finished manuscript must account for every published note, link, media placement, reference, and page break.
-- Photographed handwriting remains visually exact. Generated or re-typeset handwriting must not silently replace it.
-- Invisible interactive regions may be positioned over photographed links and media areas.
-- The notebook must support direct navigation between notes and responsive use on desktop and mobile.
-- The current prototype scope is the closed cover, first handwritten page, and second handwritten page.
-- The final 3D implementation and complete capture workflow remain open until the test photographs establish legibility and interaction quality.
+- Preserve every published note, source character, link, reference, and media block. Do not rewrite content to fill pages.
+- Include all 27 notes and all three live dynamical-system simulations.
+- Keep figures and equations intact across pagination. Fit complete diagrams inside the page, with an accessible expanded view for closer reading.
+- Use locally hosted Reenie Beanie for handwriting and Notebook Math for equations and simulation labels. Retain the font licenses and complete mathematical glyph coverage.
+- Support contents navigation, published note URLs, browser history, keyboard input, touch, and reduced motion.
+- Remember the reading position as a note ID and source offset so repagination does not lose the reader's place. Storage failures must not prevent reading.
+- Keep the experience read-only: no editing controls, scratchpads, or local drafts.
 
 ## Brand Commitments
 
-- Product identity: Haider Toha's personal notebook and personal website.
-- Preserve the real green, red, and gold textile cover, lined paper, handwriting, and physical imperfections of the supplied notebook.
-- The notebook should feel handled and personal, not like a generic 3D product configurator.
-
-## Evidence on Hand
-
-- The authored website content lives in `constants.tsx`.
-- `handwriting-manuscript/` contains a 27-note, 241-page copy manuscript plus source, link, and asset audits.
-- `handwriting-manuscript/test/` contains real cover, spine, first-page, second-page, and page-turn reference captures.
-- No testimonials, commercial claims, or synthetic photography should be fabricated.
+- Haider Toha's personal notebook: quiet, handled, and readable.
+- White desk, ivory lined paper, blue-black ink, and understated blue links.
+- The book provides the interface. Avoid toolbars, extra page chrome, decorative tabs, or popup contents.
+- Preserve supplied facts and authored language; do not invent claims or filler.
 
 ## Product Principles
 
-1. The physical artifact leads; interface chrome recedes.
-2. Faithfulness outranks decorative polish.
-3. Every interaction must remain discoverable, accessible, and reversible.
-4. Page imagery loads sharply without making the experience fragile on mobile networks.
-5. Prototype risky page-turn and legibility decisions before scaling to the complete manuscript.
+1. Reading and content fidelity lead every visual decision.
+2. Navigation stays clear and belongs on the paper.
+3. Physical interactions remain deliberate, accessible, and reversible.
+4. Rich content loads near the reading position and remains usable on mobile.
+5. Verify source parity, rendered fit, and real interaction paths before shipping.
 
-## Lined Notebook Experiment
+## Contents and Navigation
 
-The main site at `/`, also available at `/notebook`, recreates the supplied open cream lined notebook in HTML/CSS. Its fixed handwriting font is Reenie Beanie, self-hosted with its license; printed page numbers use system sans-serif. The notebook is the only visible surface: no toolbar, selector, footer, corner labels, or hover curls.
+The default landing surface is two preliminary contents leaves, numbered i and ii. `/`, `/contents`, and `/notebook` always open them, including on return visits. `/all`, folder routes, and published note URLs open reading pages.
 
-Soft pages turn by deliberate outer-edge dragging/tapping or keyboard navigation, with folds, reverse faces and moving shadows based on the supplied screen recording. Reduced motion uses immediate page changes. All 27 notes in `constants.tsx` are available in the lined notebook, with exact source-preserving pagination. Links, images, tables, equations, Mermaid diagrams, and the three live dynamical-system simulations retain their original rendering and behavior. This HTML notebook is separate from the photographed manuscript.
+Contents lists all 27 notes in folder groups across the two leaves. Only the left leaf has the “contents” title; an equal-height spacer on the right keeps both columns aligned. Larger group headings, indented entries, and handwritten page references establish the hierarchy. These leaves turn through the same engine as the reading pages.
 
-The default landing surface is the two contents leaves: `/`, `/contents`, and `/notebook` always open them, including on return visits. `/all` and published note URLs open reading pages. The “← contents” link inside the paper’s upper-left margin navigates to `/contents`; “continue reading →” restores the remembered reading page at its canonical note URL.
+A small handwritten control inside each page's upper outer margin reads “← contents” during reading and navigates to `/contents`. On contents, “continue reading →” restores the remembered source page at its canonical note URL. Visiting contents preserves the saved reading position. Reading page numbers start at 1 and exclude the two preliminary leaves.
 
-The photographed `/book-test` prototype remains a separate working route with its original assets.
+## Reading and Media
 
-### Reading density
+The first reading page contains “haider toha,” location, social links, and the original opening paragraph about current work. Subsequent paragraphs continue without duplication. Keep the identity leaf separate from contents and preserve its generous spacing.
 
-Keep the opening identity page, then group consecutive source paragraphs into fuller reading pages. A paragraph break must not automatically create a new page. Preserve the authored text, paragraph spacing, links, and order; balance the final two reading pages to avoid leaving a tiny trailing paragraph by itself. The profile starts on the identity page and continues across fuller reading pages. Do not add filler copy or reduce the handwriting size to fill paper.
+Group source paragraphs into full reading pages. Use rendered line heights and media geometry, split prose only at safe boundaries, keep headings with their following content, and balance sparse pages. Preserve paragraph order, links, and mathematical notation; do not shrink handwriting or add filler to fill paper. Markdown section dividers remain in the source audit but are not drawn in the notebook.
 
-### Removable sheet interaction
+Mermaid diagrams render live with transparent backgrounds, blue-black ink, and the page's handwriting. Every full diagram fits within the page width and a 450px height cap. Expanded diagrams and images use an accessible paper-colored viewer with visible close, zoom, and reset controls. Equations and simulation labels use Notebook Math. The three dynamical simulations retain their numerical behavior and transparent canvases.
 
-A deliberate outward pull from an outer edge meets resistance; holding beyond the threshold releases one live sheet. Normal inward drags retain the approved page-turn behavior. On narrow touch screens a deliberate vertical edge pull can release the sheet without requiring off-screen movement. Only one sheet is loose at a time. The underlying sheet's real writing remains visible where another sheet exists.
+## Page Interaction
 
-Move the loose sheet freely and drag its binding edge back to the spine to reattach. There is no recovery button or added visible toolbar. Motion uses damped springs and movement-dependent angular response. Preserve the source page's exact heading alignment, padding, paper appearance and scroll position during separation and reattachment. Content and links remain readable while detached; a refresh restores the bound book.
+Desktop displays two pages; narrow screens display one. Deliberate outer-edge drags, taps, or arrow keys turn flexible sheets. The page stays flat on hover. Reduced motion changes pages immediately.
 
-### First reading page
+An outward edge pull meets resistance, then releases one live sheet after a hold. On narrow touch screens, a deliberate vertical edge pull can release it. Move the sheet freely and align its binding edge with the spine to reattach. Preserve its writing, heading alignment, padding, and scroll position throughout. The real underlying leaf remains visible. Only one sheet can be loose at a time; refreshing restores the bound book.
 
-The first reading page is a spacious identity page: “haider toha” as the main heading, “london, uk” below, then GitHub/email/LinkedIn/Twitter near the top. After a two-rule gap, include the original opening paragraph about Haider’s current work; continue subsequent paragraphs on the following pages without duplication. Remove repeated introductions, “haider’s notebook,” the generic tagline and “explore all notes.” Keep the identity leaf separate from the two preliminary contents leaves. These real notebook pages list all 27 notes, grouped by folder with page numbers, and turn through the same engine as the reading pages. A small handwritten control inside the paper’s upper-left margin reads “← contents” while reading and “continue reading →” on contents. Contents uses no popup, protruding tab or bookmark ribbon.
+Completed turns settle briefly. Read pages thicken the left stack while unread pages thin the right; cut edges remain visible along the outside and bottom. Faint mirrored reverse ink is decorative and slightly stronger on lifted sheets. These details never intercept reading or page grabs, and reduced motion skips their animation.
 
-### Subtle paper details
+## Verification
 
-Completed page turns end in a brief settling flex; the paper edges grow on the left and shrink on the right as reading progresses. Faint mirrored ink from the opposite face is decorative and slightly stronger on lifted sheets. The two contents leaves are numbered i and ii; authored reading pages retain their own numbering from 1. The notebook remembers the visible reading page across visits using a note ID and source offset, without reintroducing editable pages or drafts. Visiting contents preserves that reading position. Reduced motion skips the settling animation and transitions.
+`check-notebook-content.mjs` reconstructs every source note exactly and checks atomic rich blocks, headings, local assets, and stored positions. Browser checks cover turns, contents routes, media rendering, equation glyphs, expanded viewers, and the live simulations. Re-measure diagram geometry after changing diagram source or typography; regenerate and audit Notebook Math when adding mathematical glyphs.

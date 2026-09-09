@@ -12,17 +12,20 @@ const status = page => page.locator('.lined-notebook > .notebook-accessible-stat
 const expected = (index, width = 1440) => `Pages ${index + 1}${width >= 700 && index + 1 < total ? `–${index + 2}` : ''} of ${total}.`;
 const errors = [];
 async function checkNavigationPlacement(page) {
-  assert(await page.locator('.notebook-contents-link').evaluate(button => {
+  assert.equal(await page.locator('.notebook-spread > .notebook-contents-link').count(), 0, 'Navigation must belong to page faces, not float over the spread');
+  const controls = page.locator('.notebook-leaf:not([inert]) > .notebook-sheet > .notebook-contents-link');
+  assert.equal(await controls.count(), page.viewportSize().width < 700 ? 1 : 2, 'Every visible face has its own navigation');
+  assert(await controls.evaluateAll(buttons => buttons.every(button => {
     const control = button.getBoundingClientRect();
-    const book = document.querySelector('.notebook-mount').getBoundingClientRect();
-    const visible = [...document.querySelectorAll('.notebook-leaf:not([inert])')];
-    const body = visible[0]?.querySelector('.notebook-writing')?.getBoundingClientRect();
-    const overlapsTitle = visible.flatMap(leaf => [...leaf.querySelectorAll('.notebook-running-head span')]).some(title => {
+    const sheet = button.closest('.notebook-sheet');
+    const paper = sheet.getBoundingClientRect();
+    const body = sheet.querySelector('.notebook-writing').getBoundingClientRect();
+    const overlapsTitle = [...sheet.querySelectorAll('.notebook-running-head span')].some(title => {
       const rect = title.getBoundingClientRect();
       return rect.left < control.right && rect.right > control.left && rect.top < control.bottom && rect.bottom > control.top;
     });
-    return control.x >= 0 && control.y >= 0 && control.right <= innerWidth && control.x >= book.x && control.y >= book.y && control.right <= book.right && body && control.bottom <= body.top + 1 && !overlapsTitle;
-  }), 'Contents/reading control stays inside the paper header without overlapping writing or the running title');
+    return control.x >= paper.x && control.y >= paper.y && control.right <= paper.right && control.bottom <= body.top + 1 && !overlapsTitle;
+  })), 'Each page control stays inside its own paper header without overlapping text');
 }
 async function open(width = 1440, reducedMotion = 'no-preference') {
   const page = await browser.newPage({ viewport: { width, height: 1050 }, reducedMotion });
@@ -30,11 +33,11 @@ async function open(width = 1440, reducedMotion = 'no-preference') {
   await page.goto(url); await delay(page, 500); await page.evaluate(() => document.fonts.ready);
   assert.equal(await status(page), 'Contents.', 'The site always opens to its contents');
   await checkNavigationPlacement(page);
-  await page.getByRole('button', { name: 'Back to reading', exact: true }).click(); await delay(page);
+  await page.getByRole('button', { name: 'Back to reading', exact: true }).first().click(); await delay(page);
   return page;
 }
 async function visit(page, section) {
-  await page.getByRole('button', { name: 'Open contents', exact: true }).click();
+  await page.getByRole('button', { name: 'Open contents', exact: true }).first().click();
   await delay(page);
   const entry = page.getByRole('button', { name: `Go to ${section.title}, page ${section.firstPage + 1}`, exact: true });
   if (!await entry.isVisible()) {
@@ -55,6 +58,10 @@ try {
   await page.mouse.move(x - 140, y - 30, { steps: 15 }); await delay(page, 60);
   assert.equal(await page.locator('.notebook-leaf.--hard').count(), 0, 'Reading leaves remain soft');
   assert(await page.locator('.notebook-leaf').evaluateAll(leaves => leaves.some(e => e.style.clipPath.includes('polygon'))), 'Drag must render a flexible fold');
+  assert(await page.locator('.notebook-leaf').evaluateAll(leaves => leaves.filter(leaf => leaf.style.clipPath.includes('polygon')).every(leaf => {
+    const control = leaf.querySelector('.notebook-sheet > .notebook-contents-link');
+    return control && getComputedStyle(control).visibility === 'visible' && getComputedStyle(control).opacity === '1';
+  })), 'Folded faces carry their own visible contents controls');
   await page.mouse.move(rect.x + 60, y, { steps: 30 }); await page.mouse.up();
   await page.waitForFunction(() => document.querySelector('.lined-notebook > .notebook-accessible-status').textContent.startsWith('Pages 3'));
   await delay(page);
@@ -62,14 +69,14 @@ try {
   await checkNavigationPlacement(page);
   assert(await page.locator('.notebook-spread').evaluate(e => parseFloat(e.style.getPropertyValue('--stack-left'))) > initialStack, 'Turned pages thicken left stack');
   await page.reload(); await delay(page, 500); assert.equal(await status(page), expected(2), 'Remember place after refresh');
-  await page.getByRole('button', {name:'Open contents', exact:true}).click(); await delay(page);
+  await page.locator('.notebook-leaf:not([inert]) > [data-page-side=right] > .notebook-contents-link').click(); await delay(page);
   assert.equal(new URL(page.url()).pathname, '/contents');
   assert.equal(await status(page), 'Contents.');
   assert.equal(await page.locator('.notebook-leaf:has(.notebook-contents-page)').count(), 2, 'Contents are two real book leaves');
   assert.equal(await page.locator('.notebook-contents-page button').count(), notebookSections.length);
   assert.equal(await page.getByRole('dialog').count(), 0, 'Contents are printed on paper');
   assert.equal(await page.locator('.notebook-reading-ribbon,.notebook-bookmarks').count(), 0, 'Retired bookmark controls removed');
-  await page.getByRole('button', {name:'Back to reading', exact:true}).click(); await delay(page);
+  await page.getByRole('button', {name:'Back to reading', exact:true}).first().click(); await delay(page);
   assert.equal(await status(page), expected(2), 'Contents returns to the previous reading spread');
   await visit(page, notebookSections[0]);
   await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x + 150, y, {steps:20}); await delay(page,250);
@@ -107,7 +114,7 @@ try {
   const p = await browser.newPage(); p.on('pageerror', e => errors.push(e.message));
   await p.addInitScript(() => { Object.defineProperty(window,'localStorage',{get(){throw new DOMException('blocked','SecurityError')}}); });
   await p.goto(url); await delay(p,500); assert.equal(await status(p), 'Contents.');
-  await p.getByRole('button', { name: 'Back to reading', exact: true }).click(); await delay(p);
+  await p.getByRole('button', { name: 'Back to reading', exact: true }).first().click(); await delay(p);
   assert.equal(await status(p), expected(0));
   await visit(p, notebookSections.at(-1));
   await p.close();

@@ -17,7 +17,7 @@ try {
   async function openLeaf(index) {
     await page.waitForFunction(() => document.querySelector(".lined-notebook > .notebook-accessible-status"));
     const section = notebookSections.find(section => section.id === notebookPages[index].note.id);
-    const contents = page.getByRole('button', { name: 'Open contents', exact: true });
+    const contents = page.getByRole('button', { name: 'Open contents', exact: true }).first();
     if (await contents.count()) await contents.click();
     await page.getByRole('button', { name: `Go to ${section.title}, page ${section.firstPage + 1}`, exact: true }).click();
     await page.waitForFunction(first => document.querySelector('.lined-notebook > .notebook-accessible-status').textContent.startsWith(`Pages ${first}–`), Math.floor(section.firstPage / 2) * 2 + 1);

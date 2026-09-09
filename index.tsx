@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router";
 import App from "./App";
-import BookPrototype from "./components/BookPrototype";
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -15,7 +14,6 @@ root.render(
     <BrowserRouter>
       <Routes>
         <Route path="/notebook" element={<App />} />
-        <Route path="/book-test" element={<BookPrototype />} />
         <Route path="/" element={<App />} />
         <Route path="/:folder" element={<App />} />
         <Route path="/:folder/:slug" element={<App />} />

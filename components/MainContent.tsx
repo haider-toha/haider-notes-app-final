@@ -1,37 +1,25 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Note, Theme } from "../types";
+import type { Note } from "../types";
 import {
-  ChevronLeft,
-  Share,
-  PenSquare,
   X,
   ZoomIn,
   ZoomOut,
   Maximize2,
-  Moon,
-  Sun,
 } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
 import mermaid from "mermaid";
 import "./MediaModal.css";
 
-// Initialize mermaid (theme is set dynamically in MermaidDiagram component)
+// Rendering is explicit and serialized; Mermaid never scans the document.
 mermaid.initialize({
   startOnLoad: false,
   securityLevel: "loose",
 });
 
 interface MainContentProps {
-  note: Note | undefined;
-  onBack: () => void;
-  isMobile: boolean;
-  onShare: () => void;
-  theme?: Theme;
-  onToggleTheme?: () => void;
-  /** Reuse the complete note renderer inside a notebook leaf. */
-  bodyOnly?: boolean;
+  note: Note;
   mediaActive?: boolean;
 }
 
@@ -51,12 +39,11 @@ interface MediaModalProps {
   kind: "diagram" | "image";
   children: React.ReactNode;
   onClose: () => void;
-  notebook?: boolean;
   caption?: string;
 }
 
 /** Shared viewer: the toolbar never participates in the media transform. */
-const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, notebook = false, caption }) => {
+const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, caption }) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -74,7 +61,6 @@ const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, notebo
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     // Disable every background branch, including the notebook's own scroller.
-    // Walking ancestors also supports the legacy, non-portal viewer.
     const inactive: Array<{ element: HTMLElement; inert: boolean }> = [];
     let branch: HTMLElement | null = containerRef.current;
     while (branch && branch !== document.body) {
@@ -124,7 +110,7 @@ const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, notebo
   };
 
   return <div ref={containerRef} role="dialog" aria-modal="true" aria-label={`Expanded ${kind}`}
-    className={`note-media-modal${notebook ? " is-notebook" : ""}${notebook && kind === "diagram" ? " notebook-diagram-modal" : ""}`}
+    className={`note-media-modal is-notebook${kind === "diagram" ? " notebook-diagram-modal" : ""}`}
     onPointerDown={event => event.stopPropagation()}
     onPointerMove={event => event.stopPropagation()}
     onPointerUp={event => event.stopPropagation()}
@@ -182,48 +168,12 @@ const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, notebo
   </div>;
 };
 
-const DiagramModal: React.FC<{ svg: string; onClose: () => void; notebook?: boolean }> = ({ svg, onClose, notebook }) =>
-  <MediaModal kind="diagram" onClose={onClose} notebook={notebook}>
+const DiagramModal: React.FC<{ svg: string; onClose: () => void }> = ({ svg, onClose }) =>
+  <MediaModal kind="diagram" onClose={onClose}>
     <div className="note-media-diagram" dangerouslySetInnerHTML={{ __html: svg }} />
   </MediaModal>;
 
-// Theme variables for Mermaid diagrams
-const darkThemeVariables = {
-  primaryColor: "#1a1a1a",
-  primaryTextColor: "#ffffff",
-  primaryBorderColor: "#333333",
-  lineColor: "#444444",
-  secondaryColor: "#2a2a2a",
-  tertiaryColor: "#1a1a1a",
-  background: "#0a0a0a",
-  mainBkg: "#1a1a1a",
-  secondBkg: "#2a2a2a",
-  nodeBorder: "#444444",
-  clusterBkg: "#1a1a1a",
-  clusterBorder: "#333333",
-  titleColor: "#ffffff",
-  edgeLabelBackground: "#1a1a1a",
-};
-
-const lightThemeVariables = {
-  primaryColor: "#f5f5f5",
-  primaryTextColor: "#1a1a1a",
-  primaryBorderColor: "#cccccc",
-  lineColor: "#888888",
-  secondaryColor: "#e8e8e8",
-  tertiaryColor: "#f0f0f0",
-  background: "#ffffff",
-  mainBkg: "#f5f5f5",
-  secondBkg: "#e8e8e8",
-  nodeBorder: "#999999",
-  clusterBkg: "#f8f8f8",
-  clusterBorder: "#cccccc",
-  titleColor: "#1a1a1a",
-  edgeLabelBackground: "#ffffff",
-};
-
 const notebookThemeVariables = {
-  ...lightThemeVariables,
   fontFamily: '"Reenie Beanie", cursive',
   fontSize: "24px",
   primaryColor: "transparent",
@@ -251,47 +201,43 @@ const notebookThemeVariables = {
   noteBorderColor: "#303f53",
 };
 
-// Mermaid renders against shared global state (a single sandbox + global config),
-// so firing many renders at once — one per diagram on a page — makes them clobber
-// each other and some silently produce no SVG. That's why diagrams vanished in
-// light mode: unlike dark mode, light mode never triggered the second render pass
-// (from the theme-class flip) that happened to mask the race. Serialize every
-// render through one queue and give each a unique id so they can't collide.
+// Mermaid owns shared global render state. Serialize renders and allocate unique
+// IDs so neighboring notebook figures cannot overwrite each other's SVGs.
 let mermaidRenderChain: Promise<unknown> = Promise.resolve();
 let mermaidRenderSeq = 0;
 
-export const renderMermaid = (chart: string, isDark: boolean, notebook: boolean): Promise<string> => {
+export const renderMermaid = (chart: string): Promise<string> => {
   const run = mermaidRenderChain.then(async () => {
     // Mermaid measures labels before creating the SVG; using a fallback font
     // here clips handwritten labels when the notebook font arrives later.
-    if (notebook) await document.fonts.load('24px "Reenie Beanie"');
+    await document.fonts.load('24px "Reenie Beanie"');
     mermaid.initialize({
       startOnLoad: false,
       theme: "base",
       securityLevel: "loose",
-      fontFamily: notebook ? '"Reenie Beanie", cursive' : "inherit",
-      look: notebook ? "handDrawn" : "classic",
+      fontFamily: '"Reenie Beanie", cursive',
+      look: "handDrawn",
       handDrawnSeed: 17,
       // Mermaid derives a half-black label background from "transparent";
       // override that generated rule inside the SVG so expanded views agree.
-      themeCSS: notebook ? ".labelBkg, .edgeLabel, .edgeLabel p { background: transparent !important; } .edgeLabel rect { fill: transparent !important; }" : "",
+      themeCSS: ".labelBkg, .edgeLabel, .edgeLabel p { background: transparent !important; } .edgeLabel rect { fill: transparent !important; }",
       flowchart: {
         htmlLabels: true,
         curve: "basis",
-        ...(notebook ? { nodeSpacing: 24, rankSpacing: 30, padding: 8 } : {}),
+        nodeSpacing: 24, rankSpacing: 30, padding: 8,
       },
-      ...(notebook ? { sequence: {
+      sequence: {
         actorFontFamily: '"Reenie Beanie", cursive',
         noteFontFamily: '"Reenie Beanie", cursive',
         messageFontFamily: '"Reenie Beanie", cursive',
         actorFontSize: 24,
         noteFontSize: 24,
         messageFontSize: 24,
-      } } : {}),
-      themeVariables: notebook ? notebookThemeVariables : isDark ? darkThemeVariables : lightThemeVariables,
+      },
+      themeVariables: notebookThemeVariables,
     });
     const { svg } = await mermaid.render(
-      `mermaid-render-${isDark ? "dark" : "light"}-${++mermaidRenderSeq}`,
+      `mermaid-render-light-${++mermaidRenderSeq}`,
       chart,
     );
     return svg;
@@ -303,33 +249,17 @@ export const renderMermaid = (chart: string, isDark: boolean, notebook: boolean)
 };
 
 // Mermaid Diagram Component
-const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: string) => void; notebook?: boolean }> = ({ chart, id, onExpand, notebook = false }) => {
+const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: string) => void }> = ({ chart, id, onExpand }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [reloadRequired, setReloadRequired] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
-
-  // Listen for theme changes
-  useEffect(() => {
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === "class") {
-          setIsDark(document.documentElement.classList.contains("dark"));
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, { attributes: true });
-    return () => observer.disconnect();
-  }, []);
-
   useEffect(() => {
     let cancelled = false;
     setError(null);
 
-    renderMermaid(chart, isDark, notebook)
+    renderMermaid(chart)
       .then((rendered) => {
         if (cancelled) return;
         setSvg(rendered);
@@ -344,16 +274,16 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
         setError("Failed to render diagram");
       });
 
-    // If the diagram unmounts or re-renders (e.g. theme flip) before this render
+    // If the diagram unmounts or its chart changes before this render
     // resolves, drop the stale result so it can't overwrite a newer one.
     return () => {
       cancelled = true;
     };
-  }, [chart, id, isDark, attempt, notebook]);
+  }, [chart, id, attempt]);
 
   if (error) {
     return (
-      <div className="my-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+      <div className="my-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
         {error}
         <button type="button" className="ml-3 underline" onClick={() => {
           if (reloadRequired) window.location.reload();
@@ -366,7 +296,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
   return (
     <div
       ref={containerRef}
-      className={`my-6 relative group${notebook ? " notebook-diagram" : ""}`}
+      className="my-6 relative group notebook-diagram"
     >
       {/* Expand button */}
       <button
@@ -395,91 +325,17 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
   );
 };
 
-const ImageModal: React.FC<{ src: string; alt: string; onClose: () => void; notebook?: boolean }> = ({ src, alt, onClose, notebook }) =>
-  <MediaModal kind="image" onClose={onClose} notebook={notebook} caption={alt}>
+const ImageModal: React.FC<{ src: string; alt: string; onClose: () => void }> = ({ src, alt, onClose }) =>
+  <MediaModal kind="image" onClose={onClose} caption={alt}>
     <img src={src} alt={alt} draggable={false} />
   </MediaModal>;
 
-const MainContent: React.FC<MainContentProps> = ({
-  note,
-  onBack,
-  isMobile,
-  onShare,
-  theme,
-  onToggleTheme,
-  bodyOnly = false,
-  mediaActive = true,
-}) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+const MainContent: React.FC<MainContentProps> = ({ note, mediaActive = true }) => {
   const [modalImage, setModalImage] = useState<{
     src: string;
     alt: string;
   } | null>(null);
   const [modalDiagram, setModalDiagram] = useState<string | null>(null);
-
-  // Scroll to top when note changes
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo(0, 0);
-    }
-  }, [note?.id]);
-
-  if (!note) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center bg-apple-bgLight dark:bg-apple-bgDark text-apple-textGray select-none">
-        <div className="opacity-15 mb-4">
-          <PenSquare className="w-14 h-14 stroke-[1.5]" />
-        </div>
-        <span className="text-[17px] font-medium text-apple-textGray/80">
-          no note selected
-        </span>
-      </div>
-    );
-  }
-
-  // Format full date for the header
-  const dateObj = new Date(note.created_at);
-  const datePart = dateObj.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const timePart = dateObj.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  const fullDate = `${datePart} at ${timePart}`.toLowerCase();
-
-  // Calculate word count and reading time for blog posts
-  const isBlogPost = note.folder === "blog";
-  const calculateWordCount = (text: string): number => {
-    // Remove markdown formatting, URLs and special characters
-    const cleanText = text
-      .replace(/!\[.*?\]\(.*?\)/g, "") // Remove images
-      .replace(/\[.*?\]\(.*?\)/g, (match) => match.replace(/\[|\]|\(.*?\)/g, "")) // Keep link text only
-      .replace(/\$\$[\s\S]*?\$\$/g, "") // Remove block math
-      .replace(/\$[^$]+\$/g, "") // Remove inline math
-      .replace(/\*\*/g, "") // Remove bold markers
-      .replace(/\*/g, "") // Remove italic markers
-      .replace(/#{1,6}\s/g, "") // Remove headers
-      .replace(/---/g, "") // Remove horizontal rules
-      .replace(/\|/g, " ") // Replace table pipes with spaces
-      .replace(/[^\w\s]/g, " ") // Replace other special chars
-      .trim();
-    
-    const words = cleanText.split(/\s+/).filter((word) => word.length > 0);
-    return words.length;
-  };
-
-  const wordCount = calculateWordCount(note.content);
-  const readingTime = Math.max(1, Math.ceil(wordCount / 200)); // ~200 words per minute
-
-  // Format word count with commas
-  const formattedWordCount = wordCount.toLocaleString();
-
-  // Check if content starts with the old hardcoded metadata line and strip it
-  const metadataLineRegex = /^\*\*[a-z]+ \d{1,2}, \d{4} · \d+ min read · [\d,]+ words\*\*\n*/i;
-  const contentWithoutMetadata = note.content.replace(metadataLineRegex, "");
 
   // Image click handler
   const handleImageClick = (src: string, alt: string) => {
@@ -501,7 +357,7 @@ const MainContent: React.FC<MainContentProps> = ({
         }
       }}
     >
-      <div className="relative overflow-hidden rounded-xl bg-black/5 dark:bg-white/5">
+      <div className="relative overflow-hidden rounded-xl bg-black/5">
         <img
           src={src}
           alt={alt}
@@ -514,7 +370,7 @@ const MainContent: React.FC<MainContentProps> = ({
             target.style.display = "none";
             if (target.parentElement) {
               target.parentElement.innerHTML = `
-              <div class="flex items-center justify-center py-8 text-apple-textGray text-sm">
+              <div class="flex items-center justify-center py-8 text-note-muted text-sm">
                 <span>image could not be loaded</span>
               </div>
             `;
@@ -522,10 +378,10 @@ const MainContent: React.FC<MainContentProps> = ({
           }}
         />
         {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors rounded-xl pointer-events-none" />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-xl pointer-events-none" />
       </div>
       {alt && (
-        <p className="text-center text-[13px] text-apple-textGray mt-2 italic">
+        <p className="text-center text-[13px] text-note-muted mt-2 italic">
           {alt}
         </p>
       )}
@@ -561,11 +417,11 @@ const MainContent: React.FC<MainContentProps> = ({
       <div key={startIndex} className="my-4 overflow-x-auto">
         <table className="w-full border-collapse text-[14px] md:text-[15px]">
           <thead>
-            <tr className="border-b border-black/20 dark:border-white/20">
+            <tr className="border-b border-black/20">
               {headerRow.map((cell, i) => (
                 <th
                   key={i}
-                  className="text-left py-2 px-3 font-semibold text-black/80 dark:text-white/80"
+                  className="text-left py-2 px-3 font-semibold text-black/80"
                 >
                   {cell}
                 </th>
@@ -576,12 +432,12 @@ const MainContent: React.FC<MainContentProps> = ({
             {dataRows.map((row, rowIndex) => (
               <tr
                 key={rowIndex}
-                className="border-b border-black/10 dark:border-white/10"
+                className="border-b border-black/10"
               >
                 {row.map((cell, cellIndex) => (
                   <td
                     key={cellIndex}
-                    className="py-2 px-3 text-black/70 dark:text-white/70"
+                    className="py-2 px-3 text-black/70"
                   >
                     {renderTextWithFormatting(cell)}
                   </td>
@@ -609,7 +465,7 @@ const MainContent: React.FC<MainContentProps> = ({
   const renderCodeBlock = (code: string, language: string, key: number) => {
     // Check if this is a mermaid diagram
     if (language === "mermaid") {
-      return <MermaidDiagram key={key} chart={code} id={`diagram-${key}`} onExpand={setModalDiagram} notebook={bodyOnly} />;
+      return <MermaidDiagram key={key} chart={code} id={`diagram-${key}`} onExpand={setModalDiagram} />;
     }
 
     if (language === "iframe") {
@@ -635,8 +491,8 @@ const MainContent: React.FC<MainContentProps> = ({
     // Regular code block
     return (
       <div key={key} className="my-4">
-        <pre className="bg-black/5 dark:bg-white/5 rounded-lg p-4 overflow-x-auto">
-          <code className="text-[13px] md:text-[14px] font-mono text-black/80 dark:text-white/80 whitespace-pre">
+        <pre className="bg-black/5 rounded-lg p-4 overflow-x-auto">
+          <code className="text-[13px] md:text-[14px] font-mono text-black/80 whitespace-pre">
             {code}
           </code>
         </pre>
@@ -729,10 +585,9 @@ const MainContent: React.FC<MainContentProps> = ({
   // Content Renderer with image support
   const renderLine = (line: string, index: number) => {
     if (/^\s{0,3}(?:(?:-\s*){3,}|(?:\*\s*){3,}|(?:_\s*){3,})$/.test(line)) {
-      if (bodyOnly) return null;
-      return <hr key={index} className="my-6 border-black/15 dark:border-white/15" />;
+      return null;
     }
-    if (bodyOnly && /^\s*(?:\.{3,}|…)\s*$/.test(line)) return null;
+    if (/^\s*(?:\.{3,}|…)\s*$/.test(line)) return null;
     // Check for image markdown: ![alt](url)
     const imageRegex = /!\[(.*?)\]\((.*?)\)/g;
     const images: { alt: string; src: string; index: number }[] = [];
@@ -800,7 +655,7 @@ const MainContent: React.FC<MainContentProps> = ({
       return (
         <div
           key={index}
-          className={`font-bold text-black dark:text-white tracking-[-0.015em] mt-4 mb-1 leading-snug ${sizeByLevel[level - 1]}`}
+          className={`font-bold text-black tracking-[-0.015em] mt-4 mb-1 leading-snug ${sizeByLevel[level - 1]}`}
         >
           {renderTextWithFormatting(headingMatch[2])}
         </div>
@@ -813,7 +668,7 @@ const MainContent: React.FC<MainContentProps> = ({
     if (orderedMatch) {
       return (
         <div key={index} className="pl-6 relative min-h-[1.5em]">
-          <span className="absolute left-0 tabular-nums text-black/80 dark:text-white/80">
+          <span className="absolute left-0 tabular-nums text-black/80">
             {orderedMatch[2]}.
           </span>
           <span className="break-words">
@@ -833,7 +688,7 @@ const MainContent: React.FC<MainContentProps> = ({
         className={`min-h-[1.5em] ${isBullet ? "pl-5 flex relative" : ""}`}
       >
         {isBullet && (
-          <span className="absolute left-1 text-black/70 dark:text-white/70">
+          <span className="absolute left-1 text-black/70">
             •
           </span>
         )}
@@ -902,7 +757,7 @@ const MainContent: React.FC<MainContentProps> = ({
           {...(isExternal
             ? { target: "_blank", rel: "noopener noreferrer" }
             : {})}
-          className="text-apple-yellow hover:underline cursor-pointer"
+          className="text-note-link hover:underline cursor-pointer"
         >
           {linkMatch[1]}
         </a>
@@ -927,7 +782,7 @@ const MainContent: React.FC<MainContentProps> = ({
         return (
           <code
             key={j}
-            className="px-1.5 py-0.5 mx-px rounded-md bg-black/[0.07] dark:bg-white/[0.1] font-mono text-[0.85em] text-black/85 dark:text-white/85"
+            className="px-1.5 py-0.5 mx-px rounded-md bg-black/[0.07] font-mono text-[0.85em] text-black/85"
           >
             {part.slice(1, -1)}
           </code>
@@ -962,7 +817,7 @@ const MainContent: React.FC<MainContentProps> = ({
         const inner = part.slice(1, -1);
         if (tight(inner)) {
           return (
-            <em key={j} className="italic text-apple-textGray">
+            <em key={j} className="italic text-note-muted">
               {withNestedLinks(inner, `i${j}`)}
             </em>
           );
@@ -977,105 +832,11 @@ const MainContent: React.FC<MainContentProps> = ({
     });
   };
 
-  if (bodyOnly) {
-    return <>
-      {renderContent(note.content)}
-      {modalImage && createPortal(<ImageModal {...modalImage} onClose={() => setModalImage(null)} notebook />, document.body)}
-      {modalDiagram && createPortal(<DiagramModal svg={modalDiagram} onClose={() => setModalDiagram(null)} notebook />, document.body)}
-    </>;
-  }
-
-  return (
-    <>
-      {/* Image Modal */}
-      {modalImage && (
-        <ImageModal
-          src={modalImage.src}
-          alt={modalImage.alt}
-          onClose={() => setModalImage(null)}
-        />
-      )}
-
-      {/* Diagram Modal */}
-      {modalDiagram && (
-        <DiagramModal
-          svg={modalDiagram}
-          onClose={() => setModalDiagram(null)}
-        />
-      )}
-
-      <div className="flex flex-col h-full bg-apple-bgLight dark:bg-apple-bgDark relative">
-        {/* Mobile Toolbar */}
-        {isMobile && (
-          <div className="h-12 flex items-center justify-between px-2 shrink-0 bg-apple-bgLight/80 dark:bg-apple-bgDark/70 backdrop-blur-xl border-b border-black/5 dark:border-white/10 z-20">
-            <button
-              onClick={onBack}
-              aria-label="Back to notes"
-              className="flex items-center text-apple-yellow hover:opacity-70 transition-opacity"
-            >
-              <ChevronLeft className="w-7 h-7" />
-              <span className="text-[17px] font-normal leading-none -ml-1 pb-0.5">
-                notes
-              </span>
-            </button>
-
-            <div className="flex items-center space-x-4 pr-2">
-              {onToggleTheme && (
-                <button
-                  onClick={onToggleTheme}
-                  aria-label="Toggle dark mode"
-                  className="text-apple-yellow hover:opacity-70"
-                >
-                  {theme === "light" ? (
-                    <Moon className="w-5 h-5" />
-                  ) : (
-                    <Sun className="w-5 h-5" />
-                  )}
-                </button>
-              )}
-              <button
-                onClick={onShare}
-                aria-label="Share note"
-                className="text-apple-yellow hover:opacity-70"
-              >
-                <Share className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Content Area */}
-        <div
-          ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto custom-scrollbar"
-        >
-          <div className="max-w-[720px] mx-auto px-4 sm:px-6 md:px-12 py-5 md:py-7 min-h-full">
-            {/* Date Header — centered, gray, regular weight (Apple Notes) */}
-            <div className="text-center mb-3 md:mb-5 select-none">
-              <span className="text-[12px] md:text-[13px] text-apple-textGray tracking-[-0.005em]">
-                {fullDate}
-              </span>
-            </div>
-            {/* Note Title */}
-            <h1 className="text-[27px] md:text-[31px] font-bold tracking-[-0.025em] text-black dark:text-white mb-3 md:mb-5 leading-[1.14] outline-none">
-              {note.title}
-            </h1>
-            {/* Blog metadata - dynamic word count */}
-            {isBlogPost && (
-              <div className="text-[14px] md:text-[15px] text-apple-textGray mb-6 font-medium">
-                {datePart.toLowerCase()} · {readingTime} min read · {formattedWordCount} words
-              </div>
-            )}
-            {/* Note Body */}
-            <div className="text-[16px] md:text-[17px] text-black/90 dark:text-white/90 leading-[1.65] font-sans outline-none space-y-1.5">
-              {renderContent(contentWithoutMetadata)}
-            </div>
-            <div className="h-16 md:h-24" /> {/* Bottom spacer */}
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  return <>
+    {renderContent(note.content)}
+    {modalImage && createPortal(<ImageModal {...modalImage} onClose={() => setModalImage(null)} />, document.body)}
+    {modalDiagram && createPortal(<DiagramModal svg={modalDiagram} onClose={() => setModalDiagram(null)} />, document.body)}
+  </>;
 };
 
 export default MainContent;

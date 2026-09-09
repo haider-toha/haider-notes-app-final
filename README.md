@@ -7,7 +7,7 @@ Live at **[haidertoha.site](https://www.haidertoha.site)**.
 ## Features
 
 - Lined paper, flexible page turns, changing paper stacks and removable sheets.
-- Two preliminary contents leaves list every note, with an ink link to open contents or return to reading.
+- Two preliminary contents leaves list every note, with one title on the left and an ink link to open contents or return to reading.
 - Home opens the contents; “continue reading →” restores your remembered reading page.
 - Responsive two-page desktop spreads and single-page mobile reading.
 - Transparent hand-drawn diagrams, live physics simulations and handwritten equations.
@@ -15,7 +15,7 @@ Live at **[haidertoha.site](https://www.haidertoha.site)**.
 - Existing note URLs (`/:folder/:slug`) open their notebook pages; build-time HTML preserves SEO and link previews.
 - Exact source-content checks and browser regressions in `scripts/check-notebook*.mjs`.
 
-The routes `/`, `/contents`, and `/notebook` open the two contents leaves, including on return visits. `/all` and published note URLs open reading pages. The quiet ink control inside the paper’s upper-left margin navigates to `/contents` or back to the remembered page’s canonical note URL.
+The routes `/`, `/contents`, and `/notebook` open the two contents leaves, including on return visits. `/all` and published note URLs open reading pages. The quiet ink control inside each page’s upper outer margin navigates to `/contents` or back to the remembered page’s canonical note URL.
 
 ## Tech
 
@@ -26,7 +26,7 @@ The routes `/`, `/contents`, and `/notebook` open the two contents leaves, inclu
 - **KaTeX** and **Mermaid** for math and diagrams
 - Deployed as a static site on **Vercel**
 
-No backend, no database, no external API calls — everything ships as static assets.
+Authored content and simulations ship as static assets, with no application backend or database. Vercel Analytics collects site usage.
 
 ## Getting started
 
@@ -60,6 +60,12 @@ constants.tsx           # all content (folders + notes)
 seo.ts                  # titles, descriptions and structured data
 scripts/prerender.mjs   # build-time static-HTML generation
 ```
+
+## Verification
+
+Run `npx tsc --noEmit` and `node scripts/check-notebook-content.mjs` for type and exact-content checks. With the Vite server running, the browser scripts in `scripts/check-notebook*.mjs` cover page interactions, routes, figures, handwritten math, and expanded media. They require Playwright; `PLAYWRIGHT_MODULE` can point to an external installation, and `NOTEBOOK_ORIGIN` overrides the default local server URL.
+
+After changing Mermaid source or typography, run `scripts/measure-notebook-diagrams.mjs` against the dev server. Mathematical font changes use `scripts/collect-notebook-math-glyphs.mjs` and `scripts/build-notebook-math-font.py`; keep their generated files and OFL licenses together.
 
 ## Deployment
 

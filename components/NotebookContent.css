@@ -1,7 +1,7 @@
 .notebook-content { overflow-wrap: anywhere; padding-bottom: 12px; }
 .notebook-content .notebook-note-title { margin: 0 0 29px; font: 400 38px/58px var(--hand); color: var(--ink); }
 .notebook-content [class*="min-h-"] { min-height: 29px; }
-.notebook-content [class*="text-black"], .notebook-content [class*="text-apple-textGray"] { color: inherit; }
+.notebook-content [class*="text-black"], .notebook-content [class*="text-note-muted"] { color: inherit; }
 .notebook-content [class*="leading-snug"] { font: 400 29px/29px var(--hand); margin-top: 29px; margin-bottom: 0; }
 .notebook-content strong { font-weight: 700; }
 .notebook-content em { color: inherit; }
