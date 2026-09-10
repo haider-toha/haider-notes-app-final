@@ -241,6 +241,7 @@
   right: 100%;
   width: 100%;
   background: #6b241c;
+  border-left: 3px solid #83452f;
   border-bottom: 3px solid #481b16;
   border-radius: 10px 0 0 10px;
   box-shadow: none;

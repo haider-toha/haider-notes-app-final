@@ -57,10 +57,10 @@
 /* The flyleaf stays on its board during the turn. Match the stationary case
    overhang so its burgundy edge does not pop in at the reading handoff. */
 .notebook-cover-inside { overflow: visible; border-radius: 14px 0 0 14px; }
-.notebook-cover-inside::before { content: ''; position: absolute; inset: -4px 0 -7px -5px; border-radius: 18px 0 0 18px; background: #6b241c; border-left: 1px solid #98593e; border-bottom: 3px solid #481b16; z-index: -1; }
+.notebook-cover-inside::before { content: ''; position: absolute; inset: -4px 0 -7px -8px; border-radius: 18px 0 0 18px; background: #6b241c; border-left: 3px solid #83452f; border-bottom: 3px solid #481b16; z-index: -1; }
 .notebook-cover-inside .notebook-sheet { border-radius: 14px 0 0 14px; overflow: hidden; }
 .notebook-cover-inside::after { border-radius: inherit; }
 
 /* Solid wrapped board beneath the artwork; no cast shadow or motion change. */
-.notebook-cover::before { content: ''; position: absolute; inset: 0 -4px -5px 0; border-radius: 3px 12px 12px 3px; background: #6b241c; border-right: 1px solid #98593e; border-bottom: 3px solid #481b16; transform: translateZ(-1px); }
+.notebook-cover::before { content: ''; position: absolute; inset: 0 -7px -5px 0; border-radius: 3px 12px 12px 3px; background: #6b241c; border-right: 3px solid #83452f; border-bottom: 3px solid #481b16; transform: translateZ(-1px); }
 .notebook-cover[data-face="inside"]::before { visibility: hidden; }

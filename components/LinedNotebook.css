@@ -93,5 +93,5 @@
 }
 
 /* The rigid case remains under the paper after opening and while reading. */
-.notebook-bound-cover { position: absolute; inset: -4px -5px -7px; border-radius: 18px; background: #6b241c; border-inline: 1px solid #98593e; border-bottom: 3px solid #481b16; box-shadow: none; pointer-events: none; }
+.notebook-bound-cover { position: absolute; inset: -4px -8px -7px; border-radius: 18px; background: #6b241c; border-inline: 3px solid #83452f; border-bottom: 3px solid #481b16; box-shadow: none; pointer-events: none; }
 .notebook-mount { position: relative; }
