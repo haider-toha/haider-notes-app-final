@@ -9,7 +9,7 @@ import { decodeNotebookPlace, encodeNotebookPlace } from './components/notebookP
 import { homeMeta, noteMeta, folderMeta, SITE_URL, type PageMeta } from './seo';
 
 function applyHead(meta: PageMeta) {
-  document.title = meta.title;
+  document.title = 'Haider Toha';
   for (const [attribute, name, content] of [
     ['name', 'description', meta.description],
     ['property', 'og:title', meta.title],

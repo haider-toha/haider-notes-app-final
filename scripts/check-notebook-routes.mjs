@@ -25,12 +25,12 @@ try {
   const checkContents = () => page.waitForFunction(() => document.querySelector('.lined-notebook > .notebook-accessible-status').textContent === 'Contents.');
   for (const path of ['/', '/notebook']) { await open(path); await checkNote(portfolioNotes[0]); }
   await open('/contents'); await checkContents();
-  assert((await page.title()).toLowerCase().includes('contents'), 'Contents has route-specific metadata');
+  assert.equal(await page.title(), 'Haider Toha', 'Browser title stays fixed to the site owner');
   assert((await page.locator('link[rel=canonical]').getAttribute('href')).endsWith('/contents'));
   for (const note of portfolioNotes) {
     await open(`/${note.folder}/${note.slug}`);
     await checkNote(note);
-    assert((await page.title()).includes(note.title), `${note.id}: meaningful note title retained`);
+    assert.equal(await page.title(), 'Haider Toha', `${note.id}: browser title stays fixed to the site owner`);
     assert((await page.locator('link[rel=canonical]').getAttribute('href')).endsWith(`/${note.folder}/${note.slug}`), `${note.id}: canonical URL retained`);
   }
   for (const folder of folders) {

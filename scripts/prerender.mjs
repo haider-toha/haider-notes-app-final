@@ -198,14 +198,15 @@ function renderMarkdown(md) {
 // Body fragments (go inside #root, wrapped in #ssg-root)
 // ---------------------------------------------------------------------------
 
-const coverSrcSet = "/cover-360.webp 360w, /cover-540.webp 540w, /cover-768.webp 768w";
-const coverSizes = "(max-width: 600px) 85vw, 540px";
+const mobileCoverSrcSet = "/cover-360.webp 360w, /cover-540.webp 540w";
+const desktopCoverSrcSet = "/cover-540.webp 540w, /cover-768.webp 768w";
 
 function coverShell() {
   return `<div id="ssg-cover-shell" aria-hidden="true">
   <div class="ssg-cover-stage">
     <picture>
-      <source type="image/webp" srcset="${coverSrcSet}" sizes="${coverSizes}" />
+      <source media="(max-width: 600px)" type="image/webp" srcset="${mobileCoverSrcSet}" sizes="85vw" />
+      <source type="image/webp" srcset="${desktopCoverSrcSet}" sizes="540px" />
       <img src="/cover.png" width="1086" height="1448" alt="" fetchpriority="high" />
     </picture>
   </div>
@@ -215,8 +216,10 @@ function coverShell() {
 </div>`;
 }
 
-const coverEarlyHead = `<link rel="preload" as="image" type="image/webp" href="/cover-540.webp"
-      imagesrcset="${coverSrcSet}" imagesizes="${coverSizes}" fetchpriority="high" />
+const coverEarlyHead = `<link rel="preload" as="image" type="image/webp" href="/cover-540.webp" media="(max-width: 600px)"
+      imagesrcset="${mobileCoverSrcSet}" imagesizes="85vw" fetchpriority="high" />
+    <link rel="preload" as="image" type="image/webp" href="/cover-768.webp" media="(min-width: 601px)"
+      imagesrcset="${desktopCoverSrcSet}" imagesizes="540px" fetchpriority="high" />
     <style>
       #ssg-cover-shell { display: none; }
       html.js #ssg-cover-shell { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; overflow: hidden; box-sizing: border-box; padding: 24px 24px 76px; background: #fff; }
@@ -357,7 +360,7 @@ function renderPage(template, { meta, head, body, earlyHead = "" }) {
     return `<a${clean} target="_blank" rel="${rel}">${label}&#160;<span aria-hidden="true">↗</span></a>`;
   });
   return template
-    .replace(/<title[^>]*>[\s\S]*?<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`)
+    .replace(/<title[^>]*>[\s\S]*?<\/title>/i, "<title>Haider Toha</title>")
     .replace(/<head>/i, `<head>${earlyHead ? `\n    ${earlyHead}` : ""}`)
     // Drop the placeholder comments first (Vite may or may not keep them), then
     // inject before </head> and into the now-empty #root — robust either way.

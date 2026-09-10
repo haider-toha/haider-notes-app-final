@@ -36,6 +36,11 @@ try {
       const turnStatus = expectedStatus(!!options.isMobile, true);
       const decodedSizes = new Map();
       const context = await browser.newContext(options);
+      // This suite measures the cover itself. The separate mobile checks own
+      // the one-time phone welcome, so keep it from masking the mobile LCP.
+      if (options.isMobile && !baseline) await context.addInitScript(() => {
+        sessionStorage.setItem('haider-notebook-mobile-welcome', 'accepted');
+      });
       const page = await context.newPage();
       const client = await context.newCDPSession(page);
       await client.send('Emulation.setCPUThrottlingRate', { rate });
