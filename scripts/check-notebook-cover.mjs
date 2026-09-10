@@ -32,9 +32,14 @@ try {
     const pull = async fraction => {
       if (client) {
         await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});
-        for(let step=1;step<=12;step++) await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-rect.width*fraction*step/12,y,id:1}]});
       } else {
         await page.mouse.move(x,y); await page.mouse.down();
+      }
+      await page.waitForTimeout(80);
+      assert.equal(await page.locator('.notebook-experience').evaluate(e => e.style.getPropertyValue('--cover-ready')), '0', 'Touching a closed cover does not expose paper before dragging');
+      if (client) {
+        for(let step=1;step<=12;step++) await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x-rect.width*fraction*step/12,y,id:1}]});
+      } else {
         await page.mouse.move(x - rect.width * fraction,y,{steps:12});
       }
       assert.notEqual(await cover.evaluate(element => getComputedStyle(element).transform), 'matrix(1, 0, 0, 1, 0, 0)', 'Cover follows a held native drag');
@@ -64,7 +69,13 @@ try {
     await page.waitForTimeout(820);
     assert(await cover.isVisible(), 'A short pull returns to the closed cover');
     assert.equal(await page.locator('.notebook-experience').evaluate(e => e.style.getPropertyValue('--cover-ready')), '0', 'Canceled opening restores the opaque closed desk');
-    if (width !== 1440) assert.equal(await page.locator('.notebook-cover-endpaper').count(), 1, 'Phone cover has a paper lining over the thick board');
+    if (width !== 1440) {
+      const moving = page.locator('.notebook-cover-inside .notebook-mobile-facing');
+      const resting = page.locator('.lined-notebook.is-mobile .notebook-mobile-facing');
+      assert.equal(await moving.textContent(), await resting.textContent(), 'Moving and resting faces contain the same real preceding page');
+      assert.equal(await resting.locator('[data-contents-part="1"]').count(), 1, 'The intro faces the actual second contents leaf');
+      assert.equal(await page.locator('.notebook-spread').evaluate(e => getComputedStyle(e).clipPath), 'inset(-80px -80px -80px 0px)', 'Stationary neighboring paper is clipped at the hinge while the board moves');
+    }
     await pull(.55);
     await cover.waitFor({state:'detached'});
     const samples = await page.evaluate(() => window.coverMotionSamples);

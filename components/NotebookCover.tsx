@@ -87,10 +87,23 @@ export default function NotebookCover({ opening, onOpen, onPrepare, onOpened }: 
       copy.style.transform = `scale(${stage.current.offsetWidth / pageWidth}, ${stage.current.offsetHeight / book.height})`;
       inside.current.replaceChildren(copy);
     }
+    if (inside.current && portrait) {
+      const neighbor = mount.parentElement?.querySelector<HTMLElement>('.notebook-mobile-facing');
+      if (neighbor) {
+        const copy = neighbor.cloneNode(true) as HTMLElement;
+        copy.classList.add('lined-notebook', 'is-mobile');
+        copy.style.width = `${pageWidth}px`;
+        copy.style.height = `${book.height}px`;
+        copy.style.transformOrigin = 'top left';
+        copy.style.transform = `scale(${stage.current.offsetWidth / pageWidth}, ${stage.current.offsetHeight / book.height})`;
+        inside.current.replaceChildren(copy);
+      }
+    }
     scene.style.setProperty('--cover-shift-x', `${book.left - bookShift.e + (portrait ? 0 : book.width / 2) - cover.left + coverShift.e}px`);
     scene.style.setProperty('--cover-shift-y', `${book.top - bookShift.f - cover.top + coverShift.f}px`);
-    scene.style.setProperty('--cover-ready', '1');
     prepared.current = true;
+    // Preparing on pointer-down must not expose the book around a closed board.
+    updatePosition(position.current);
   };
   const beginOpening = () => {
     onPrepare();

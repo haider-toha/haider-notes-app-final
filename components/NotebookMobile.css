@@ -82,28 +82,50 @@
   line-height: 22px;
 }
 
-/* A clipped glimpse of the neighboring leaf meets the live page at its spine. */
-.lined-notebook.is-mobile .notebook-mobile-facing {
+/* The actual preceding face continues beyond the viewport at the binding. */
+.lined-notebook.is-mobile .notebook-mobile-facing,
+.notebook-cover-inside .notebook-mobile-facing {
   position: absolute;
   z-index: 1;
   top: 0;
   bottom: 0;
-  left: -20px;
-  width: 20px;
+  right: 100%;
+  width: 100%;
   box-sizing: border-box;
-  padding-top: 66px;
   overflow: hidden;
   border-radius: 3px 0 0 3px;
-  background: repeating-linear-gradient(to bottom, transparent 0 28px, #aaa79745 28px 29px), linear-gradient(90deg, #f0eddf, #e4decf 74%, #cfc6b4);
-  color: #303f5355;
-  font: 400 23px/29px var(--hand);
-  text-align: right;
-  white-space: pre;
+  background: linear-gradient(90deg, #f1eee3 0 94%, #e4decf 98%, #cfc6b4);
   user-select: none;
   pointer-events: none;
 }
 
-.lined-notebook.is-mobile .notebook-mobile-facing::after {
+.lined-notebook.is-mobile .notebook-mobile-facing {
+  clip-path: inset(0 0 0 calc(100% - 32px));
+}
+.notebook-mobile-facing > .notebook-sheet { opacity: .6; }
+/* This inert phone preview shows ink near the fold, not scrollable UI.
+   Shift the writing without reflowing the source page's line breaks. The
+   moving cover uses this same preview so the handoff stays continuous. */
+.notebook-mobile-facing .notebook-writing {
+  transform: translateX(14px);
+}
+.notebook-mobile-facing .notebook-writing,
+.notebook-mobile-facing .notebook-writing * {
+  scrollbar-width: none;
+}
+.notebook-mobile-facing .notebook-writing::-webkit-scrollbar,
+.notebook-mobile-facing .notebook-writing *::-webkit-scrollbar {
+  display: none;
+}
+.notebook-cover-inside .notebook-mobile-facing {
+  right: auto;
+  left: 0;
+  bottom: auto;
+  border-radius: inherit;
+}
+
+.lined-notebook.is-mobile .notebook-mobile-facing::after,
+.notebook-cover-inside .notebook-mobile-facing::after {
   content: '';
   position: absolute;
   inset: 0 0 0 auto;

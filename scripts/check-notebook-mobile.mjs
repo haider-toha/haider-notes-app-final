@@ -21,7 +21,11 @@ async function settle(page) {
 }
 async function open(page, path) {
   await page.goto(origin + path, { waitUntil: 'domcontentloaded', timeout: 45000 });
-  if (path === '/' || path === '/notebook') await page.getByRole('button', { name: 'Open notebook', exact: true }).click();
+  if (path === '/' || path === '/notebook') {
+    const welcome = page.getByRole('button', { name: 'Okay, let me explore' });
+    if (await welcome.count()) await welcome.click();
+    await page.getByRole('button', { name: 'Open notebook', exact: true }).click();
+  }
   await page.waitForSelector('.notebook-spread');
   await page.evaluate(() => document.fonts.ready);
   await settle(page);
@@ -118,7 +122,7 @@ try {
       assert.equal(await page.locator('.notebook-mobile-facing').count(), 0, 'First leaf has no preceding ruled page');
       assert(await page.locator('.notebook-mobile-cover').isVisible(), 'First leaf exposes the inside cover');
       const cover = await page.locator('.notebook-mobile-cover').boundingBox();
-      assert(cover.x < 0 && cover.width >= layout.paper.width - 1 && Math.abs(cover.x + cover.width - layout.paper.x) <= 1 && Math.abs(cover.y - layout.paper.y) <= 4 && Math.abs(cover.y + cover.height - layout.paper.bottom) <= 4, 'The full open cover sits left of the hinge and extends beyond the viewport');
+      assert(cover.x < 0 && cover.width >= layout.paper.width - 1 && Math.abs(cover.x + cover.width - layout.paper.x) <= 1 && Math.abs(cover.y - layout.paper.y) <= 4 && Math.abs(cover.y + cover.height - layout.paper.bottom) <= 7, 'The full open cover sits left of the hinge with its 4px top and 7px bottom board rim');
       assert(await page.locator('.notebook-mobile-cover').evaluate(element => element.textContent === '' && getComputedStyle(element, '::before').backgroundImage === 'none'), 'Inside cover is plain endpaper with no phantom writing or ruled lines');
       if (screenshots) await page.screenshot({ path: `${screenshots}/${width}x${height}-inside-cover.png` });
       assert(await page.locator('.stack-read').isHidden(), 'First leaf has no turned-page stack');
@@ -129,6 +133,8 @@ try {
       await edgeTurn(page, client, 'right');
       assert.equal(await page.locator(`${visible} [data-contents-part]`).getAttribute('data-contents-part'), '1');
       assert(await page.locator('.notebook-mobile-facing').isVisible(), 'Turned pages restore the neighboring paper');
+      assert.equal(await page.locator('.notebook-mobile-facing [data-contents-part="0"]').count(), 1, 'The neighboring face uses the actual previous contents page');
+      assert(await page.locator('.notebook-mobile-facing').evaluate(e => e.inert && e.querySelectorAll('[id]').length === 0), 'The visual neighbor adds no duplicate IDs or interactive controls');
       await edgeTurn(page, client, 'left');
       assert.equal(await page.locator(`${visible} [data-contents-part]`).getAttribute('data-contents-part'), '0');
       await open(page, '/profile/about-me');

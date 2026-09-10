@@ -45,6 +45,7 @@
 .notebook-cover-desk.is-dragging .notebook-cover { cursor: grabbing; }
 /* The facing flyleaf moves with the board; its live twin takes over at rest. */
 .has-cover .notebook-spread:not(.is-portrait) { clip-path: inset(-80px -80px -80px 50%); }
+.has-cover .notebook-spread.is-portrait { clip-path: inset(-80px -80px -80px 0); }
 .has-cover .notebook-mobile-cover { visibility: hidden; }
 
 /* WebKit can composite the reverse face above the artwork despite backface

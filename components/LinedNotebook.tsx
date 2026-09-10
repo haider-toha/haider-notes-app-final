@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { PageFlip, loadNotebookPages, finishNotebookTouch } from './notebookPageFlip';
 import { notebookPages as pages, notebookSections, sheetTexts } from './notebookPages';
@@ -8,7 +8,6 @@ import './LinedNotebook.css';
 import { useLooseSheet } from './useLooseSheet';
 import { reverseInkText, useNotebookDetails } from './notebookDetails';
 import './NotebookMobile.css';
-import { stripMarkdown } from '../seo';
 
 const phoneLayout = '(max-width: 700px), (max-height: 500px) and (pointer: coarse)';
 const contentsPages = 2;
@@ -16,16 +15,6 @@ const pageCount = pages.length + contentsPages;
 const sections = notebookSections.map(section => ({ id: section.id, label: section.title, page: section.firstPage, folder: section.folder }));
 const placeKey = 'haider-notebook-place';
 const reverseTexts = sheetTexts.map((_, index) => reverseInkText(sheetTexts, index));
-
-function facingInk(text: string) {
-  const lines = [''];
-  for (const word of stripMarkdown(text).split(/\s+/)) {
-    const last = lines.length - 1;
-    if (lines[last].length + word.length > 40) lines.push(word);
-    else lines[last] += `${lines[last] ? ' ' : ''}${word}`;
-  }
-  return lines.join('\n');
-}
 
 function updateScrollCue(writing: HTMLElement) {
   const more = String(writing.scrollHeight - writing.clientHeight - writing.scrollTop > 8);
@@ -89,6 +78,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
   const [mobile, setMobile] = useState(compact);
   const scrollPositions = useRef(new Map<number, number>());
   const host = useRef<HTMLDivElement>(null);
+  const facing = useRef<HTMLSpanElement>(null);
   const book = useRef<PageFlip | null>(null);
   const resizeBook = useRef<() => void>(() => {});
   const currentPage = useRef(page);
@@ -367,7 +357,19 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
   const handleNavigate = useCallback((index: number) => actions.current.navigate(index), []);
   const handlePrevious = useCallback((index: number) => actions.current.previous(index), []);
   const handleScroll = useCallback((index: number, writing: HTMLDivElement) => actions.current.scroll(index, writing), []);
-  const facingText = useMemo(() => page >= contentsPages ? facingInk(sheetTexts[Math.max(0, page - contentsPages - 1)]) : 'contents\n\nprofile\n\nprojects\n\nblog', [page]);
+
+  // Use the actual preceding face, including its margins and typesetting.
+  // This inert visual copy never participates in navigation or page history.
+  useLayoutEffect(() => {
+    const neighbor = facing.current;
+    const source = leaves[page - 1]?.querySelector<HTMLElement>('.notebook-sheet');
+    if (!compact || !neighbor || !source) return;
+    const copy = source.cloneNode(true) as HTMLElement;
+    copy.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
+    neighbor.replaceChildren(copy);
+    const writing = copy.querySelector<HTMLElement>('.notebook-writing');
+    if (writing) writing.scrollTop = scrollPositions.current.get(page - 1) ?? 0;
+  }, [compact, page, leaves]);
 
   const renderSheet = (index: number) => {
     const sourceIndex = index - contentsPages;
@@ -466,7 +468,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
         {compact && <span className="notebook-mobile-cover" aria-hidden="true" />}
         <div className="notebook-paper-stack stack-read" aria-hidden="true" />
         <div className="notebook-paper-stack stack-unread" aria-hidden="true" />
-        {compact && page > 0 && <span className="notebook-mobile-facing" aria-hidden="true">{facingText}</span>}
+        {compact && page > 0 && <span ref={facing} className="notebook-mobile-facing" aria-hidden="true" inert />}
         <div className="notebook-mount" ref={host} />
         {!turning && <>
           <button className="notebook-edge edge-back" aria-label="Turn previous page" aria-disabled={page === 0} onClick={e => { if (e.detail === 0) move(page - step); }}></button>
