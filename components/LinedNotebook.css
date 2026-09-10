@@ -1,4 +1,4 @@
-@font-face { font-family: 'Reenie Beanie'; src: url('/fonts/reenie.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Reenie Beanie'; src: url('/fonts/reenie.woff2') format('woff2'); font-weight: 400; font-display: swap; }
 .lined-notebook { --hand: 'Reenie Beanie', cursive; --ink: #303f53; height: 100dvh; overflow: auto; background: #fff; color: #494941; font: 13px/1.5 -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; }
 .lined-notebook :focus-visible { outline: 2px solid #536b87; outline-offset: 4px; }
 .notebook-desk { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; padding: 28px 32px 32px; }

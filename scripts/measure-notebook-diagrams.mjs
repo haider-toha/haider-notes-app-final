@@ -1,8 +1,12 @@
 // Requires a running Vite DEV server: measures the same exported Mermaid
 // renderer and committed font used by notebook pages, not heuristic geometry.
 // Run after changing a Mermaid source, its theme, font, or renderer options.
+// The report is current rendering geometry, NOT the published inline allocation.
+// components/notebookDiagramGeometry.json preserves existing page/bookmark cuts;
+// never overwrite those historical entries merely because label spacing changed.
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { loadNotebookData } from './check-notebook-content.mjs';
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -34,7 +38,7 @@ try {
     assert(!geometry[key], `Source hash collision: ${key}`);
     geometry[key] = dimensions;
   }
-  const target = new URL('../components/notebookDiagramGeometry.json', import.meta.url);
+  const target = resolve(process.env.NOTEBOOK_DIAGRAM_GEOMETRY_OUTPUT || '/tmp/notebook-diagram-geometry.json');
   await writeFile(target, `${JSON.stringify(geometry, null, 2)}\n`);
-  console.log(`Measured ${charts.length} notebook diagrams → ${target.pathname}`);
+  console.log(`Measured ${charts.length} notebook diagrams → ${target} (published inline allocations unchanged)`);
 } finally { await browser.close(); }

@@ -57,6 +57,8 @@ A small handwritten control at the upper left of each desktop spread or mobile p
 
 ## Reading and Media
 
+Tables belong to the handwriting surface: use Reenie Beanie and blue-black ink, with bold handwritten headers and subtle horizontal rules. Keep every cell intact. Desktop tables use 24px type and mobile tables use 23px; wide mobile tables pan inside the leaf with touch, wheel or focused arrow keys, without turning the book.
+
 The first reading page contains “haider toha,” location, social links, and the original opening paragraph about current work. Subsequent paragraphs continue without duplication. Keep the identity leaf separate from contents and preserve its generous spacing.
 
 Group source paragraphs into full reading pages. Use rendered line heights and media geometry, split prose only at safe boundaries, keep headings with their following content, and balance sparse pages. Preserve paragraph order, links, and mathematical notation; do not shrink handwriting or add filler to fill paper. Markdown section dividers remain in the source audit but are not drawn in the notebook.
@@ -76,5 +78,7 @@ Completed turns settle briefly. Read pages thicken the left stack while unread p
 The [mobile research and interaction contract](docs/mobile-notebook.md) records the focused-page decision and its acceptance targets. Mobile appearance stays scoped to phones. Preserve desktop behavior and standard geometry, with the approved shared equation-spacing refinement and a height cap on short desktop viewports to keep paper bottoms visible.
 
 ## Verification
+
+Compile styles and source pagination during the build. Keep the existing page and legacy bookmark boundaries for unchanged content. Load diagram code near its pages, reuse completed rendering with distinct SVG IDs, and preserve synchronous equation geometry. The engine must stop redrawing at rest and resume for interaction, resize and foreground return. Simulation rendering may skip hidden diagnostics and resize pixel buffers, but must preserve its numerical steps and results. Reading-position history must survive both rapid Back/Forward and navigation during an active fold.
 
 `check-notebook-content.mjs` reconstructs every source note exactly and checks atomic rich blocks, headings, local assets, and stored positions. Browser checks cover turns, contents routes, media rendering, equation glyphs, expanded viewers, and the live simulations. Re-measure diagram geometry after changing diagram source or typography; regenerate and audit Notebook Math when adding mathematical glyphs.

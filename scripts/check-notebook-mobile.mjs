@@ -45,7 +45,28 @@ async function scrollBody(page, client, selector = `${visible} .notebook-writing
   const box = await page.locator(selector).boundingBox();
   const top = Math.max(0, box.y), bottom = Math.min(page.viewportSize().height, box.y + box.height);
   assert(bottom - top > 60, 'A usable writing area must be visible');
-  await touch(page, client, [{ x: box.x + box.width / 2, y: bottom - 18 }, { x: box.x + box.width / 2, y: top + 18 }]);
+  // Native momentum can outlast the page-turn settle check. Subscribe before
+  // the swipe so even an early scrollend is captured before taking snapshots.
+  const completion = await page.locator(selector).evaluateHandle(element => {
+    const state = { started: false, ended: false, dispose: () => {} };
+    const scroll = () => { state.started = true; state.ended = false; };
+    const end = () => { state.ended = true; };
+    element.addEventListener('scroll', scroll);
+    element.addEventListener('scrollend', end);
+    state.dispose = () => {
+      element.removeEventListener('scroll', scroll);
+      element.removeEventListener('scrollend', end);
+    };
+    return state;
+  });
+  try {
+    await touch(page, client, [{ x: box.x + box.width / 2, y: bottom - 18 }, { x: box.x + box.width / 2, y: top + 18 }]);
+    // A gesture at the boundary may cause no scrolling and emit no scrollend.
+    await page.waitForFunction(state => !state.started || state.ended, completion);
+  } finally {
+    await completion.evaluate(state => state.dispose());
+    await completion.dispose();
+  }
 }
 async function edgeTurn(page, client, side, cancel = false, position = 'middle', inspectFold = false, inset = 10) {
   const box = await page.locator(`${visible} .notebook-mobile-grip[data-side="${side}"]`).boundingBox();

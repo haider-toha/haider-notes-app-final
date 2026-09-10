@@ -18,7 +18,7 @@ npm run prerender # re-run only the prerender step against an existing dist/
 npm run preview  # serve the built dist/ locally
 ```
 
-There is no test-framework runner, linter, or package typecheck script. Standalone regression scripts live in `scripts/check-notebook*.mjs`. `tsc` is configured with `noEmit` (type-check only) but is not wired into a script; Vite does not type-check on build. If you want to verify types, run `npx tsc --noEmit`.
+`npm run typecheck` runs TypeScript without emitting files. `npm run check` checks types and generated cuts, builds production, starts isolated preview/dev servers, and runs all notebook regression scripts. Install its Chromium browser with `npx playwright install chromium`. `npm run check:performance` measures cold/warm production startup, idle work and page turns separately from functional tests. Vite itself does not type-check on build.
 
 > Use `npm` and the tracked `package-lock.json`; do not create a second package-manager lockfile.
 
@@ -54,7 +54,9 @@ Key rules when editing:
 
 `App.tsx` routes `/` and `/notebook` to the about-me page, regardless of saved reading position. `/contents` opens the preliminary contents leaves. `/all`, folder routes, and published note URLs open their corresponding reading pages. Explicit contents and note navigation update browser history and canonical metadata. The “← contents” link at the upper left of each desktop spread or mobile page navigates to `/contents`; “continue reading →” restores the saved source page and its canonical note URL.
 
-`LinedNotebook.tsx` owns the page engine and visible leaves. `NotebookContents.tsx` supplies two preliminary contents leaves in the same page-turn engine. `notebookPages.ts` preserves source bytes while paginating; `notebookPlace.ts` stores note IDs and source offsets so changing pagination does not lose the reading position. `MainContent.tsx` supplies the complete content renderer.
+`LinedNotebook.tsx` owns the page engine and visible leaves; `NotebookSheet.tsx` memoizes stable page faces. `NotebookContents.tsx` supplies two preliminary contents leaves in the same page-turn engine. `scripts/notebookPagination.ts` packs source-preserving pages at build time; the generator writes current and legacy source offsets to `notebookPageCuts.json`. `notebookPages.ts` only reconstructs slices in the browser. Vite regenerates the cuts on build/dev/content changes; commit them with source edits and use `npm run check:pages` to detect staleness. The committed baseline digest protects every existing boundary when source is unchanged. `notebookPlace.ts` stores note IDs and source offsets so changing pagination does not lose the reading position. `MainContent.tsx` supplies the complete content renderer.
+
+Page notifications are emitted synchronously from engine events. Explicit route restoration suppresses old events and settles any prior animation before showing the destination; never reintroduce a passive page effect that can overwrite a newer Back/Forward route. Both bound and detached writing need identical figure-height measurement. Keep the engine's on-demand rendering adapter and its lifecycle checks together; page-flip is pinned to 2.0.7 because the adapter uses its internal renderer state.
 
 ### Mobile layout and gestures
 
@@ -66,9 +68,11 @@ Keep mobile body text at 23px on the existing 29px ruling. Source pagination and
 
 `MainContent.tsx` contains a **hand-written, line-by-line markdown parser** — there is no markdown library. It supports a specific subset only: headings via bold lines, `- ` bullets, `**bold**`, `*italic*`, `[links](url)`, `![images](url)` (click-to-zoom modal), pipe tables, fenced code blocks, **KaTeX** math (inline `$...$`, block `$$...$$`), and **Mermaid** diagrams (` ```mermaid ` blocks, click-to-zoom/pan modal). Any new markdown syntax must be added to this renderer by hand — don't assume standard markdown works.
 
-### Styling: Tailwind is CDN-based
+### Styling: Tailwind is compiled locally
 
-There is **no `tailwind.config.js`, no PostCSS, no CSS build step.** Tailwind is loaded from `https://cdn.tailwindcss.com` in `index.html`, and the custom `note` color tokens are configured inline in a `<script>` block in `index.html`. To add a custom color/token or change the theme, edit `index.html` — not a config file.
+Tailwind v3 runs through `postcss.config.js` and `styles.css`, imported before component styles. `tailwind.config.js` scans source utility classes and defines the `note` color tokens. Keep reset/cascade behavior and custom notebook styles intact; do not restore the browser CDN compiler or combine styling fixes with an unreviewed major Tailwind upgrade. Reenie is preloaded as a losslessly compressed WOFF2; retain the TTF source for font generation and the OFL licenses.
+
+Tables use the notebook handwriting at 24px desktop/23px mobile with modest rules. Wide mobile tables scroll within a focusable wrapper; arrow keys pan them without turning pages. Mermaid loads on demand through `renderMermaid.ts`, with serialized cached work and unique IDs for every bound/loose/modal SVG. KaTeX markup is cached synchronously to avoid equation placeholder reflow. Local image metadata supplies responsive WebP sources and dimensions while keeping authored PNG URLs and the original expanded image intact.
 
 ### Notebook appearance
 

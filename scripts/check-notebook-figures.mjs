@@ -113,7 +113,7 @@ try {
         width: element.getBoundingClientRect().width,
         writingHeight: element.closest('.notebook-writing').clientHeight,
         writingWidth: element.closest('.notebook-writing').clientWidth,
-        viewBox: element.getAttribute('viewBox'), nodes: element.querySelectorAll('.node').length,
+        viewBox: element.getAttribute('viewBox'), nodes: element.querySelectorAll('.node, .rough-node').length,
         aspectRatio: element.getAttribute('preserveAspectRatio') || 'xMidYMid meet',
       }));
       intactViewBox ??= size.viewBox; intactNodeCount ??= size.nodes;

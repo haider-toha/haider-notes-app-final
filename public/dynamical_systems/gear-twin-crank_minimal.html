@@ -218,12 +218,20 @@ function rebaseline(){          // keep motion, re-zero the energy reference
 const cv  = document.getElementById('scene');
 const ctx = cv.getContext('2d');
 const CW = 940, CH = 660;        // CSS logical size
-(function setupHiDPI(){
+// Keep the original drawing coordinates and physics; allocate only the pixels
+// actually displayed in this iframe. ResizeObserver also handles phone rotation.
+cv.style.aspectRatio = CW+'/'+CH;
+function resizeScene(){
   const dpr = Math.max(1, Math.min(3, window.devicePixelRatio||1));
-  cv.width = CW*dpr; cv.height = CH*dpr;
-  cv.style.aspectRatio = CW+'/'+CH;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-})();
+  const width = Math.max(1, Math.round(cv.clientWidth*dpr));
+  const height = Math.max(1, Math.round(width*CH/CW));
+  if(cv.width === width && cv.height === height) return;
+  cv.width = width; cv.height = height;
+  ctx.setTransform(width/CW,0,0,height/CH,0,0);
+}
+resizeScene();
+new ResizeObserver(resizeScene).observe(cv);
+window.addEventListener('resize', resizeScene);
 
 let INK='#1c1b18', INKSOFT='#6a655c', FILL='#cdc6b6', FILL2='#e3ddcf',
     ROD2='#3a3730', GEARFILL='#efe9dd', MARK='#a8324a', WHITEFILL='#fffefb';
@@ -461,11 +469,8 @@ function fmtSci(v){
 const ech = document.getElementById('echart');
 const ectx= ech.getContext('2d');
 const ECW=380, ECH=150;
-(function(){
-  const dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
-  ech.width=ECW*dpr; ech.height=ECH*dpr; ech.style.aspectRatio=ECW+'/'+ECH;
-  ectx.setTransform(dpr,0,0,dpr,0,0);
-})();
+// Diagnostic canvas is never displayed by these minimal embeds.
+ech.width = ech.height = 1;
 const eHist=[];               // {t,T,V,E}
 const HIST_MAX=600;           // ~ last 18 s (sampled every 0.03 s)
 
@@ -525,9 +530,10 @@ function frame(){
       if(!ok){ blewUp=true; running=false; $('btnPlay').textContent='Play'; break; }
       S=ns; simT+=DT;
     }
-    if(simT-lastSample>=0.03){ pushHist(); lastSample=simT; }
+    // No history sampling for the permanently hidden diagnostic chart.
   }
-  draw(); drawChart(); updateReadout();
+  // The minimal embeds hide the diagnostic chart and readout permanently.
+  draw();
   requestAnimationFrame(frame);
 }
 

@@ -162,8 +162,9 @@
   touch-action: auto;
 }
 
-.lined-notebook.is-mobile .notebook-content table {
-  font-size: 13px;
+/* Keep wide handwritten tables legible; the existing wrapper pans natively. */
+.lined-notebook.is-mobile .notebook-content table:has(tr > :nth-child(3)) {
+  min-width: 420px;
 }
 
 .lined-notebook.is-mobile .notebook-loose {

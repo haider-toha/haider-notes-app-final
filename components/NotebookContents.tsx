@@ -29,7 +29,7 @@ export default function NotebookContents({ sections, part, onNavigate }: Noteboo
   const visibleIds = new Set(ordered.slice(part === 0 ? 0 : midpoint, part === 0 ? midpoint : ordered.length).map(note => note.id));
 
   return <nav className="notebook-contents-page" aria-label={`Notebook contents, page ${part + 1} of 2`}>
-    {part === 0 ? <h1>contents</h1> : <div className="notebook-contents-title-space" aria-hidden="true" />}
+    {part === 0 && <h1>contents</h1>}
     {groups.map(group => {
       const notes = group.notes.filter(note => visibleIds.has(note.id));
       if (!notes.length) return null;

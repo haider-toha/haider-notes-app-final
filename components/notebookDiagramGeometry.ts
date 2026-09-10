@@ -7,7 +7,8 @@ export function notebookDiagramKey(chart: string): string {
   return (hash >>> 0).toString(16);
 }
 
-/** Geometry only, measured from live SVG; the actual diagram still renders live. */
+/** Published inline allocation, originally measured from live SVG. Preserve it
+ * for existing source so visual label corrections do not move page boundaries. */
 export function estimatedDiagramHeight(chart: string, availableWidth: number): number {
   const size = (geometry as Record<string, { width: number; height: number }>)[notebookDiagramKey(chart)];
   if (!size) return 450;

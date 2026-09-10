@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import type { Note } from "../types";
 import {
@@ -9,14 +9,13 @@ import {
 } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import mermaid from "mermaid";
+import { notebookImages } from "./notebookImages";
+import { diagramFrame, renderMermaid, uniqueDiagramSvg } from "./renderMermaid";
+export { renderMermaid } from "./renderMermaid";
 import "./MediaModal.css";
 
-// Rendering is explicit and serialized; Mermaid never scans the document.
-mermaid.initialize({
-  startOnLoad: false,
-  securityLevel: "loose",
-});
+// Source is static; reuse exact KaTeX geometry when leaves remount or turn.
+const mathMarkup = new Map<string, string>();
 
 interface MainContentProps {
   note: Note;
@@ -53,8 +52,38 @@ const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, captio
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const zoom = useCallback((delta: number) => setScale(value => Math.min(5, Math.max(0.25, Math.round((value + delta) * 100) / 100))), []);
+  const maximumScale = kind === "diagram" ? 16 : 5;
+  const zoom = useCallback((delta: number) => setScale(value => Math.min(maximumScale, Math.max(0.25, Math.round((value + delta) * 100) / 100))), [maximumScale]);
   const reset = useCallback(() => { setScale(1); setPosition({ x: 0, y: 0 }); }, []);
+  const readDiagram = () => {
+    const stage = stageRef.current;
+    const svg = stage?.querySelector<SVGSVGElement>(".note-media-diagram > svg");
+    const matrix = svg?.getScreenCTM();
+    if (!stage || !svg || !matrix) return;
+    const renderedScale = Math.hypot(matrix.a, matrix.b);
+    const sizes = Array.from<Element>(svg.querySelectorAll("text, .nodeLabel"))
+      .filter(element => element.textContent?.trim())
+      .map(element => parseFloat(getComputedStyle(element).fontSize) * renderedScale)
+      .filter(size => size > 0);
+    if (!sizes.length) return;
+    setScale(value => Math.min(maximumScale, Math.max(1, value * 24 / Math.min(...sizes))));
+    setPosition({ x: 0, y: 0 });
+    // Start at the beginning of the drawing after React applies readable zoom.
+    // The full-fit view remains one click away, and every edge is pannable.
+    requestAnimationFrame(() => {
+      if (!svg.isConnected) return;
+      const nextMatrix = svg.getScreenCTM();
+      if (!nextMatrix) return;
+      const viewBox = svg.viewBox.baseVal;
+      const corner = new DOMPoint(viewBox.x, viewBox.y).matrixTransform(nextMatrix);
+      const frame = stage.getBoundingClientRect();
+      const drawingWidth = viewBox.width * Math.hypot(nextMatrix.a, nextMatrix.b);
+      setPosition({
+        x: frame.left + Math.max(16, (frame.width - drawingWidth) / 2) - corner.x,
+        y: frame.top + 16 - corner.y,
+      });
+    });
+  };
 
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -129,8 +158,9 @@ const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, captio
       <div className="note-media-zoom-controls" role="group" aria-label="Zoom controls">
         <button type="button" aria-label="Zoom out" disabled={scale <= 0.25} onClick={() => zoom(-0.25)}><ZoomOut /></button>
         <output className="note-media-scale" aria-label="Zoom level">{Math.round(scale * 100)}%</output>
-        <button type="button" aria-label="Zoom in" disabled={scale >= 5} onClick={() => zoom(0.25)}><ZoomIn /></button>
-        <button type="button" className="note-media-reset" onClick={reset}>Reset</button>
+        <button type="button" aria-label="Zoom in" disabled={scale >= maximumScale} onClick={() => zoom(0.25)}><ZoomIn /></button>
+        <button type="button" className="note-media-reset" aria-label="Reset" onClick={reset}>{kind === "diagram" ? "Fit" : "Reset"}</button>
+        {kind === "diagram" && <button type="button" aria-label="Read diagram labels" onClick={readDiagram}>Read</button>}
       </div>
       <button ref={closeRef} type="button" className="note-media-close" aria-label={`Close ${kind}`} title="Close (Esc)" onClick={onClose}><X /></button>
     </div>
@@ -151,7 +181,7 @@ const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, captio
         if (other) {
           const before = Math.hypot(previous.x - other.x, previous.y - other.y);
           const after = Math.hypot(next.x - other.x, next.y - other.y);
-          if (before > 1) setScale(value => Math.min(5, Math.max(0.25, value * after / before)));
+          if (before > 1) setScale(value => Math.min(maximumScale, Math.max(0.25, value * after / before)));
           setPosition(value => ({ x: value.x + (next.x - previous.x) / 2, y: value.y + (next.y - previous.y) / 2 }));
         } else setPosition(value => ({ x: value.x + next.x - previous.x, y: value.y + next.y - previous.y }));
         pointers.current.set(event.pointerId, next);
@@ -168,98 +198,28 @@ const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, captio
   </div>;
 };
 
-const DiagramModal: React.FC<{ svg: string; onClose: () => void }> = ({ svg, onClose }) =>
-  <MediaModal kind="diagram" onClose={onClose}>
-    <div className="note-media-diagram" dangerouslySetInnerHTML={{ __html: svg }} />
+const DiagramModal: React.FC<{ svg: string; onClose: () => void }> = ({ svg, onClose }) => {
+  const expandedSvg = useMemo(() => uniqueDiagramSvg(svg), [svg]);
+  return <MediaModal kind="diagram" onClose={onClose}>
+    <div className="note-media-diagram" dangerouslySetInnerHTML={{ __html: expandedSvg }} />
   </MediaModal>;
-
-const notebookThemeVariables = {
-  fontFamily: '"Reenie Beanie", cursive',
-  fontSize: "24px",
-  primaryColor: "transparent",
-  primaryTextColor: "#303f53",
-  primaryBorderColor: "#303f53",
-  lineColor: "#303f53",
-  secondaryColor: "transparent",
-  tertiaryColor: "transparent",
-  background: "transparent",
-  mainBkg: "transparent",
-  secondBkg: "transparent",
-  nodeBorder: "#303f53",
-  clusterBkg: "transparent",
-  clusterBorder: "#303f53",
-  titleColor: "#303f53",
-  edgeLabelBackground: "transparent",
-  actorBkg: "transparent",
-  actorBorder: "#303f53",
-  actorTextColor: "#303f53",
-  actorLineColor: "#303f53",
-  signalColor: "#303f53",
-  signalTextColor: "#303f53",
-  noteBkgColor: "transparent",
-  noteTextColor: "#303f53",
-  noteBorderColor: "#303f53",
-};
-
-// Mermaid owns shared global render state. Serialize renders and allocate unique
-// IDs so neighboring notebook figures cannot overwrite each other's SVGs.
-let mermaidRenderChain: Promise<unknown> = Promise.resolve();
-let mermaidRenderSeq = 0;
-
-export const renderMermaid = (chart: string): Promise<string> => {
-  const run = mermaidRenderChain.then(async () => {
-    // Mermaid measures labels before creating the SVG; using a fallback font
-    // here clips handwritten labels when the notebook font arrives later.
-    await document.fonts.load('24px "Reenie Beanie"');
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: "base",
-      securityLevel: "loose",
-      fontFamily: '"Reenie Beanie", cursive',
-      look: "handDrawn",
-      handDrawnSeed: 17,
-      // Mermaid derives a half-black label background from "transparent";
-      // override that generated rule inside the SVG so expanded views agree.
-      themeCSS: ".labelBkg, .edgeLabel, .edgeLabel p { background: transparent !important; } .edgeLabel rect { fill: transparent !important; }",
-      flowchart: {
-        htmlLabels: true,
-        curve: "basis",
-        nodeSpacing: 24, rankSpacing: 30, padding: 8,
-      },
-      sequence: {
-        actorFontFamily: '"Reenie Beanie", cursive',
-        noteFontFamily: '"Reenie Beanie", cursive',
-        messageFontFamily: '"Reenie Beanie", cursive',
-        actorFontSize: 24,
-        noteFontSize: 24,
-        messageFontSize: 24,
-      },
-      themeVariables: notebookThemeVariables,
-    });
-    const { svg } = await mermaid.render(
-      `mermaid-render-light-${++mermaidRenderSeq}`,
-      chart,
-    );
-    return svg;
-  });
-  // Keep the queue alive even if one render rejects, so a single failure
-  // doesn't stall every diagram behind it.
-  mermaidRenderChain = run.catch(() => {});
-  return run;
 };
 
 // Mermaid Diagram Component
 const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: string) => void }> = ({ chart, id, onExpand }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const frame = useMemo(() => diagramFrame(chart), [chart]);
   const [svg, setSvg] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [reloadRequired, setReloadRequired] = useState(false);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
+    setSvg("");
     setError(null);
 
-    renderMermaid(chart)
+    renderMermaid(chart, controller.signal)
       .then((rendered) => {
         if (cancelled) return;
         setSvg(rendered);
@@ -278,6 +238,7 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
     // resolves, drop the stale result so it can't overwrite a newer one.
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [chart, id, attempt]);
 
@@ -296,7 +257,8 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
   return (
     <div
       ref={containerRef}
-      className="my-6 relative group notebook-diagram"
+      className={`my-6 relative group notebook-diagram${frame ? " has-measured-frame" : ""}${frame && frame.width / frame.height > 2 ? " is-wide" : ""}`}
+      style={frame ? { aspectRatio: `${frame.width} / ${frame.height}` } : undefined}
     >
       {/* Expand button */}
       <button
@@ -358,18 +320,24 @@ const MainContent: React.FC<MainContentProps> = ({ note, mediaActive = true }) =
       }}
     >
       <div className="relative overflow-hidden rounded-xl bg-black/5">
+        <picture>
+          {notebookImages[src] && <source type="image/webp" srcSet={notebookImages[src].srcSet} sizes={notebookImages[src].sizes} />}
         <img
           src={src}
+          width={notebookImages[src]?.width}
+          height={notebookImages[src]?.height}
+          decoding="async"
           alt={alt}
           loading="lazy"
-          className="w-full max-w-full h-auto rounded-xl shadow-sm group-hover:shadow-md transition-all duration-200 group-hover:scale-[1.01]"
+          className="w-full max-w-full h-auto rounded-xl shadow-sm group-hover:shadow-md transition-[transform,box-shadow] duration-200 group-hover:scale-[1.01]"
           onError={(e) => {
             // Fallback for broken images. Guard parentElement: the node may have
             // unmounted if the user navigated away before the load failed.
             const target = e.target as HTMLImageElement;
             target.style.display = "none";
-            if (target.parentElement) {
-              target.parentElement.innerHTML = `
+            const frame = target.closest("picture")?.parentElement ?? target.parentElement;
+            if (frame) {
+              frame.innerHTML = `
               <div class="flex items-center justify-center py-8 text-note-muted text-sm">
                 <span>image could not be loaded</span>
               </div>
@@ -377,6 +345,7 @@ const MainContent: React.FC<MainContentProps> = ({ note, mediaActive = true }) =
             }
           }}
         />
+        </picture>
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-xl pointer-events-none" />
       </div>
@@ -414,8 +383,11 @@ const MainContent: React.FC<MainContentProps> = ({ note, mediaActive = true }) =
     });
 
     return (
-      <div key={startIndex} className="my-4 overflow-x-auto">
-        <table className="w-full border-collapse text-[14px] md:text-[15px]">
+      <div key={startIndex} className="notebook-table-scroll my-4 overflow-x-auto" tabIndex={0} role="region" aria-label="Scrollable table"
+        onKeyDown={event => {
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") event.stopPropagation();
+        }}>
+        <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-black/20">
               {headerRow.map((cell, i) => (
@@ -705,21 +677,17 @@ const MainContent: React.FC<MainContentProps> = ({ note, mediaActive = true }) =
     displayMode: boolean,
     key: string | number,
   ): React.ReactNode => {
+    const cacheKey = JSON.stringify([displayMode, latex]);
     try {
-      const html = katex.renderToString(latex, {
-        displayMode,
-        throwOnError: false,
-        strict: false,
-      });
-      return (
-        <span
-          key={key}
-          className={displayMode ? "block my-4 text-center overflow-x-auto" : ""}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      );
+      let html = mathMarkup.get(cacheKey);
+      if (html === undefined) {
+        html = katex.renderToString(latex, { displayMode, throwOnError: false, strict: false });
+        mathMarkup.set(cacheKey, html);
+      }
+      return <span key={key}
+        className={displayMode ? "block my-4 text-center overflow-x-auto" : ""}
+        dangerouslySetInnerHTML={{ __html: html }} />;
     } catch {
-      // If KaTeX fails, return the original text
       return <span key={key}>{displayMode ? `$$${latex}$$` : `$${latex}$`}</span>;
     }
   };
@@ -836,4 +804,6 @@ const MainContent: React.FC<MainContentProps> = ({ note, mediaActive = true }) =
   </>;
 };
 
-export default MainContent;
+export default React.memo(MainContent, (previous, next) =>
+  previous.note.content === next.note.content && previous.mediaActive === next.mediaActive
+);

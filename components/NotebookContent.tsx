@@ -8,7 +8,7 @@ interface NotebookContentProps {
   active?: boolean;
 }
 
-export default function NotebookContent({ page, active = true }: NotebookContentProps) {
+function NotebookContent({ page, active = true }: NotebookContentProps) {
   const render = (content: string) => <MainContent note={{ ...page.note, content }} mediaActive={active} />;
   const intro = page.note.id === 'profile-about-me' && page.part === 0;
   const paragraphs = intro ? page.content.trimEnd().split('\n\n') : [];
@@ -24,3 +24,5 @@ export default function NotebookContent({ page, active = true }: NotebookContent
     </>}
   </div>;
 }
+
+export default React.memo(NotebookContent);

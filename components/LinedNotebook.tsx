@@ -1,12 +1,11 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal, flushSync } from 'react-dom';
 import { PageFlip, loadNotebookPages, finishNotebookTouch } from './notebookPageFlip';
 import { notebookPages as pages, notebookSections, sheetTexts } from './notebookPages';
-import NotebookContent from './NotebookContent';
+import NotebookSheet from './NotebookSheet';
 import { decodeNotebookPlace, encodeNotebookPlace } from './notebookPlace';
 import './LinedNotebook.css';
 import { useLooseSheet } from './useLooseSheet';
-import NotebookContents from './NotebookContents';
 import { reverseInkText, useNotebookDetails } from './notebookDetails';
 import './NotebookMobile.css';
 import { stripMarkdown } from '../seo';
@@ -16,6 +15,7 @@ const contentsPages = 2;
 const pageCount = pages.length + contentsPages;
 const sections = notebookSections.map(section => ({ id: section.id, label: section.title, page: section.firstPage, folder: section.folder }));
 const placeKey = 'haider-notebook-place';
+const reverseTexts = sheetTexts.map((_, index) => reverseInkText(sheetTexts, index));
 
 function facingInk(text: string) {
   const lines = [''];
@@ -28,8 +28,31 @@ function facingInk(text: string) {
 }
 
 function updateScrollCue(writing: HTMLElement) {
-  writing.style.setProperty('--notebook-figure-height', `${Math.max(96, writing.clientHeight - 48)}px`);
-  writing.parentElement?.setAttribute('data-more-below', String(writing.scrollHeight - writing.clientHeight - writing.scrollTop > 8));
+  const more = String(writing.scrollHeight - writing.clientHeight - writing.scrollTop > 8);
+  if (writing.parentElement?.getAttribute('data-more-below') !== more) writing.parentElement?.setAttribute('data-more-below', more);
+}
+
+function refreshWritingGeometry(writers: HTMLElement[]) {
+  // Read all geometry before changing styles; scrolling only updates the cue.
+  const measurements = writers.map(writing => ({ writing,
+    height: `${Math.max(96, writing.clientHeight - 48)}px`,
+    more: String(writing.scrollHeight - writing.clientHeight - writing.scrollTop > 8),
+  }));
+  for (const { writing, height, more } of measurements) {
+    if (writing.style.getPropertyValue('--notebook-figure-height') !== height) writing.style.setProperty('--notebook-figure-height', height);
+    if (writing.parentElement?.getAttribute('data-more-below') !== more) writing.parentElement?.setAttribute('data-more-below', more);
+  }
+}
+
+function measureBook(mount: HTMLElement) {
+  const width = mount.clientWidth;
+  const phone = window.matchMedia(phoneLayout).matches;
+  const portrait = phone || width < 700;
+  const desk = mount.closest<HTMLElement>('.notebook-desk')!;
+  const style = getComputedStyle(desk);
+  const available = desk.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+  const height = Math.max(220, Math.floor(Math.min(available, phone ? width * 1.85 : portrait ? 1000 : 720)));
+  return { width: portrait ? Math.min(width, 540) : width / 2, height, portrait };
 }
 
 function savedPage() {
@@ -50,6 +73,14 @@ interface LinedNotebookProps {
 export default function LinedNotebook({ initialPage, showContents = false, onOpenContents, navigationKey, onPageChange, onSelectPage }: LinedNotebookProps = {}) {
   const pageChangeHandler = useRef(onPageChange);
   pageChangeHandler.current = onPageChange;
+  const contentsHandler = useRef(onOpenContents);
+  contentsHandler.current = onOpenContents;
+  const routeRequest = useRef({ initialPage, showContents, navigationKey });
+  const pendingNavigation = useRef(true);
+  if (routeRequest.current.initialPage !== initialPage || routeRequest.current.showContents !== showContents || routeRequest.current.navigationKey !== navigationKey) {
+    routeRequest.current = { initialPage, showContents, navigationKey };
+    pendingNavigation.current = true;
+  }
   const [page, setPage] = useState(() => showContents ? 0 : (initialPage ?? savedPage()) + contentsPages);
   const [destination, setDestination] = useState<number | null>(null);
   const [compact, setCompact] = useState(() => window.matchMedia(phoneLayout).matches);
@@ -95,6 +126,8 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
   }, []);
 
   useLayoutEffect(() => {
+    const looseWriting = loose.element.current?.querySelector<HTMLElement>('.notebook-writing');
+    if (looseWriting) refreshWritingGeometry([looseWriting]);
     if (!compact) return;
     for (let index = Math.max(0, page - 1); index <= Math.min(pageCount - 1, page + 1); index++) {
       const writing = leaves[index]?.querySelector<HTMLElement>('.notebook-writing');
@@ -104,13 +137,15 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
       const writing = leaves[destination]?.querySelector<HTMLElement>('.notebook-writing');
       if (writing) writing.scrollTop = scrollPositions.current.get(destination) ?? 0;
     }
-  }, [compact, page, destination, leaves]);
+  }, [compact, page, destination, leaves, loose.sheet]);
 
   useEffect(() => {
     const writers = leaves.flatMap((leaf, index) =>
       Math.abs(index - page) <= 3 || (destination !== null && Math.abs(index - destination) <= 3)
         ? Array.from(leaf.querySelectorAll('.notebook-writing')) as HTMLElement[] : []);
-    const refresh = () => writers.forEach(updateScrollCue);
+    const looseWriting = loose.element.current?.querySelector<HTMLElement>('.notebook-writing');
+    if (looseWriting) writers.push(looseWriting);
+    const refresh = () => refreshWritingGeometry(writers);
     const observer = new ResizeObserver(refresh);
     for (const writing of writers) {
       observer.observe(writing);
@@ -118,7 +153,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     }
     refresh();
     return () => observer.disconnect();
-  }, [compact, page, destination, leaves]);
+  }, [compact, page, destination, leaves, loose.sheet]);
 
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -127,15 +162,17 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     return () => query.removeEventListener('change', update);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mount = host.current!;
+    const initialGeometry = measureBook(mount);
     const container = document.createElement('div');
     container.className = 'notebook-engine';
+    container.style.height = `${initialGeometry.height}px`;
     mount.appendChild(container);
     const instance = new PageFlip(container, {
-      width: 540, height: 680, size: 'fixed' as never,
+      width: initialGeometry.width, height: initialGeometry.height, size: 'fixed' as never,
       minWidth: 280, maxWidth: 540, minHeight: 680, maxHeight: 1100,
-      autoSize: false, usePortrait: true, showCover: false,
+      autoSize: false, usePortrait: initialGeometry.portrait, showCover: false,
       drawShadow: true, maxShadowOpacity: 0.28, flippingTime: 950,
       useMouseEvents: false, showPageCorners: false, disableFlipByClick: false,
       startPage: currentPage.current,
@@ -150,38 +187,38 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
       setMobile(portrait);
       leaves.forEach((leaf, i) => {
         const visible = i >= current && i < current + (portrait ? 1 : 2);
-        leaf.inert = !visible;
-        leaf.setAttribute('aria-hidden', String(!visible));
+        if (leaf.inert !== !visible) leaf.inert = !visible;
+        if (leaf.getAttribute('aria-hidden') !== String(!visible)) leaf.setAttribute('aria-hidden', String(!visible));
       });
     };
     instance.on('init', sync);
     instance.on('flip', () => {
+      const previous = currentPage.current;
       sync();
+      const index = instance.getCurrentPageIndex();
       try {
-        const index = instance.getCurrentPageIndex();
         if (index >= contentsPages) {
           readingPage.current = index;
           localStorage.setItem(placeKey, encodeNotebookPlace(index - contentsPages));
         }
       }
       catch { /* Reading still works when browser storage is unavailable. */ }
+      // Publish the actual engine event, not a passive effect from an older
+      // render that could replace a newer browser Back/Forward destination.
+      if (!pendingNavigation.current) {
+        if (index >= contentsPages) pageChangeHandler.current?.(index - contentsPages);
+        else if (previous >= contentsPages) contentsHandler.current?.();
+      }
     });
     instance.on('changeOrientation', sync);
     let resizePending = false;
     let resizeFrame = 0;
-    let lastGeometry = '';
+    let lastGeometry = `${initialGeometry.width}:${initialGeometry.height}:${initialGeometry.portrait}`;
     const resize = () => {
       resizeFrame = 0;
       if (instance.getState() !== 'read' || pointer.current) { resizePending = true; return; }
       resizePending = false;
-      const width = mount.clientWidth;
-      const phone = window.matchMedia(phoneLayout).matches;
-      const portrait = phone || width < 700;
-      const desk = mount.closest<HTMLElement>('.notebook-desk')!;
-      const deskStyle = getComputedStyle(desk);
-      const available = desk.clientHeight - parseFloat(deskStyle.paddingTop) - parseFloat(deskStyle.paddingBottom);
-      const height = Math.max(220, Math.floor(Math.min(available, phone ? width * 1.85 : portrait ? 1000 : 720)));
-      const pageWidth = portrait ? Math.min(width, 540) : width / 2;
+      const { width: pageWidth, height, portrait } = measureBook(mount);
       const geometry = `${pageWidth}:${height}:${portrait}`;
       if (geometry === lastGeometry) return;
       lastGeometry = geometry;
@@ -222,19 +259,26 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   };
 
-  const previouslyVisiblePage = useRef(page);
-  useEffect(() => {
-    if (page >= contentsPages) pageChangeHandler.current?.(page - contentsPages);
-    else if (previouslyVisiblePage.current >= contentsPages) onOpenContents?.();
-    previouslyVisiblePage.current = page;
-  }, [page]);
-
   useEffect(() => {
     const target = showContents ? 0 : (initialPage ?? savedPage()) + contentsPages;
     setDestination(target);
     const frame = requestAnimationFrame(() => {
       const instance = book.current;
-      if (instance) instance.turnToPage(target);
+      if (instance) {
+        // An old animation must finish against its original spread. Otherwise
+        // its completion can advance the freshly restored Back/Forward page.
+        const drag = pointer.current;
+        pointer.current = null;
+        const spread = host.current?.parentElement;
+        if (drag && spread?.hasPointerCapture(drag.id)) spread.releasePointerCapture(drag.id);
+        if (drag?.mode === 'loose') loose.finish(true);
+        if (instance.getState() === 'user_fold') finishNotebookTouch(instance, false);
+        instance.getRender().finishAnimation();
+        instance.turnToPage(target);
+        pendingNavigation.current = false;
+        const current = instance.getCurrentPageIndex();
+        if (current >= contentsPages) pageChangeHandler.current?.(current - contentsPages);
+      }
     });
     return () => cancelAnimationFrame(frame);
   }, [initialPage, showContents, navigationKey]);
@@ -245,54 +289,36 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     else move(Math.floor((index + contentsPages) / step) * step);
   };
 
-  const renderContentsLink = (index: number) => !mobile && index % 2 === 1 ? null : <button className="notebook-contents-link"
-    aria-label={index < contentsPages ? 'Back to reading' : 'Open contents'} disabled={turning}
-    onClick={() => {
+  const sheetActions = {
+    contents: (index: number) => {
       if (index < contentsPages) selectPage(readingPage.current - contentsPages);
       else { readingPage.current = index; if (onOpenContents) onOpenContents(); else move(0); }
-    }}>
-    {index < contentsPages ? 'continue reading →' : '← contents'}
-  </button>;
-
-  // Native targets prevent touch hit adjustment from redirecting an edge grab
-  // onto a nearby link. They remain outside keyboard and accessibility navigation.
-  const renderMobileGrips = (index: number) => compact && <>
-    <button type="button" tabIndex={-1} className="notebook-mobile-grip" data-side="left" aria-hidden="true" />
-    <button type="button" tabIndex={-1} className="notebook-mobile-grip" data-side="right" aria-hidden="true" />
-    {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(corner =>
-      <button key={corner} type="button" tabIndex={-1} className="notebook-mobile-corner" data-corner={corner} aria-hidden="true" />)}
-    {index > 0 && <button className="notebook-mobile-previous" aria-label="Previous notebook page" disabled={turning} onClick={() => move(index - 1)}>← previous</button>}
-  </>;
-
-  const rememberScroll = (index: number, event: React.UIEvent<HTMLDivElement>) => {
-    updateScrollCue(event.currentTarget);
-    if (compact && ((index >= page && index < page + step) || loose.sheet?.index === index)) {
-      scrollPositions.current.set(index, event.currentTarget.scrollTop);
-    }
+    },
+    navigate: selectPage,
+    previous: (index: number) => move(index - 1),
+    scroll: (index: number, writing: HTMLDivElement) => {
+      updateScrollCue(writing);
+      if (compact && ((index >= page && index < page + step) || loose.sheet?.index === index)) {
+        scrollPositions.current.set(index, writing.scrollTop);
+      }
+    },
   };
+  const actions = useRef(sheetActions);
+  actions.current = sheetActions;
+  const handleContents = useCallback((index: number) => actions.current.contents(index), []);
+  const handleNavigate = useCallback((index: number) => actions.current.navigate(index), []);
+  const handlePrevious = useCallback((index: number) => actions.current.previous(index), []);
+  const handleScroll = useCallback((index: number, writing: HTMLDivElement) => actions.current.scroll(index, writing), []);
+  const facingText = useMemo(() => page >= contentsPages ? facingInk(sheetTexts[Math.max(0, page - contentsPages - 1)]) : 'contents\n\nprofile\n\nprojects\n\nblog', [page]);
 
   const renderSheet = (index: number) => {
     const sourceIndex = index - contentsPages;
-    const content = pages[sourceIndex];
     const nearby = Math.abs(index - page) <= 3 || (destination !== null && Math.abs(index - destination) <= 3);
     const detached = loose.sheet?.index === index;
-    if (index < contentsPages) return <article className="notebook-sheet notebook-contents-sheet" data-page-side={index % 2 ? 'right' : 'left'} data-contents-part={index}>
-      {renderContentsLink(index)}
-      <div className="notebook-running-head" aria-hidden="true" />
-      <div className="notebook-writing" onScroll={event => rememberScroll(index, event)}><NotebookContents sections={sections} part={index as 0 | 1} onNavigate={selectPage} /></div>
-      {renderMobileGrips(index)}
-      <span className="notebook-page-number">{index === 0 ? 'i' : 'ii'}</span>
-    </article>;
-    return <article className="notebook-sheet" data-page-side={index % 2 ? 'right' : 'left'} data-note-id={content.note.id} data-page-index={sourceIndex}>
-            {renderContentsLink(index)}
-            <span className="notebook-reverse-ink" aria-hidden="true">{reverseInkText(sheetTexts, sourceIndex)}</span>
-            <div className="notebook-running-head" aria-hidden="true">{sourceIndex !== 0 && <span>{content.note.title}</span>}</div>
-            <div className="notebook-writing" onScroll={event => rememberScroll(index, event)}>
-              {(nearby || detached) && <NotebookContent page={content} active={detached || (index >= page && index < page + step)} />}
-            </div>
-            {renderMobileGrips(index)}
-            <span className="notebook-page-number">{sourceIndex + 1}</span>
-          </article>;
+    return <NotebookSheet index={index} content={pages[sourceIndex]} reverseInk={reverseTexts[sourceIndex]} sections={sections}
+      nearby={nearby || detached} active={detached || (index >= page && index < page + step)}
+      compact={compact} mobile={mobile} turning={(nearby || detached) && turning}
+      onContents={handleContents} onNavigate={handleNavigate} onPrevious={handlePrevious} onScroll={handleScroll} />;
   };
 
   return <main className={`lined-notebook${compact ? ' is-mobile' : ''}`}>
@@ -379,7 +405,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
         {compact && page === 0 && <span className="notebook-mobile-cover" aria-hidden="true" />}
         <div className="notebook-paper-stack stack-read" aria-hidden="true" />
         <div className="notebook-paper-stack stack-unread" aria-hidden="true" />
-        {compact && page > 0 && <span className="notebook-mobile-facing" aria-hidden="true">{page >= contentsPages ? facingInk(sheetTexts[Math.max(0, page - contentsPages - 1)]) : 'contents\n\nprofile\n\nprojects\n\nblog'}</span>}
+        {compact && page > 0 && <span className="notebook-mobile-facing" aria-hidden="true">{facingText}</span>}
         <div className="notebook-mount" ref={host} />
         {!turning && <>
           <button className="notebook-edge edge-back" aria-label="Turn previous page" aria-disabled={page === 0} onClick={e => { if (e.detail === 0) move(page - step); }}></button>

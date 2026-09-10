@@ -50,10 +50,25 @@ try {
     await page.getByRole('button', { name: `Go to ${section.title}, page ${section.firstPage + 1}`, exact: true }).click();
     await checkNote(portfolioNotes.find(note => note.id === section.id));
   }
-  await page.goBack(); await checkContents();
-  await page.goBack(); await checkNote(portfolioNotes.find(note => note.id === notebookSections.at(-2).id));
-  await page.goForward(); await checkContents();
-  await page.goForward(); await checkNote(portfolioNotes.find(note => note.id === notebookSections.at(-1).id));
+  // A stale passive page-change effect used to replace a newer POP route and
+  // truncate the forward stack. Navigation itself must never write history.
+  await page.evaluate(() => {
+    window.notebookHistoryWrites = [];
+    for (const method of ['pushState', 'replaceState']) {
+      const original = history[method];
+      history[method] = function (...args) {
+        window.notebookHistoryWrites.push({ method, url: args[2] });
+        return original.apply(this, args);
+      };
+    }
+  });
+  for (let repeat = 0; repeat < 3; repeat++) {
+    await page.goBack(); await checkContents();
+    await page.goBack(); await checkNote(portfolioNotes.find(note => note.id === notebookSections.at(-2).id));
+    await page.goForward(); await checkContents();
+    await page.goForward(); await checkNote(portfolioNotes.find(note => note.id === notebookSections.at(-1).id));
+  }
+  assert.deepEqual(await page.evaluate(() => window.notebookHistoryWrites), [], 'Back/Forward preserves the existing history stack');
   await open('/missing-note-path');
   await page.waitForURL(`${origin}/`);
   await open('/book-test');
