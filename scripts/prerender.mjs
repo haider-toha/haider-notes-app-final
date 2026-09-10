@@ -198,6 +198,42 @@ function renderMarkdown(md) {
 // Body fragments (go inside #root, wrapped in #ssg-root)
 // ---------------------------------------------------------------------------
 
+const coverSrcSet = "/cover-360.webp 360w, /cover-540.webp 540w, /cover-768.webp 768w";
+const coverSizes = "(max-width: 600px) 85vw, 540px";
+
+function coverShell() {
+  return `<div id="ssg-cover-shell" aria-hidden="true">
+  <div class="ssg-cover-stage">
+    <picture>
+      <source type="image/webp" srcset="${coverSrcSet}" sizes="${coverSizes}" />
+      <img src="/cover.png" width="1086" height="1448" alt="" fetchpriority="high" />
+    </picture>
+  </div>
+  <div class="ssg-cover-welcome">
+    <div><p>Best experienced on desktop</p><span>Okay, let me explore →</span></div>
+  </div>
+</div>`;
+}
+
+const coverEarlyHead = `<link rel="preload" as="image" type="image/webp" href="/cover-540.webp"
+      imagesrcset="${coverSrcSet}" imagesizes="${coverSizes}" fetchpriority="high" />
+    <style>
+      #ssg-cover-shell { display: none; }
+      html.js #ssg-cover-shell { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; overflow: hidden; box-sizing: border-box; padding: 24px 24px 76px; background: #fff; }
+      .ssg-cover-stage { width: min(540px, calc((100dvh - 100px) * .75), 100%); aspect-ratio: 3 / 4; border-radius: 3px 10px 10px 3px; background: #6b241c; border-right: 3px solid #83452f; border-bottom: 3px solid #481b16; }
+      .ssg-cover-stage picture, .ssg-cover-stage img { display: block; width: 100%; height: 100%; border-radius: 3px 10px 10px 3px; }
+      .ssg-cover-stage img { object-fit: contain; }
+      .ssg-cover-welcome { display: none; }
+      @media (max-width: 700px), (max-height: 500px) and (pointer: coarse) {
+        html.js.notebook-mobile-welcome-pending .ssg-cover-stage { display: none; }
+        html.js.notebook-mobile-welcome-pending #ssg-cover-shell { padding: 32px; }
+        html.js.notebook-mobile-welcome-pending .ssg-cover-welcome { display: grid; width: 100%; min-height: 100%; place-items: center; color: #303f53; font-family: 'Reenie Beanie', cursive; }
+        .ssg-cover-welcome > div { width: min(300px, 100%); }
+        .ssg-cover-welcome p { margin: 0 0 28px; font-size: 36px; line-height: 1.05; }
+        .ssg-cover-welcome span { color: #355b78; font-size: 25px; line-height: 1.2; text-decoration: underline; text-underline-offset: 5px; }
+      }
+    </style>`;
+
 function contactFooter(seo) {
   return `<footer class="ssg-footer">
   <p>Haider Toha — ${escapeHtml(seo.AUTHOR_TAGLINE)}. London, United Kingdom.</p>
@@ -233,7 +269,7 @@ function siteIndex(notes, folders, seo) {
 
 function homeBody(notes, folders, seo) {
   const about = notes.find((n) => n.slug === "about-me");
-  return `<div id="ssg-root">
+  return `${coverShell()}<div id="ssg-root">
 <article>
 <h1>Haider Toha</h1>
 <p class="ssg-meta">${escapeHtml(seo.AUTHOR_TAGLINE)} · London, United Kingdom</p>
@@ -312,7 +348,7 @@ function headTags(meta, jsonld, seo) {
 // Assemble a page from the built template
 // ---------------------------------------------------------------------------
 
-function renderPage(template, { meta, head, body }) {
+function renderPage(template, { meta, head, body, earlyHead = "" }) {
   // Keep the no-JavaScript reading surface consistent with notebook hyperlinks.
   body = body.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi, (_match, attributes, label) => {
     const existingRel = attributes.match(/\srel="([^"]*)"/i)?.[1] ?? "";
@@ -322,6 +358,7 @@ function renderPage(template, { meta, head, body }) {
   });
   return template
     .replace(/<title[^>]*>[\s\S]*?<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`)
+    .replace(/<head>/i, `<head>${earlyHead ? `\n    ${earlyHead}` : ""}`)
     // Drop the placeholder comments first (Vite may or may not keep them), then
     // inject before </head> and into the now-empty #root — robust either way.
     .replace(/<!--\s*SSG-(?:HEAD|BODY)\s*-->/gi, "")
@@ -385,7 +422,7 @@ async function main() {
   {
     const meta = seo.homeMeta();
     const head = headTags(meta, [person, seo.websiteJsonLd(), seo.profilePageJsonLd()], seo);
-    written.push(await writeHtml("/", renderPage(template, { meta, head, body: homeBody(notes, folders, seo) })));
+    written.push(await writeHtml("/", renderPage(template, { meta, head, body: homeBody(notes, folders, seo), earlyHead: coverEarlyHead })));
     sitemap.push({ path: "/", lastmod: latest, changefreq: "weekly", priority: "1.0" });
   }
 

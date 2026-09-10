@@ -162,7 +162,7 @@ export default function NotebookCover({ opening, onOpen, onPrepare, onOpened }: 
         onPointerCancel={() => { drag.current = null; suppressClick.current = true; setDragging(false); settle(0); }}
         onLostPointerCapture={() => { if (drag.current) { drag.current = null; suppressClick.current = true; setDragging(false); settle(0); } }}>
         <picture>
-          <source type="image/webp" srcSet="/cover-600.webp 600w, /cover.webp 1086w" sizes="(max-width: 600px) 85vw, 540px" />
+          <source type="image/webp" srcSet="/cover-360.webp 360w, /cover-540.webp 540w, /cover-768.webp 768w" sizes="(max-width: 600px) 85vw, 540px" />
           <img src="/cover.png" width="1086" height="1448" alt="" fetchPriority="high" draggable={false} />
         </picture>
         <span ref={inside} className="notebook-cover-inside" aria-hidden="true" inert>

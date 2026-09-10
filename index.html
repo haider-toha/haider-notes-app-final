@@ -23,7 +23,7 @@
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="alternate icon" href="/favicon.svg">
-    <link rel="mask-icon" href="/favicon.svg" color="#F0C000" />
+    <link rel="mask-icon" href="/favicon.svg" color="#6b241c" />
     <!-- rel="me" ties this domain to the same identity across platforms. -->
     <link rel="me" href="https://www.linkedin.com/in/haidertoha" />
     <link rel="me" href="https://github.com/haider-toha" />
@@ -60,10 +60,18 @@
     <!--SSG-HEAD-->
 </head>
   <body class="bg-white text-[#303f53] overflow-hidden">
-    <!-- Progressive enhancement: flag JS availability before first paint so the
-         prerendered #ssg-root (below) is hidden instantly for real browsers while
-         staying fully readable to non-JS crawlers and recruiter/ATS scrapers. -->
-    <script>document.documentElement.classList.add('js');</script>
+    <!-- Progressive enhancement: hide crawlable copy and select the matching
+         first-paint shell before the browser draws anything. React replaces the
+         shell when it is ready. -->
+    <script>
+      document.documentElement.classList.add('js');
+      try {
+        if (matchMedia('(max-width: 700px), (max-height: 500px) and (pointer: coarse)').matches
+          && sessionStorage.getItem('haider-notebook-mobile-welcome') !== 'accepted') {
+          document.documentElement.classList.add('notebook-mobile-welcome-pending');
+        }
+      } catch { /* Storage can be unavailable; the app uses the same fallback. */ }
+    </script>
     <div id="root" class="h-full w-full"><!--SSG-BODY--></div>
     <script type="module" src="/index.tsx"></script>
   </body>
