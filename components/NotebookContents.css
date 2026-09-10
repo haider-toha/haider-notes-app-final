@@ -1,5 +1,6 @@
-shot-mtuwd8la.png/* The enclosing notebook sheet supplies paper, ruling, margins and scrolling. */
+/* The enclosing notebook sheet supplies paper, ruling, margins and scrolling. */
 .notebook-contents-page { color: var(--ink); }
+.notebook-sheet[data-contents-part="1"] .notebook-contents-page { padding-top: var(--rule, 29px); }
 .notebook-contents-page > h1 { margin: 0; font: 400 42px/58px var(--hand); }
 .notebook-contents-page section { margin: 0; }
 .notebook-contents-page section + section { margin-top: 29px; }
