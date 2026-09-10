@@ -2,7 +2,7 @@
 .notebook-spread {
   --stack-left: 1px;
   --stack-right: 13px;
-  box-shadow: 0 18px 26px #514b3926, 0 34px 60px #514b3910;
+  box-shadow: none;
 }
 .notebook-mount { position: relative; z-index: 1; }
 .notebook-paper-stack {
@@ -15,9 +15,9 @@
   /* Each cut layer is a complete rounded sheet. Separate bottom/side strips
      cannot meet cleanly around a corner, especially on the blank last spread. */
   box-shadow:
-    calc(var(--edge-direction) * var(--depth) * .06) calc(var(--depth) * .06) 0 #d4cebf,
-    calc(var(--edge-direction) * var(--depth) * .12) calc(var(--depth) * .12) 0 #f5f1e6,
-    calc(var(--edge-direction) * var(--depth) * .2) calc(var(--depth) * .2) 0 #c8c1b2;
+    calc(var(--edge-direction) * var(--depth) * .06) 0 0 #d4cebf,
+    calc(var(--edge-direction) * var(--depth) * .12) 0 0 #f5f1e6,
+    calc(var(--edge-direction) * var(--depth) * .2) 0 0 #c8c1b2;
 }
 .stack-read { left: 0; --depth: var(--stack-left); --edge-direction: -1; border-radius: 14px 0 0 14px; }
 .stack-unread { right: 0; --depth: var(--stack-right); --edge-direction: 1; border-radius: 0 14px 14px 0; }
@@ -48,3 +48,7 @@
 @media (max-width: 950px) { .notebook-reverse-ink { left: 24px; right: 24px; } }
 @media (min-width: 701px) and (max-width: 950px) { .notebook-reverse-ink { font-size: 21px; } }
 @media (max-width: 700px) { .notebook-reverse-ink { inset: 66px 26px 44px; font-size: 23px; } }
+
+/* Cut layers meet at one baseline; clip sideways shadow spill at the spine. */
+.stack-read { clip-path: inset(-8px 0 -8px -8px); }
+.stack-unread { clip-path: inset(-8px -8px -8px 0); }

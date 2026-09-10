@@ -20,6 +20,7 @@ export default function NotebookCover({ opening, onOpen, onPrepare, onOpened }: 
   const inside = useRef<HTMLSpanElement>(null);
   const updatePosition = (value: number) => {
     position.current = value;
+    stage.current?.querySelector('.notebook-cover')?.setAttribute('data-face', value > .5 ? 'inside' : 'outside');
     const scene = stage.current?.closest<HTMLElement>('.notebook-experience');
     if (!scene) return;
     // Projected board travel is cosine-shaped. The camera follows that travel,

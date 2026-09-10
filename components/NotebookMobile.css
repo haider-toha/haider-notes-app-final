@@ -242,7 +242,7 @@
   width: 100%;
   background: #6b241c;
   border-radius: 10px 0 0 10px;
-  box-shadow: 0 3px 6px #51493624;
+  box-shadow: none;
   pointer-events: none;
 }
 .lined-notebook.is-mobile .notebook-mobile-cover::before {

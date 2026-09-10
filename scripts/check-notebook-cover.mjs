@@ -33,6 +33,7 @@ try {
       }
       assert.notEqual(await cover.evaluate(element => getComputedStyle(element).transform), 'matrix(1, 0, 0, 1, 0, 0)', 'Cover follows a held native drag');
       assert.equal(await cover.evaluate(element => getComputedStyle(element).opacity), '1', 'Rigid board never fades during a turn');
+      assert.equal(await page.locator('.notebook-cover-inside').evaluate(element => getComputedStyle(element).visibility), 'hidden', 'Inside face stays hidden before the half turn, including WebKit');
       if (width === 1440) assert.equal(await page.locator('.notebook-cover-inside .notebook-sheet').count(), 1, 'Facing flyleaf travels with the board');
       if (fraction > .25) await page.evaluate(() => {
         window.coverMotionSamples = [];
