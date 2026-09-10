@@ -10,10 +10,10 @@
 /* The renderer owns leaf transforms and clipping; styles stay on the contents. */
 .notebook-leaf { background: #f1eee3; overflow: hidden; }
 .notebook-sheet { display: flex; flex-direction: column; --rule: 29px; position: relative; width: 100%; height: 100%; box-sizing: border-box; padding: 28px 36px 45px; color: var(--ink); background: #f1eee3; }
-.notebook-leaf.--left { border-radius: 18px 0 0 18px; }
-.notebook-leaf.--right { border-radius: 0 18px 18px 0; }
-.notebook-leaf.--left .notebook-sheet { background: linear-gradient(90deg, #f1eee3 88%, #e7e3d7 99%, #faf8ee 100%); }
-.notebook-leaf.--right .notebook-sheet { background: linear-gradient(90deg, #d8d3c5 0%, #ece8dc 1%, #f0ede2 7%, #eeebdf 100%); }
+.notebook-leaf.--left { border-radius: 14px 0 0 14px; }
+.notebook-leaf.--right { border-radius: 0 14px 14px 0; }
+.notebook-leaf.--left .notebook-sheet { background: linear-gradient(90deg, #e9e5d9 0, #f1eee3 2%, #f1eee3 80%, #eeeadf 94%, #ddd7c9 99.7%, #c9c1b1); }
+.notebook-leaf.--right .notebook-sheet { background: linear-gradient(90deg, #c9c1b1 0, #ddd7c9 .3%, #ebe6da 3%, #f3f0e5 12%, #f1eee3 32%, #f1eee3 96%, #e9e5d9 100%); }
 .notebook-running-head { flex-shrink: 0; min-height: 29px; display: flex; justify-content: flex-end; align-items: flex-start; font: 18px/24px var(--hand); }
 .notebook-leaf.--right .notebook-running-head { justify-content: flex-start; }
 .notebook-running-head span { max-width: 100%; white-space: normal; overflow-wrap: anywhere; border-bottom: 1px solid #9e9b8e; padding: 0 8px; }
@@ -91,3 +91,7 @@
 .lined-notebook:not(.is-mobile) .notebook-sheet[data-more-below='true'] > .notebook-writing {
   mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
 }
+
+/* The rigid case remains under the paper after opening and while reading. */
+.notebook-bound-cover { position: absolute; inset: -2px -3px -4px; border-radius: 16px; background: #6b241c; box-shadow: 1px 2px 0 #baad8b, 2px 3px 0 #682e22; pointer-events: none; }
+.notebook-mount { position: relative; }

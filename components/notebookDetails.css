@@ -7,40 +7,22 @@
 .notebook-mount { position: relative; z-index: 1; }
 .notebook-paper-stack {
   position: absolute;
-  top: 2px;
+  top: 0;
   bottom: 0;
   width: 50%;
   pointer-events: none;
   background: #e8e3d5;
+  /* Each cut layer is a complete rounded sheet. Separate bottom/side strips
+     cannot meet cleanly around a corner, especially on the blank last spread. */
+  box-shadow:
+    calc(var(--edge-direction) * var(--depth) * .06) calc(var(--depth) * .06) 0 #d4cebf,
+    calc(var(--edge-direction) * var(--depth) * .12) calc(var(--depth) * .12) 0 #f5f1e6,
+    calc(var(--edge-direction) * var(--depth) * .2) calc(var(--depth) * .2) 0 #c8c1b2;
 }
-.stack-read { left: 0; --depth: var(--stack-left); border-radius: 18px 0 0 18px; }
-.stack-unread { right: 0; --depth: var(--stack-right); border-radius: 0 18px 18px 0; }
-.notebook-paper-stack::before,
-.notebook-paper-stack::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-}
-.notebook-paper-stack::before {
-  top: calc(100% - 1px);
-  width: calc(100% + var(--depth));
-  height: var(--depth);
-  background: repeating-linear-gradient(to bottom, #eeebdf 0 1px, #c8c2b3 1px 2px, #f5f1e6 2px 3px);
-  border-bottom: 1px solid #bcb5a5;
-}
-.stack-read::before { right: 0; border-radius: 0 0 0 18px; }
-.stack-unread::before { left: 0; border-radius: 0 0 18px 0; }
-.notebook-paper-stack::after {
-  top: 14px;
-  bottom: 0;
-  width: var(--depth);
-  background: repeating-linear-gradient(to right, #eeebdf 0 1px, #c8c2b3 1px 2px, #f5f1e6 2px 3px);
-}
-.stack-read::after { right: 100%; border-radius: 14px 0 0 0; }
-.stack-unread::after { left: 100%; border-radius: 0 14px 0 0; }
+.stack-read { left: 0; --depth: var(--stack-left); --edge-direction: -1; border-radius: 14px 0 0 14px; }
+.stack-unread { right: 0; --depth: var(--stack-right); --edge-direction: 1; border-radius: 0 14px 14px 0; }
 .is-portrait .stack-read { display: none; }
 .is-portrait .stack-unread { width: 100%; border-radius: 14px; }
-.is-portrait .stack-unread::before { border-radius: 0 0 14px 14px; }
 .notebook-leaf.--left > .notebook-sheet { transform-origin: right center; }
 .notebook-leaf.--right > .notebook-sheet { transform-origin: left center; }
 

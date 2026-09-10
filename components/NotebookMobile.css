@@ -118,22 +118,13 @@
   border-radius: 3px 0 0 3px;
 }
 
-.lined-notebook.is-mobile .stack-read::before {
-  border-radius: 0 0 0 3px;
-}
 
-.lined-notebook.is-mobile .stack-read::after {
-  border-radius: 3px 0 0;
-}
 
 .lined-notebook.is-mobile .stack-unread {
   width: 100%;
   border-radius: 2px 14px 14px 2px;
 }
 
-.lined-notebook.is-mobile .stack-unread::before {
-  border-radius: 0 0 14px 2px;
-}
 
 /* Only the explicit paper grips claim a gesture; writing keeps native scrolling. */
 .lined-notebook.is-mobile .notebook-mobile-grip {
@@ -249,7 +240,7 @@
   bottom: -3px;
   right: 100%;
   width: 100%;
-  background: #a49b89;
+  background: #6b241c;
   border-radius: 10px 0 0 10px;
   box-shadow: 0 3px 6px #51493624;
   pointer-events: none;
@@ -258,7 +249,7 @@
   content: '';
   position: absolute;
   inset: 4px 0 4px 5px;
-  background: #e4ded0;
+  background: #f1eee3;
   border-radius: 7px 0 0 7px;
 }
 .lined-notebook.is-mobile .notebook-mobile-cover::after {

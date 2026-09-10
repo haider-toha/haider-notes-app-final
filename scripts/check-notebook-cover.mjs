@@ -16,6 +16,7 @@ try {
     await cover.locator('img').evaluate(image => image.decode());
     await page.evaluate(() => document.fonts.ready);
     assert.equal(await page.locator('.notebook-leaf').count(), 0, 'Closed cover does not initialize every reading leaf');
+    assert.equal(await page.locator('.notebook-cover-invitation').count(), 0, 'No visible opening caption');
     const rect = await cover.boundingBox();
     assert(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width <= width && rect.y + rect.height + 55 <= height, 'Cover and invitation fit the viewport');
     assert(Math.abs(rect.width / rect.height - .75) < .005, 'Entire original 3:4 artwork retains its proportions');
@@ -31,6 +32,25 @@ try {
         await page.mouse.move(x - rect.width * fraction,y,{steps:12});
       }
       assert.notEqual(await cover.evaluate(element => getComputedStyle(element).transform), 'matrix(1, 0, 0, 1, 0, 0)', 'Cover follows a held native drag');
+      assert.equal(await cover.evaluate(element => getComputedStyle(element).opacity), '1', 'Rigid board never fades during a turn');
+      if (width === 1440) assert.equal(await page.locator('.notebook-cover-inside .notebook-sheet').count(), 1, 'Facing flyleaf travels with the board');
+      if (fraction > .25) await page.evaluate(() => {
+        window.coverMotionSamples = [];
+        const sample = () => {
+          const stage = document.querySelector('.notebook-cover-stage');
+          if (!stage) return;
+          const mount = document.querySelector('.notebook-mount');
+          const a = stage.getBoundingClientRect(), b = mount.getBoundingClientRect();
+          const portrait = mount.parentElement.classList.contains('is-portrait');
+          window.coverMotionSamples.push({
+            progress: Number(getComputedStyle(stage).getPropertyValue('--cover-progress')),
+            hingeError: Math.abs(a.x - b.x - (portrait ? 0 : b.width / 2)),
+            topError: Math.abs(a.y - b.y),
+          });
+          requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      });
       if(client) await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); else await page.mouse.up();
     };
     await pull(.12);
@@ -38,7 +58,17 @@ try {
     assert(await cover.isVisible(), 'A short pull returns to the closed cover');
     await pull(.55);
     await cover.waitFor({state:'detached'});
+    const samples = await page.evaluate(() => window.coverMotionSamples);
+    assert(samples.length >= 8, 'Release continues over multiple rendered frames');
+    assert(samples.every(s => s.hingeError < 1 && s.topError < 1), 'Cover and paper share the hinge throughout the turn');
+    for (let i = 1; i < samples.length; i++) {
+      assert(samples[i].progress >= samples[i - 1].progress, 'Opening never reverses or restarts');
+      assert(samples[i].progress - samples[i - 1].progress < .25, 'No large release jump');
+    }
+    assert(samples.at(-1).progress > .98, 'Animated board reaches its resting position before handoff');
     await page.locator('.notebook-intro h1').waitFor();
+    assert(await page.locator('.notebook-bound-cover').isVisible(), 'Cover board remains beneath the open book');
+    if (width !== 1440) assert(await page.locator('.notebook-mobile-cover').isVisible(), 'Open front board stays attached beside the phone page');
     assert.match(await page.locator('.notebook-accessible-status').innerText(), /^Pages 1(?:–2)? of 267\./);
     assert(await page.locator('.notebook-spread').evaluate(element => element === document.activeElement), 'Opening gives keyboard focus to the book');
     if (screenshots && [1440,390].includes(width)) await page.screenshot({ path: `${screenshots}/opened-${width}.png` });

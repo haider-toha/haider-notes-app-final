@@ -462,7 +462,8 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
           pointer.current = null;
           resizeBook.current();
         }}>
-        {compact && page === 0 && <span className="notebook-mobile-cover" aria-hidden="true" />}
+        <span className="notebook-bound-cover" aria-hidden="true" />
+        {compact && <span className="notebook-mobile-cover" aria-hidden="true" />}
         <div className="notebook-paper-stack stack-read" aria-hidden="true" />
         <div className="notebook-paper-stack stack-unread" aria-hidden="true" />
         {compact && page > 0 && <span className="notebook-mobile-facing" aria-hidden="true">{facingText}</span>}
