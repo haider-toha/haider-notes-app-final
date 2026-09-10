@@ -68,6 +68,8 @@
 .notebook-contents-link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .notebook-contents-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .notebook-contents-link:disabled { opacity: 1; color: var(--ink); cursor: default; }
+.notebook-contents-link .notebook-navigation-arrow { display: inline-block; width: 25px; height: 18px; margin-left: 7px; vertical-align: -3px; fill: none; stroke: currentColor; stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
+.notebook-contents-link .notebook-navigation-arrow.points-left { margin-left: 0; margin-right: 7px; transform: rotate(180deg); }
 @media (max-width: 700px) { .notebook-contents-link { left: 26px; top: 14px; height: 44px; } }
 
 .notebook-contents-sheet > .notebook-writing { margin-top: 9px; }

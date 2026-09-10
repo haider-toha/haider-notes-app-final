@@ -25,7 +25,9 @@ export default memo(function NotebookSheet({ index, content, reverseInk, section
   const contents = index < 2;
   const navigation = !mobile && index % 2 === 1 ? null : <button className="notebook-contents-link"
     aria-label={contents ? 'Back to reading' : 'Open contents'} disabled={turning} onClick={() => onContents(index)}>
-    {contents ? 'continue reading →' : '← contents'}
+    {!contents && <svg className="notebook-navigation-arrow points-left" viewBox="0 0 30 18" aria-hidden="true" focusable="false"><path d="M3 10 Q14 8.5 26 9 M19 3 Q22 6 26 9 Q22 11 19 15" /></svg>}
+    {contents ? 'continue reading' : 'contents'}
+    {contents && <svg className="notebook-navigation-arrow" viewBox="0 0 30 18" aria-hidden="true" focusable="false"><path d="M3 10 Q14 8.5 26 9 M19 3 Q22 6 26 9 Q22 11 19 15" /></svg>}
   </button>;
   const grips = compact && nearby && <>
     <button type="button" tabIndex={-1} className="notebook-mobile-grip" data-side="left" aria-hidden="true" />

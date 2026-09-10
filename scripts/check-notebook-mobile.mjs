@@ -21,6 +21,7 @@ async function settle(page) {
 }
 async function open(page, path) {
   await page.goto(origin + path, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  if (path === '/' || path === '/notebook') await page.getByRole('button', { name: 'Open notebook', exact: true }).click();
   await page.waitForSelector('.notebook-spread');
   await page.evaluate(() => document.fonts.ready);
   await settle(page);

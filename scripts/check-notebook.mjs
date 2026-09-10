@@ -30,7 +30,7 @@ async function checkNavigationPlacement(page) {
 async function open(width = 1440, reducedMotion = 'no-preference') {
   const page = await browser.newPage({ viewport: { width, height: 1050 }, reducedMotion });
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto(url); await delay(page, 500); await page.evaluate(() => document.fonts.ready);
+  await page.goto(url); await page.getByRole('button', { name: 'Open notebook', exact: true }).click(); await delay(page, 500); await page.evaluate(() => document.fonts.ready);
   assert.equal(await status(page), expected(0, width), 'The site opens on about me');
   await page.getByRole('button', { name: 'Open contents', exact: true }).first().click(); await delay(page);
   assert.equal(await status(page), 'Contents.');
@@ -116,7 +116,7 @@ try {
   }
   const p = await browser.newPage(); p.on('pageerror', e => errors.push(e.message));
   await p.addInitScript(() => { Object.defineProperty(window,'localStorage',{get(){throw new DOMException('blocked','SecurityError')}}); });
-  await p.goto(url); await delay(p,500);
+  await p.goto(url); await p.getByRole('button', { name: 'Open notebook', exact: true }).click(); await delay(p,500);
   assert.equal(await status(p), expected(0));
   await visit(p, notebookSections.at(-1));
   await p.close();

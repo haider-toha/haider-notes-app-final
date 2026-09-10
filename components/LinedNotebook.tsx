@@ -66,17 +66,19 @@ interface LinedNotebookProps {
   showContents?: boolean;
   onOpenContents?: () => void;
   navigationKey?: string;
+  animateNavigation?: boolean;
   onPageChange?: (page: number) => void;
   onSelectPage?: (page: number) => void;
 }
 
-export default function LinedNotebook({ initialPage, showContents = false, onOpenContents, navigationKey, onPageChange, onSelectPage }: LinedNotebookProps = {}) {
+export default function LinedNotebook({ initialPage, showContents = false, onOpenContents, navigationKey, animateNavigation = false, onPageChange, onSelectPage }: LinedNotebookProps = {}) {
   const pageChangeHandler = useRef(onPageChange);
   pageChangeHandler.current = onPageChange;
   const contentsHandler = useRef(onOpenContents);
   contentsHandler.current = onOpenContents;
   const routeRequest = useRef({ initialPage, showContents, navigationKey });
   const pendingNavigation = useRef(true);
+  const navigationJourney = useRef<{ cancel: (publish: boolean) => void; onRead: () => void } | null>(null);
   if (routeRequest.current.initialPage !== initialPage || routeRequest.current.showContents !== showContents || routeRequest.current.navigationKey !== navigationKey) {
     routeRequest.current = { initialPage, showContents, navigationKey };
     pendingNavigation.current = true;
@@ -235,8 +237,9 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     };
     resizeBook.current = scheduleResize;
     instance.on('changeState', event => {
-      setTurning(event.data === 'flipping' || event.data === 'user_fold');
+      setTurning(event.data === 'flipping' || event.data === 'user_fold' || !!navigationJourney.current);
       if (event.data === 'read' && resizePending) scheduleResize();
+      if (event.data === 'read') navigationJourney.current?.onRead();
     });
     const dispose = loadNotebookPages(instance, leaves);
     const observer = new ResizeObserver(scheduleResize);
@@ -261,8 +264,29 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
 
   useEffect(() => {
     const target = showContents ? 0 : (initialPage ?? savedPage()) + contentsPages;
+    pendingNavigation.current = true;
     setDestination(target);
-    const frame = requestAnimationFrame(() => {
+    let frame = 0;
+    let cancelled = false;
+    let restoreAnimation: (() => void) | undefined;
+    const publish = (instance: PageFlip) => {
+      pendingNavigation.current = false;
+      const current = instance.getCurrentPageIndex();
+      if (current >= contentsPages) pageChangeHandler.current?.(current - contentsPages);
+    };
+    const cancel = (publishPosition: boolean) => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      navigationJourney.current = null;
+      // Keep intermediate engine callbacks guarded until the interrupted fold
+      // has settled; otherwise it can rewrite a newer history destination.
+      if (publishPosition && book.current) book.current.getRender().finishAnimation();
+      restoreAnimation?.();
+      restoreAnimation = undefined;
+      setTurning(false);
+      if (publishPosition && book.current) publish(book.current);
+    };
+    frame = requestAnimationFrame(() => {
       const instance = book.current;
       if (instance) {
         // An old animation must finish against its original spread. Otherwise
@@ -274,14 +298,48 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
         if (drag?.mode === 'loose') loose.finish(true);
         if (instance.getState() === 'user_fold') finishNotebookTouch(instance, false);
         instance.getRender().finishAnimation();
-        instance.turnToPage(target);
-        pendingNavigation.current = false;
-        const current = instance.getCurrentPageIndex();
-        if (current >= contentsPages) pageChangeHandler.current?.(current - contentsPages);
+        const stride = instance.getOrientation() === 'portrait' ? 1 : 2;
+        const alignedTarget = Math.floor(target / stride) * stride;
+        const start = instance.getCurrentPageIndex();
+        const distance = Math.abs(alignedTarget - start);
+        if (!animateNavigation || reducedMotion || !distance) {
+          instance.turnToPage(target);
+          publish(instance);
+          return;
+        }
+        // Show a short journey through actual source pages. Sampling bounds
+        // rich-content work on long jumps while distance controls total time.
+        const count = Math.min(5, distance / stride);
+        const duration = Math.min(750, 160 + distance * 2.1);
+        const targets = Array.from({ length: count }, (_, index) =>
+          start + Math.sign(alignedTarget - start) * Math.round(distance / stride * (index + 1) / count) * stride);
+        const renderer = instance.getRender();
+        const originalAnimation = renderer.startAnimation;
+        // The library scales normal duration with page width. Contents jumps
+        // use a consistent wall-clock budget across desktop and mobile.
+        renderer.startAnimation = (frames, _duration, done) => originalAnimation.call(renderer, frames, duration / count, done);
+        restoreAnimation = () => { renderer.startAnimation = originalAnimation; };
+        let index = 0;
+        const next = () => {
+          if (cancelled) return;
+          if (index === targets.length) {
+            cancel(false);
+            publish(instance);
+            return;
+          }
+          const destination = targets[index++];
+          flushSync(() => setDestination(destination));
+          instance.flip(destination, 'bottom');
+        };
+        navigationJourney.current = { cancel, onRead: () => {
+          // Let the library clear the completed fold before starting another.
+          frame = requestAnimationFrame(next);
+        } };
+        next();
       }
     });
-    return () => cancelAnimationFrame(frame);
-  }, [initialPage, showContents, navigationKey]);
+    return () => cancel(false);
+  }, [initialPage, showContents, navigationKey, animateNavigation, reducedMotion]);
 
   const selectPage = (index: number) => {
     if (turning) return;
@@ -327,10 +385,12 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
         onKeyDown={e => {
           if ((e.target as HTMLElement).closest('button, a, input, textarea, select, iframe, [role=dialog]')) return;
           if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            if (navigationJourney.current) { e.preventDefault(); navigationJourney.current.cancel(true); return; }
             e.preventDefault(); move(currentPage.current + (e.key === 'ArrowRight' ? step : -step));
           }
         }}
         onPointerDown={e => {
+          if (navigationJourney.current && e.button === 0) { navigationJourney.current.cancel(true); return; }
           if (e.button !== 0 || pointer.current || (e.target as HTMLElement).closest('a, button:not(.notebook-edge):not(.notebook-mobile-grip):not(.notebook-mobile-corner), input, textarea, select, iframe, .notebook-diagram, [role=dialog]') || turning) return;
           if (compact && !(e.target as HTMLElement).closest('.notebook-edge, .notebook-mobile-grip, .notebook-mobile-corner')) return;
           const rect = host.current!.getBoundingClientRect();

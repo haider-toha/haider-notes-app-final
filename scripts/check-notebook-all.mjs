@@ -19,7 +19,7 @@ try {
   await run('npm', ['run', 'build']);
   production = await preview({ preview: { host: '127.0.0.1', port: 4175, strictPort: false } });
   const productionOrigin = production.resolvedUrls.local[0].replace(/\/$/, '');
-  for (const name of ['', 'routes', 'history-interruption', 'mobile', 'loose-media', 'figures', 'diagram-legibility', 'modals', 'math', 'tables', 'simulations']) await check(name, productionOrigin);
+  for (const name of ['cover', 'contents-animation', '', 'routes', 'history-interruption', 'mobile', 'loose-media', 'figures', 'diagram-legibility', 'modals', 'math', 'tables', 'simulations']) await check(name, productionOrigin);
   if (process.env.NOTEBOOK_WEBKIT === '1') await check('webkit', productionOrigin);
   // These fixtures intentionally import source modules to exercise lifecycle
   // and synthetic internal links. The rest run against the shipped bundle.

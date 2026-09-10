@@ -14,6 +14,7 @@ try {
     if (message.type() === 'error' && /Mermaid rendering error|Failed to fetch dynamically imported module/.test(message.text())) errors.push(message.text());
   });
   await page.goto(`${origin}/notebook`);
+  await page.getByRole('button', { name: 'Open notebook', exact: true }).click();
   async function openLeaf(index) {
     await page.waitForFunction(() => document.querySelector(".lined-notebook > .notebook-accessible-status"));
     const section = notebookSections.find(section => section.id === notebookPages[index].note.id);

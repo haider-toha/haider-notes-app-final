@@ -8,14 +8,14 @@ Live at **[haidertoha.site](https://www.haidertoha.site)**.
 
 - Lined paper, flexible page turns, changing paper stacks and removable sheets.
 - Two preliminary contents leaves list every note, with one title on the left and an ink link to open contents or return to reading.
-- Home opens the about-me page; the contents link stays at the top left of each desktop spread and every mobile page.
+- Home starts with the supplied book cover; clicking, tapping or dragging it left opens about me; the contents link stays at the top left of each desktop spread and every mobile page.
 - Two-page desktop spreads and viewport-fit mobile reading with a visible binding, neighboring-page sliver, and page stacks.
 - Transparent hand-drawn diagrams, live physics simulations and handwritten equations.
 - Accessible expanded media with zoom, pan, keyboard controls and visible close buttons.
 - Existing note URLs (`/:folder/:slug`) open their notebook pages; build-time HTML preserves SEO and link previews.
 - Exact source-content checks and browser regressions in `scripts/check-notebook*.mjs`.
 
-The routes `/` and `/notebook` open the about-me page, including on return visits. `/contents` opens the two contents leaves. `/all` and published note URLs open reading pages. The quiet ink control at the upper left of each desktop spread or mobile page navigates to `/contents` or back to the remembered page’s canonical note URL.
+The routes `/` and `/notebook` start with the closed burgundy-and-gold cover. Click, tap, drag left, or press Enter/Space to open about me. A short pull returns the cover closed. Direct note links bypass the cover. `/contents` opens the two contents leaves. `/all` and published note URLs open reading pages. The quiet ink control at the upper left of each desktop spread or mobile page navigates to `/contents` or back to the remembered page’s canonical note URL.
 
 On phones, the actual paper fits the available viewport and is capped at 1.85 times its width. Handwriting stays at 23px; longer passages scroll inside the page. The paper turns through finger drags on all four corners and its full-height 20px side grips; a previous link allows going back, while forward turns use the paper. Pull and hold the right grip outward to detach a sheet; scroll its prose normally and drag its header or grips to move it. Wide equations and tables retain horizontal scrolling, and browser pinch remains available. Short, coarse-pointer landscape screens use the same focused layout. Engine resizing waits until an active fold finishes; mobile rules preserve standard desktop geometry. Short desktop viewports cap paper height to the available desk space; taller desktop pages remain 720px. The small equation-to-prose spacing refinement applies across layouts. See the [mobile notebook research and interaction contract](docs/mobile-notebook.md).
 
@@ -92,3 +92,5 @@ Push to the connected Vercel project. `npm run build` produces the static `dist/
 ---
 
 Personal project. © Haider Toha.
+
+The supplied `public/cover.png` is the cover master; responsive WebP copies keep its full 3:4 artwork visible. The cover is separate from numbered leaves, and the reading engine mounts on opening or beginning a drag. Contents selections flick through up to five sampled spreads; distance controls a 160–750ms animation budget. Back/Forward and direct links restore their page immediately; reduced motion skips the journey.

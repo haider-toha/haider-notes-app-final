@@ -17,6 +17,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1050 }, reducedMotion: 'reduce' });
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(`${origin}/notebook`);
+  await page.getByRole('button', { name: 'Open notebook', exact: true }).click();
   await page.waitForSelector('.notebook-spread');
   const html = formulas.map(formula => `<div>${katex.renderToString(formula.latex, { displayMode: formula.display, throwOnError: true, strict: false, output: 'html' })}</div>`).join('');
   await page.evaluate(html => {

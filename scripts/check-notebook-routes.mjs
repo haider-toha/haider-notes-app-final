@@ -12,6 +12,9 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   async function open(path) {
     await page.goto(`${origin}${path}`);
+    if (['/', '/notebook', '/missing-note-path', '/book-test'].includes(path)) {
+      await page.getByRole('button', { name: 'Open notebook', exact: true }).click();
+    }
     await page.waitForSelector('.lined-notebook');
     assert.equal(await page.locator('.lined-notebook').count(), 1, `${path}: main experience is the notebook`);
     assert.equal(await page.getByRole('button', { name: 'Share note', exact: true }).count(), 0, `${path}: retired notes toolbar absent`);
@@ -43,7 +46,9 @@ try {
   await page.reload();
   await page.waitForFunction(expected => document.querySelector('.lined-notebook > .notebook-accessible-status')?.textContent === expected, savedReadingStatus);
   await open('/');
-  await checkNote(portfolioNotes[0]); await page.reload(); await checkNote(portfolioNotes[0]);
+  await checkNote(portfolioNotes[0]); await page.reload();
+  await page.getByRole('button', { name: 'Open notebook', exact: true }).click();
+  await checkNote(portfolioNotes[0]);
   for (const section of notebookSections) {
     const contents = page.getByRole('button', { name: 'Open contents', exact: true }).first();
     if (await contents.count()) { await contents.click(); await page.waitForURL(`${origin}/contents`); }

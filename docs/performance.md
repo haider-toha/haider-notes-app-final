@@ -15,7 +15,7 @@ The review covered startup and routes, all components and stylesheets, paginatio
 
 The same pass corrected table typography and diagram presentation; see the [diagram audit](diagram-audit.md). Tables keep the notebook's 24px desktop / 23px mobile handwriting, with horizontal panning for wide phone tables.
 
-## Asset measurements
+## Asset measurements before the cover addition
 
 The original production build was retained separately for comparison. Sizes below are bytes; gzip measurements use Node's default gzip settings on the actual emitted entry file.
 
@@ -52,3 +52,5 @@ The full check owns its production/development servers and runs type, content, p
 Install WebKit with `npx playwright install webkit` and use `NOTEBOOK_WEBKIT=1 npm run check` to include the desktop/mobile WebKit smoke suite.
 
 Local browser emulation is not a physical iPhone or low-end Android measurement. Performance numbers should be compared under the same machine, CPU, network and cache conditions; they are not field Core Web Vitals. The static implementation and automated checks reduce regression risk but cannot guarantee the absence of every device-specific issue.
+
+The subsequently added closed-cover homepage changes the startup scenario. The performance harness reports cover startup and the cost of opening separately; compare those separately from the earlier immediate-reading baseline.

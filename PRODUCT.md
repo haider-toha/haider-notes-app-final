@@ -49,9 +49,9 @@ This is a static React site deployed on Vercel. `constants.tsx` supplies the aut
 
 ## Contents and Navigation
 
-The default landing surface is the about-me reading page. `/` and `/notebook` open it, including on return visits. `/contents` opens two preliminary contents leaves, numbered i and ii, and remains accessible through the top-of-page contents link. `/all`, folder routes, and published note URLs open reading pages.
+The default landing surface on `/` and `/notebook` is the supplied closed book cover. Clicking, tapping, dragging left, or keyboard activation opens the about-me reading page. Short pulls cancel; reduced motion skips the opening animation. Direct note links bypass the cover. `/contents` opens two preliminary contents leaves, numbered i and ii, and remains accessible through the top-of-page contents link. `/all`, folder routes, and published note URLs open reading pages.
 
-Contents lists all 27 notes in folder groups across the two leaves. Only the left leaf has the “contents” title; an equal-height spacer on the right keeps both columns aligned. Larger group headings, indented entries, and handwritten page references establish the hierarchy. These leaves turn through the same engine as the reading pages.
+Contents lists all 27 notes in folder groups across the two leaves. Only the left leaf has the “contents” title; the right-hand blog continuation begins one ruled line below the writing-area top. Larger group headings, indented entries, and handwritten page references establish the hierarchy. These leaves turn through the same engine as the reading pages.
 
 A small handwritten control at the upper left of each desktop spread or mobile page reads “← contents” during reading and navigates to `/contents`. On contents, “continue reading →” restores the remembered source page at its canonical note URL. Visiting contents preserves the saved reading position. Reading page numbers start at 1 and exclude the two preliminary leaves.
 

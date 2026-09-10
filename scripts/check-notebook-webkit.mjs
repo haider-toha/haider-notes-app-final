@@ -18,6 +18,7 @@ try {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(`${origin}/`);
+    await page.getByRole('button', { name: 'Open notebook', exact: true }).click();
     await page.waitForSelector('.notebook-intro');
     await page.evaluate(() => document.fonts.ready);
     const initial = await status(page);

@@ -47,9 +47,10 @@ try {
         });
       }
       await page.addInitScript(() => {
-        window.notebookPerformance = { longTasks: [], shifts: [], lcp: 0 };
+        window.notebookPerformance = { longTasks: [], taskEntries: [], shifts: [], lcp: 0 };
         new PerformanceObserver(list => {
           window.notebookPerformance.longTasks.push(...list.getEntries().map(entry => entry.duration));
+          window.notebookPerformance.taskEntries.push(...list.getEntries().map(entry => ({ start: entry.startTime, duration: entry.duration })));
         }).observe({ type: 'longtask', buffered: true });
         new PerformanceObserver(list => {
           window.notebookPerformance.shifts.push(...list.getEntries().filter(entry => !entry.hadRecentInput)
@@ -61,10 +62,14 @@ try {
       });
       for (const cache of ['cold', 'warm']) {
         // Cold means a fresh browser-context cache. Warm preserves the prior
-        // HTTP cache and saved reading place, but '/' must still open page one.
+        // HTTP cache and saved reading place. New home visits start closed;
+        // opening always reaches page one. Baseline builds have no cover.
         await page.goto(`${origin}/`, { waitUntil: 'load' });
-        await page.waitForFunction(expected => document.querySelector('.lined-notebook > .notebook-accessible-status')?.textContent === expected, homeStatus);
-        await page.waitForSelector('.notebook-leaf:not([inert]) .notebook-intro h1');
+        const opener = page.getByRole('button', { name: 'Open notebook', exact: true });
+        if (baseline) {
+          await page.waitForFunction(expected => document.querySelector('.lined-notebook > .notebook-accessible-status')?.textContent === expected, homeStatus);
+          await page.waitForSelector('.notebook-leaf:not([inert]) .notebook-intro h1');
+        } else await opener.waitFor({ state: 'visible' });
         await page.evaluate(() => document.fonts.ready);
         await page.waitForTimeout(400);
         const startup = await page.evaluate(() => {
@@ -79,27 +84,58 @@ try {
             lcpMs: data.lcp, cls, longestTaskMs: Math.max(0, ...data.longTasks),
             blockingMs: data.longTasks.reduce((total, duration) => total + Math.max(0, duration - 50), 0),
             elements: document.querySelectorAll('*').length,
-            status: document.querySelector('.notebook-accessible-status').textContent,
+            status: document.querySelector('.notebook-accessible-status')?.textContent ?? null,
             resources: performance.getEntriesByType('resource').map(entry => ({
               name: entry.name, transferBytes: entry.transferSize, decodedBytes: entry.decodedBodySize,
             })),
           };
         });
-        assert.equal(startup.status, homeStatus, `${name}/${cache}: startup measures the opening page`);
-        const javascript = startup.resources.filter(resource =>
-          new URL(resource.name).origin === new URL(origin).origin && /\/assets\/.*\.js(?:\?|$)/.test(resource.name));
-        assert(javascript.length > 0, 'Production JavaScript resource timings must be present');
-        startup.javascriptCachedSizeFallbacks = 0;
-        startup.javascriptDecodedBytes = javascript.reduce((total, resource) => {
-          // Same-origin cache hits normally retain decodedBodySize even when
-          // transferSize is zero. If absent, only reuse a measured cold size
-          // for this exact URL; unknown sizes must never silently pass a budget.
-          if (resource.decodedBytes > 0) decodedSizes.set(resource.name, resource.decodedBytes);
-          else startup.javascriptCachedSizeFallbacks++;
-          const bytes = decodedSizes.get(resource.name);
-          assert(bytes > 0, `Decoded JavaScript size unavailable: ${resource.name}`);
-          return total + bytes;
-        }, 0);
+        startup.surface = baseline ? 'reading' : 'closed-cover';
+        let opening = null;
+        if (baseline) assert.equal(startup.status, homeStatus, `${name}/${cache}: baseline starts on the opening page`);
+        else {
+          assert(await opener.isVisible(), `${name}/${cache}: home starts on the closed cover`);
+          await opener.evaluate(button => button.addEventListener('click', () => {
+            window.notebookPerformance.openStartedAt = performance.now();
+          }, { once: true, capture: true }));
+          await opener.click();
+          await opener.waitFor({ state: 'hidden' });
+          await page.waitForFunction(expected => document.querySelector('.lined-notebook > .notebook-accessible-status')?.textContent === expected, homeStatus);
+          await page.waitForSelector('.notebook-leaf:not([inert]) .notebook-intro h1');
+          await page.evaluate(() => document.fonts.ready);
+          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+          opening = await page.evaluate(() => {
+            const data = window.notebookPerformance;
+            const tasks = data.taskEntries.filter(entry => entry.start + entry.duration >= data.openStartedAt);
+            return {
+              clickToReadingReadyMs: performance.now() - data.openStartedAt,
+              longestTaskMs: Math.max(0, ...tasks.map(entry => entry.duration)),
+              blockingMs: tasks.reduce((total, entry) => total + Math.max(0, entry.duration - 50), 0),
+              elements: document.querySelectorAll('*').length,
+              status: document.querySelector('.notebook-accessible-status')?.textContent ?? null,
+              resources: performance.getEntriesByType('resource').map(entry => ({
+                name: entry.name, transferBytes: entry.transferSize, decodedBytes: entry.decodedBodySize,
+              })),
+            };
+          });
+          assert.equal(opening.status, homeStatus, `${name}/${cache}: opening the cover reaches about me`);
+          assert(Number.isFinite(opening.clickToReadingReadyMs), 'Opening duration includes the real activation event');
+          await page.waitForTimeout(400);
+        }
+        for (const sample of [startup, ...(opening ? [opening] : [])]) {
+          const javascript = sample.resources.filter(resource =>
+            new URL(resource.name).origin === new URL(origin).origin && /\/assets\/.*\.js(?:\?|$)/.test(resource.name));
+          assert(javascript.length > 0, 'Production JavaScript resource timings must be present');
+          sample.javascriptCachedSizeFallbacks = 0;
+          sample.javascriptDecodedBytes = javascript.reduce((total, resource) => {
+            // Reuse a measured cold size only for the exact same cached URL.
+            if (resource.decodedBytes > 0) decodedSizes.set(resource.name, resource.decodedBytes);
+            else sample.javascriptCachedSizeFallbacks++;
+            const bytes = decodedSizes.get(resource.name);
+            assert(bytes > 0, `Decoded JavaScript size unavailable: ${resource.name}`);
+            return total + bytes;
+          }, 0);
+        }
         await page.evaluate(() => {
           window.notebookPerformance.styleMutations = 0;
           window.notebookPerformance.observer = new MutationObserver(records => {
@@ -130,19 +166,21 @@ try {
           longestTaskMs: Math.max(0, ...window.notebookPerformance.longTasks),
           gapsOver34ms: window.notebookPerformance.gaps.filter(gap => gap > 34).length,
           maxFrameGapMs: Math.max(0, ...window.notebookPerformance.gaps),
-          status: document.querySelector('.notebook-accessible-status').textContent,
+          status: document.querySelector('.notebook-accessible-status')?.textContent ?? null,
         }));
         assert.equal(turn.status, turnStatus, `${name}/${cache}: the measured turn reaches the next page`);
-        const result = { profile: name, run: run + 1, cache, startup,
+        const result = { profile: name, run: run + 1, cache, startup, opening,
           idle: { styleMutations, ...metricDifference(before, after) }, turn };
         results.push(result);
         if (!baseline) {
           assert(styleMutations <= 5, `${name}: the idle book must not redraw continuously`);
           assert(!startup.resources.some(resource => /tailwindcss\.com/.test(resource.name)), 'Production CSS must not depend on the Play CDN');
           assert(!startup.resources.some(resource => /mermaid|flowDiagram|sequenceDiagram/.test(resource.name)), 'Home must not request diagram rendering chunks');
-          assert(startup.javascriptDecodedBytes < 950_000, 'Plain reading JavaScript stays below the optimized budget');
+          assert(opening.javascriptDecodedBytes < 950_000, 'Opened plain reading JavaScript stays below the optimized budget');
+          assert(!opening.resources.some(resource => /mermaid|flowDiagram|sequenceDiagram/.test(resource.name)), 'Opening about me must not request diagram chunks');
         }
-        console.log(JSON.stringify({ profile: name, run: run + 1, cache, fcpMs: startup.fcpMs,
+        console.log(JSON.stringify({ profile: name, run: run + 1, cache, startupSurface: startup.surface, fcpMs: startup.fcpMs,
+          openingMs: opening?.clickToReadingReadyMs ?? null,
           longestTaskMs: startup.longestTaskMs, cls: startup.cls, idleStyleMutations: styleMutations,
           idleTaskMs: result.idle.TaskDuration * 1000, turnGapsOver34ms: turn.gapsOver34ms }));
       }
@@ -150,7 +188,7 @@ try {
     }
   }
   if (process.env.NOTEBOOK_PERFORMANCE_OUTPUT) await writeFile(process.env.NOTEBOOK_PERFORMANCE_OUTPUT, `${JSON.stringify({
-    conditions: { origin, repetitions, networkThrottled: process.env.NOTEBOOK_THROTTLE_NETWORK === '1', baseline }, results,
+    conditions: { origin, repetitions, homeSurface: baseline ? 'reading' : 'closed-cover', openingMeasuredSeparately: !baseline, networkThrottled: process.env.NOTEBOOK_THROTTLE_NETWORK === '1', baseline }, results,
   }, null, 2)}\n`);
   console.log(baseline ? 'Baseline diagnostics captured.' : 'PASS: production loading and idle rendering budgets; cold/warm desktop/mobile diagnostics captured.');
 } finally {
