@@ -11,6 +11,12 @@ try {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(origin);
+    const welcome = page.getByRole('button', { name: 'Okay, let me explore' });
+    if (width !== 1440) {
+      await welcome.waitFor();
+      assert.equal(await page.locator('.notebook-cover').count(), 0, 'Mobile notice precedes the cover');
+      await welcome.click();
+    } else assert.equal(await welcome.count(), 0, 'Desktop bypasses the mobile notice');
     const cover = page.getByRole('button', { name: 'Open notebook', exact: true });
     await cover.waitFor();
     await cover.locator('img').evaluate(image => image.decode());
@@ -18,8 +24,8 @@ try {
     assert.equal(await page.locator('.notebook-leaf').count(), 0, 'Closed cover does not initialize every reading leaf');
     assert.equal(await page.locator('.notebook-cover-invitation').count(), 0, 'No visible opening caption');
     const rect = await cover.boundingBox();
-    assert(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width <= width && rect.y + rect.height + 55 <= height, 'Cover and invitation fit the viewport');
-    assert(Math.abs(rect.width / rect.height - .75) < .005, 'Entire original 3:4 artwork retains its proportions');
+    assert(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width <= width && rect.y + rect.height + (width === 1440 ? 55 : 7) <= height, 'Cover and invitation fit the viewport');
+    assert(Math.abs(rect.width / rect.height - .75) < .005, 'Original cover proportions are preserved on desktop and mobile');
     if (screenshots && [1440,390].includes(width)) await page.screenshot({ path: `${screenshots}/cover-${width}.png` });
     const x = rect.x + rect.width * .9, y = rect.y + rect.height * .5;
     const client = width !== 1440 && process.env.NOTEBOOK_COVER_WEBKIT !== '1' ? await page.context().newCDPSession(page) : null;
@@ -85,6 +91,8 @@ try {
   const page = await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce',hasTouch:true,isMobile:true});
   for (const method of ['Enter','Space','tap']) {
     await page.goto(`${origin}/notebook`);
+    const welcome = page.getByRole('button', { name: 'Okay, let me explore' });
+    if (await welcome.count()) await welcome.click();
     const cover=page.getByRole('button',{name:'Open notebook',exact:true});
     await cover.waitFor();
     if(method==='Enter' && process.env.NOTEBOOK_COVER_WEBKIT !== '1') {

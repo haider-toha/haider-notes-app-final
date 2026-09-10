@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate, useNavigationType } from 'react-rou
 import { Analytics } from '@vercel/analytics/react';
 import LinedNotebook from './components/LinedNotebook';
 import NotebookCover from './components/NotebookCover';
+import MobileNotebookWelcome from './components/MobileNotebookWelcome';
 import { notebookPages, notebookSections } from './components/notebookPages';
 import { decodeNotebookPlace, encodeNotebookPlace } from './components/notebookPlace';
 import { homeMeta, noteMeta, folderMeta, SITE_URL, type PageMeta } from './seo';
@@ -109,6 +110,6 @@ export default function App() {
         navigate(`/${page.note.folder}/${page.note.slug}${place.offset ? `?at=${place.offset}` : ''}`, { state: { notebookContentsJump: true } });
       }} />
     </div>}
-    {showCover && <NotebookCover opening={coverOpening} onPrepare={() => setCoverPrepared(true)} onOpen={() => setCoverOpening(true)} onOpened={finishOpening} />}
+    {showCover && <MobileNotebookWelcome><NotebookCover opening={coverOpening} onPrepare={() => setCoverPrepared(true)} onOpen={() => setCoverOpening(true)} onOpened={finishOpening} /></MobileNotebookWelcome>}
   </div>;
 }
