@@ -1,33 +1,25 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Note, Theme } from "../types";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
+import type { Note } from "../types";
 import {
-  ChevronLeft,
-  Share,
-  PenSquare,
   X,
   ZoomIn,
   ZoomOut,
   Maximize2,
-  Moon,
-  Sun,
 } from "lucide-react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import mermaid from "mermaid";
+import { notebookImages } from "./notebookImages";
+import { diagramFrame, renderMermaid, uniqueDiagramSvg } from "./renderMermaid";
+export { renderMermaid } from "./renderMermaid";
+import "./MediaModal.css";
 
-// Initialize mermaid (theme is set dynamically in MermaidDiagram component)
-mermaid.initialize({
-  startOnLoad: false,
-  securityLevel: "loose",
-});
+// Source is static; reuse exact KaTeX geometry when leaves remount or turn.
+const mathMarkup = new Map<string, string>();
 
 interface MainContentProps {
-  note: Note | undefined;
-  onBack: () => void;
-  isMobile: boolean;
-  onShare: () => void;
-  theme?: Theme;
-  onToggleTheme?: () => void;
+  note: Note;
+  mediaActive?: boolean;
 }
 
 /** Canvas logical sizes from each simulation HTML file — keeps iframe height tight. */
@@ -36,275 +28,198 @@ const IFRAME_ASPECT_RATIOS: Record<string, number> = {
   "/dynamical_systems/gear-twin-crank_minimal.html": 940 / 660,
   "/dynamical_systems/cam-skater_minimal.html": 940 / 600,
 };
+const IFRAME_TITLES: Record<string, string> = {
+  "/dynamical_systems/rolling_system_minimal.html": "Rolling system — animated dynamical simulation",
+  "/dynamical_systems/gear-twin-crank_minimal.html": "Gear and twin crank — animated dynamical simulation",
+  "/dynamical_systems/cam-skater_minimal.html": "Cam-wagged coasting skater — animated dynamical simulation",
+};
 
-// Diagram Modal Component for full-screen view with pinch/scroll zoom
-const DiagramModal: React.FC<{
-  svg: string;
+interface MediaModalProps {
+  kind: "diagram" | "image";
+  children: React.ReactNode;
   onClose: () => void;
-}> = ({ svg, onClose }) => {
+  caption?: string;
+}
+
+/** Shared viewer: the toolbar never participates in the media transform. */
+const MediaModal: React.FC<MediaModalProps> = ({ kind, children, onClose, caption }) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastTouchDistance = useRef<number | null>(null);
-
-  // Keyboard (Esc to close) + lock body scroll while the modal is open.
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [onClose]);
-
-  // Wheel-zoom needs a NON-passive listener: React 19 attaches onWheel passively,
-  // so preventDefault() there is ignored and the page scrolls behind the modal.
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? -0.1 : 0.1;
-      setScale((prev) => Math.min(Math.max(prev + delta, 0.25), 5));
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, []);
-
-  // Handle touch events for pinch zoom
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      lastTouchDistance.current = distance;
-    } else if (e.touches.length === 1) {
-      setIsDragging(true);
-      setDragStart({
-        x: e.touches[0].clientX - position.x,
-        y: e.touches[0].clientY - position.y,
-      });
-    }
-  }, [position]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2 && lastTouchDistance.current !== null) {
-      e.preventDefault();
-      const distance = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const delta = (distance - lastTouchDistance.current) * 0.01;
-      setScale((prev) => Math.min(Math.max(prev + delta, 0.25), 5));
-      lastTouchDistance.current = distance;
-    } else if (e.touches.length === 1 && isDragging) {
-      setPosition({
-        x: e.touches[0].clientX - dragStart.x,
-        y: e.touches[0].clientY - dragStart.y,
-      });
-    }
-  }, [isDragging, dragStart]);
-
-  const handleTouchEnd = useCallback(() => {
-    lastTouchDistance.current = null;
-    setIsDragging(false);
-  }, []);
-
-  // Handle mouse drag for panning
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 0) {
-      setIsDragging(true);
-      setDragStart({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
-      });
-    }
-  }, [position]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isDragging) {
-      setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      });
-    }
-  }, [isDragging, dragStart]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  // Reset position and scale
-  const handleReset = useCallback(() => {
-    setScale(1);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const maximumScale = kind === "diagram" ? 16 : 5;
+  const zoom = useCallback((delta: number) => setScale(value => Math.min(maximumScale, Math.max(0.25, Math.round((value + delta) * 100) / 100))), [maximumScale]);
+  const reset = useCallback(() => { setScale(1); setPosition({ x: 0, y: 0 }); }, []);
+  const readDiagram = () => {
+    const stage = stageRef.current;
+    const svg = stage?.querySelector<SVGSVGElement>(".note-media-diagram > svg");
+    const matrix = svg?.getScreenCTM();
+    if (!stage || !svg || !matrix) return;
+    const renderedScale = Math.hypot(matrix.a, matrix.b);
+    const sizes = Array.from<Element>(svg.querySelectorAll("text, .nodeLabel"))
+      .filter(element => element.textContent?.trim())
+      .map(element => parseFloat(getComputedStyle(element).fontSize) * renderedScale)
+      .filter(size => size > 0);
+    if (!sizes.length) return;
+    setScale(value => Math.min(maximumScale, Math.max(1, value * 24 / Math.min(...sizes))));
     setPosition({ x: 0, y: 0 });
+    // Start at the beginning of the drawing after React applies readable zoom.
+    // The full-fit view remains one click away, and every edge is pannable.
+    requestAnimationFrame(() => {
+      if (!svg.isConnected) return;
+      const nextMatrix = svg.getScreenCTM();
+      if (!nextMatrix) return;
+      const viewBox = svg.viewBox.baseVal;
+      const corner = new DOMPoint(viewBox.x, viewBox.y).matrixTransform(nextMatrix);
+      const frame = stage.getBoundingClientRect();
+      const drawingWidth = viewBox.width * Math.hypot(nextMatrix.a, nextMatrix.b);
+      setPosition({
+        x: frame.left + Math.max(16, (frame.width - drawingWidth) / 2) - corner.x,
+        y: frame.top + 16 - corner.y,
+      });
+    });
+  };
+
+  useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    // Disable every background branch, including the notebook's own scroller.
+    const inactive: Array<{ element: HTMLElement; inert: boolean }> = [];
+    let branch: HTMLElement | null = containerRef.current;
+    while (branch && branch !== document.body) {
+      for (const sibling of Array.from(branch.parentElement?.children ?? [])) {
+        if (sibling !== branch && sibling instanceof HTMLElement) {
+          inactive.push({ element: sibling, inert: sibling.inert });
+          sibling.inert = true;
+        }
+      }
+      branch = branch.parentElement;
+    }
+    closeRef.current?.focus({ preventScroll: true });
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault(); event.stopImmediatePropagation(); onCloseRef.current();
+      } else if (event.key === "Tab") {
+        const buttons = Array.from(containerRef.current?.querySelectorAll('button:not(:disabled)') ?? []) as HTMLButtonElement[];
+        const first = buttons[0], last = buttons.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    };
+    document.addEventListener("keydown", keyboard, true);
+    return () => {
+      document.removeEventListener("keydown", keyboard, true);
+      inactive.forEach(({ element, inert }) => { element.inert = inert; });
+      document.body.style.overflow = previousOverflow;
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
   }, []);
 
-  return (
-    <div
-      ref={containerRef}
-      className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl overflow-hidden touch-none"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-    >
-      {/* Close button - positioned below the fixed header (h-12 = 48px) */}
-      <button
-        onClick={onClose}
-        aria-label="Close diagram"
-        className="absolute top-16 right-4 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-        title="Close (Esc)"
-      >
-        <X className="w-6 h-6" />
-      </button>
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault(); event.stopPropagation();
+      zoom(event.deltaY > 0 ? -0.1 : 0.1);
+    };
+    stage.addEventListener("wheel", wheel, { passive: false });
+    return () => stage.removeEventListener("wheel", wheel);
+  }, [zoom]);
 
-      {/* Zoom indicator */}
-      <div className="absolute top-16 left-4 z-[110] text-white/50 text-sm bg-black/50 px-3 py-1.5 rounded-full">
-        {Math.round(scale * 100)}%
+  const endPointer = (event: React.PointerEvent<HTMLDivElement>) => {
+    pointers.current.delete(event.pointerId);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    setDragging(pointers.current.size > 0);
+  };
+
+  return <div ref={containerRef} role="dialog" aria-modal="true" aria-label={`Expanded ${kind}`}
+    className={`note-media-modal is-notebook${kind === "diagram" ? " notebook-diagram-modal" : ""}`}
+    onPointerDown={event => event.stopPropagation()}
+    onPointerMove={event => event.stopPropagation()}
+    onPointerUp={event => event.stopPropagation()}
+    onClick={event => event.stopPropagation()}
+    onKeyDown={event => {
+      event.stopPropagation();
+      const directions: Record<string, [number, number]> = { ArrowLeft: [-40, 0], ArrowRight: [40, 0], ArrowUp: [0, -40], ArrowDown: [0, 40] };
+      if (directions[event.key]) {
+        event.preventDefault(); const [x, y] = directions[event.key];
+        setPosition(value => ({ x: value.x + x, y: value.y + y }));
+      } else if (event.key === "+" || event.key === "=") { event.preventDefault(); zoom(0.25); }
+      else if (event.key === "-") { event.preventDefault(); zoom(-0.25); }
+      else if (event.key === "0") { event.preventDefault(); reset(); }
+    }}>
+    <div className="note-media-toolbar">
+      <div className="note-media-zoom-controls" role="group" aria-label="Zoom controls">
+        <button type="button" aria-label="Zoom out" disabled={scale <= 0.25} onClick={() => zoom(-0.25)}><ZoomOut /></button>
+        <output className="note-media-scale" aria-label="Zoom level">{Math.round(scale * 100)}%</output>
+        <button type="button" aria-label="Zoom in" disabled={scale >= maximumScale} onClick={() => zoom(0.25)}><ZoomIn /></button>
+        <button type="button" className="note-media-reset" aria-label="Reset" onClick={reset}>{kind === "diagram" ? "Fit" : "Reset"}</button>
+        {kind === "diagram" && <button type="button" aria-label="Read diagram labels" onClick={readDiagram}>Read</button>}
       </div>
-
-      {/* Reset button */}
-      {(scale !== 1 || position.x !== 0 || position.y !== 0) && (
-        <button
-          onClick={handleReset}
-          className="absolute top-16 left-20 z-[110] text-white/50 hover:text-white text-sm bg-black/50 hover:bg-black/70 px-3 py-1.5 rounded-full transition-colors"
-        >
-          Reset
-        </button>
-      )}
-
-      {/* Diagram container */}
-      <div
-        className="w-full h-full flex items-center justify-center"
-        style={{
-          cursor: isDragging ? "grabbing" : "grab",
-        }}
-        onMouseDown={handleMouseDown}
-      >
-        <div
-          style={{
-            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-            transformOrigin: "center center",
-          }}
-          className="transition-transform duration-75 [&_svg]:max-w-none [&_svg]:max-h-none"
-          dangerouslySetInnerHTML={{ __html: svg }}
-        />
-      </div>
-
-      {/* Hint */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[110] text-white/40 text-sm bg-black/50 px-4 py-2 rounded-full pointer-events-none">
-        scroll to zoom • drag to pan • esc to close
-      </div>
+      <button ref={closeRef} type="button" className="note-media-close" aria-label={`Close ${kind}`} title="Close (Esc)" onClick={onClose}><X /></button>
     </div>
-  );
+    <div ref={stageRef} className={`note-media-stage${dragging ? " is-dragging" : ""}`}
+      onPointerDown={event => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        setDragging(true);
+      }}
+      onPointerMove={event => {
+        const previous = pointers.current.get(event.pointerId);
+        if (!previous) return;
+        event.preventDefault();
+        const next = { x: event.clientX, y: event.clientY };
+        const other = Array.from(pointers.current.entries()).find(([id]) => id !== event.pointerId)?.[1];
+        if (other) {
+          const before = Math.hypot(previous.x - other.x, previous.y - other.y);
+          const after = Math.hypot(next.x - other.x, next.y - other.y);
+          if (before > 1) setScale(value => Math.min(maximumScale, Math.max(0.25, value * after / before)));
+          setPosition(value => ({ x: value.x + (next.x - previous.x) / 2, y: value.y + (next.y - previous.y) / 2 }));
+        } else setPosition(value => ({ x: value.x + next.x - previous.x, y: value.y + next.y - previous.y }));
+        pointers.current.set(event.pointerId, next);
+      }}
+      onPointerUp={endPointer} onPointerCancel={endPointer} onLostPointerCapture={event => {
+        pointers.current.delete(event.pointerId); setDragging(pointers.current.size > 0);
+      }}>
+      <div className="note-media-content" style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${scale})` }}>{children}</div>
+    </div>
+    <div className="note-media-footer">
+      {caption && <span className="note-media-caption">{caption}</span>}
+      <span className="note-media-hint">drag to pan · scroll or pinch to zoom · esc to close</span>
+    </div>
+  </div>;
 };
 
-// Theme variables for Mermaid diagrams
-const darkThemeVariables = {
-  primaryColor: "#1a1a1a",
-  primaryTextColor: "#ffffff",
-  primaryBorderColor: "#333333",
-  lineColor: "#444444",
-  secondaryColor: "#2a2a2a",
-  tertiaryColor: "#1a1a1a",
-  background: "#0a0a0a",
-  mainBkg: "#1a1a1a",
-  secondBkg: "#2a2a2a",
-  nodeBorder: "#444444",
-  clusterBkg: "#1a1a1a",
-  clusterBorder: "#333333",
-  titleColor: "#ffffff",
-  edgeLabelBackground: "#1a1a1a",
-};
-
-const lightThemeVariables = {
-  primaryColor: "#f5f5f5",
-  primaryTextColor: "#1a1a1a",
-  primaryBorderColor: "#cccccc",
-  lineColor: "#888888",
-  secondaryColor: "#e8e8e8",
-  tertiaryColor: "#f0f0f0",
-  background: "#ffffff",
-  mainBkg: "#f5f5f5",
-  secondBkg: "#e8e8e8",
-  nodeBorder: "#999999",
-  clusterBkg: "#f8f8f8",
-  clusterBorder: "#cccccc",
-  titleColor: "#1a1a1a",
-  edgeLabelBackground: "#ffffff",
-};
-
-// Mermaid renders against shared global state (a single sandbox + global config),
-// so firing many renders at once — one per diagram on a page — makes them clobber
-// each other and some silently produce no SVG. That's why diagrams vanished in
-// light mode: unlike dark mode, light mode never triggered the second render pass
-// (from the theme-class flip) that happened to mask the race. Serialize every
-// render through one queue and give each a unique id so they can't collide.
-let mermaidRenderChain: Promise<unknown> = Promise.resolve();
-let mermaidRenderSeq = 0;
-
-const renderMermaid = (chart: string, isDark: boolean): Promise<string> => {
-  const run = mermaidRenderChain.then(async () => {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: "base",
-      securityLevel: "loose",
-      fontFamily: "inherit",
-      flowchart: {
-        htmlLabels: true,
-        curve: "basis",
-      },
-      themeVariables: isDark ? darkThemeVariables : lightThemeVariables,
-    });
-    const { svg } = await mermaid.render(
-      `mermaid-render-${isDark ? "dark" : "light"}-${++mermaidRenderSeq}`,
-      chart,
-    );
-    return svg;
-  });
-  // Keep the queue alive even if one render rejects, so a single failure
-  // doesn't stall every diagram behind it.
-  mermaidRenderChain = run.catch(() => {});
-  return run;
+const DiagramModal: React.FC<{ svg: string; onClose: () => void }> = ({ svg, onClose }) => {
+  const expandedSvg = useMemo(() => uniqueDiagramSvg(svg), [svg]);
+  return <MediaModal kind="diagram" onClose={onClose}>
+    <div className="note-media-diagram" dangerouslySetInnerHTML={{ __html: expandedSvg }} />
+  </MediaModal>;
 };
 
 // Mermaid Diagram Component
 const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: string) => void }> = ({ chart, id, onExpand }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const frame = useMemo(() => diagramFrame(chart), [chart]);
   const [svg, setSvg] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
-
-  // Listen for theme changes
-  useEffect(() => {
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === "class") {
-          setIsDark(document.documentElement.classList.contains("dark"));
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, { attributes: true });
-    return () => observer.disconnect();
-  }, []);
-
+  const [reloadRequired, setReloadRequired] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
+    setSvg("");
+    setError(null);
 
-    renderMermaid(chart, isDark)
+    renderMermaid(chart, controller.signal)
       .then((rendered) => {
         if (cancelled) return;
         setSvg(rendered);
@@ -313,20 +228,28 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
       .catch((err) => {
         if (cancelled) return;
         console.error("Mermaid rendering error:", err);
+        // Browsers cache a rejected module import. Re-running Mermaid cannot
+        // recover that session after a stale deployment/dev dependency URL.
+        setReloadRequired(/dynamically imported module|module script|loading chunk|importing a module/i.test(String(err)));
         setError("Failed to render diagram");
       });
 
-    // If the diagram unmounts or re-renders (e.g. theme flip) before this render
+    // If the diagram unmounts or its chart changes before this render
     // resolves, drop the stale result so it can't overwrite a newer one.
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [chart, id, isDark]);
+  }, [chart, id, attempt]);
 
   if (error) {
     return (
-      <div className="my-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+      <div className="my-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
         {error}
+        <button type="button" className="ml-3 underline" onClick={() => {
+          if (reloadRequired) window.location.reload();
+          else setAttempt(value => value + 1);
+        }}>{reloadRequired ? "Reload to restore diagram" : "Retry diagram"}</button>
       </div>
     );
   }
@@ -334,11 +257,13 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
   return (
     <div
       ref={containerRef}
-      className="my-6 relative group"
+      className={`my-6 relative group notebook-diagram${frame ? " has-measured-frame" : ""}${frame && frame.width / frame.height > 2 ? " is-wide" : ""}`}
+      style={frame ? { aspectRatio: `${frame.width} / ${frame.height}` } : undefined}
     >
       {/* Expand button */}
       <button
-        onClick={() => onExpand(svg)}
+        onClick={event => { event.currentTarget.focus(); onExpand(svg); }}
+        disabled={!svg}
         className="absolute top-2 right-2 p-2 rounded-lg bg-black/60 hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
         title="Expand diagram"
       >
@@ -347,171 +272,32 @@ const MermaidDiagram: React.FC<{ chart: string; id: string; onExpand: (svg: stri
       {/* Diagram */}
       <div 
         className="flex justify-center overflow-x-auto cursor-pointer"
-        onClick={() => onExpand(svg)}
+        role="button"
+        tabIndex={svg ? 0 : -1}
+        aria-label="Expand diagram"
+        onClick={event => { if (svg) { event.currentTarget.focus(); onExpand(svg); } }}
+        onKeyDown={event => {
+          if (svg && (event.key === "Enter" || event.key === " ")) {
+            event.preventDefault(); event.stopPropagation(); onExpand(svg);
+          }
+        }}
         dangerouslySetInnerHTML={{ __html: svg }}
       />
     </div>
   );
 };
 
-// Image Modal Component for full-screen view
-const ImageModal: React.FC<{
-  src: string;
-  alt: string;
-  onClose: () => void;
-}> = ({ src, alt, onClose }) => {
-  const [scale, setScale] = useState(1);
+const ImageModal: React.FC<{ src: string; alt: string; onClose: () => void }> = ({ src, alt, onClose }) =>
+  <MediaModal kind="image" onClose={onClose} caption={alt}>
+    <img src={src} alt={alt} draggable={false} />
+  </MediaModal>;
 
-  const handleZoomIn = () => setScale((prev) => Math.min(prev + 0.5, 3));
-  const handleZoomOut = () => setScale((prev) => Math.max(prev - 0.5, 0.5));
-
-  // Esc to close + lock body scroll while open (parity with DiagramModal).
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = prevOverflow;
-    };
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center"
-      onClick={onClose}
-    >
-      {/* Controls */}
-      <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleZoomOut();
-          }}
-          aria-label="Zoom out"
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-        >
-          <ZoomOut className="w-5 h-5" />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleZoomIn();
-          }}
-          aria-label="Zoom in"
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-        >
-          <ZoomIn className="w-5 h-5" />
-        </button>
-        <button
-          onClick={onClose}
-          aria-label="Close image"
-          className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Image */}
-      <img
-        src={src}
-        alt={alt}
-        onClick={(e) => e.stopPropagation()}
-        style={{ transform: `scale(${scale})` }}
-        className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-200"
-      />
-
-      {/* Caption */}
-      {alt && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm bg-black/50 px-4 py-2 rounded-full">
-          {alt}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const MainContent: React.FC<MainContentProps> = ({
-  note,
-  onBack,
-  isMobile,
-  onShare,
-  theme,
-  onToggleTheme,
-}) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+const MainContent: React.FC<MainContentProps> = ({ note, mediaActive = true }) => {
   const [modalImage, setModalImage] = useState<{
     src: string;
     alt: string;
   } | null>(null);
   const [modalDiagram, setModalDiagram] = useState<string | null>(null);
-
-  // Scroll to top when note changes
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo(0, 0);
-    }
-  }, [note?.id]);
-
-  if (!note) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center bg-apple-bgLight dark:bg-apple-bgDark text-apple-textGray select-none">
-        <div className="opacity-15 mb-4">
-          <PenSquare className="w-14 h-14 stroke-[1.5]" />
-        </div>
-        <span className="text-[17px] font-medium text-apple-textGray/80">
-          no note selected
-        </span>
-      </div>
-    );
-  }
-
-  // Format full date for the header
-  const dateObj = new Date(note.created_at);
-  const datePart = dateObj.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const timePart = dateObj.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  const fullDate = `${datePart} at ${timePart}`.toLowerCase();
-
-  // Calculate word count and reading time for blog posts
-  const isBlogPost = note.folder === "blog";
-  const calculateWordCount = (text: string): number => {
-    // Remove markdown formatting, URLs and special characters
-    const cleanText = text
-      .replace(/!\[.*?\]\(.*?\)/g, "") // Remove images
-      .replace(/\[.*?\]\(.*?\)/g, (match) => match.replace(/\[|\]|\(.*?\)/g, "")) // Keep link text only
-      .replace(/\$\$[\s\S]*?\$\$/g, "") // Remove block math
-      .replace(/\$[^$]+\$/g, "") // Remove inline math
-      .replace(/\*\*/g, "") // Remove bold markers
-      .replace(/\*/g, "") // Remove italic markers
-      .replace(/#{1,6}\s/g, "") // Remove headers
-      .replace(/---/g, "") // Remove horizontal rules
-      .replace(/\|/g, " ") // Replace table pipes with spaces
-      .replace(/[^\w\s]/g, " ") // Replace other special chars
-      .trim();
-    
-    const words = cleanText.split(/\s+/).filter((word) => word.length > 0);
-    return words.length;
-  };
-
-  const wordCount = calculateWordCount(note.content);
-  const readingTime = Math.max(1, Math.ceil(wordCount / 200)); // ~200 words per minute
-
-  // Format word count with commas
-  const formattedWordCount = wordCount.toLocaleString();
-
-  // Check if content starts with the old hardcoded metadata line and strip it
-  const metadataLineRegex = /^\*\*[a-z]+ \d{1,2}, \d{4} · \d+ min read · [\d,]+ words\*\*\n*/i;
-  const contentWithoutMetadata = note.content.replace(metadataLineRegex, "");
 
   // Image click handler
   const handleImageClick = (src: string, alt: string) => {
@@ -523,33 +309,48 @@ const MainContent: React.FC<MainContentProps> = ({
     <div
       key={key}
       className="my-4 cursor-pointer group"
-      onClick={() => handleImageClick(src, alt)}
+      role="button"
+      tabIndex={0}
+      aria-label={`Expand image${alt ? `: ${alt}` : ""}`}
+      onClick={event => { event.currentTarget.focus(); handleImageClick(src, alt); }}
+      onKeyDown={event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault(); event.stopPropagation(); handleImageClick(src, alt);
+        }
+      }}
     >
-      <div className="relative overflow-hidden rounded-xl bg-black/5 dark:bg-white/5">
+      <div className="relative overflow-hidden rounded-xl bg-black/5">
+        <picture>
+          {notebookImages[src] && <source type="image/webp" srcSet={notebookImages[src].srcSet} sizes={notebookImages[src].sizes} />}
         <img
           src={src}
+          width={notebookImages[src]?.width}
+          height={notebookImages[src]?.height}
+          decoding="async"
           alt={alt}
           loading="lazy"
-          className="w-full max-w-full h-auto rounded-xl shadow-sm group-hover:shadow-md transition-all duration-200 group-hover:scale-[1.01]"
+          className="w-full max-w-full h-auto rounded-xl shadow-sm group-hover:shadow-md transition-[transform,box-shadow] duration-200 group-hover:scale-[1.01]"
           onError={(e) => {
             // Fallback for broken images. Guard parentElement: the node may have
             // unmounted if the user navigated away before the load failed.
             const target = e.target as HTMLImageElement;
             target.style.display = "none";
-            if (target.parentElement) {
-              target.parentElement.innerHTML = `
-              <div class="flex items-center justify-center py-8 text-apple-textGray text-sm">
+            const frame = target.closest("picture")?.parentElement ?? target.parentElement;
+            if (frame) {
+              frame.innerHTML = `
+              <div class="flex items-center justify-center py-8 text-note-muted text-sm">
                 <span>image could not be loaded</span>
               </div>
             `;
             }
           }}
         />
+        </picture>
         {/* Hover overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors rounded-xl pointer-events-none" />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors rounded-xl pointer-events-none" />
       </div>
       {alt && (
-        <p className="text-center text-[13px] text-apple-textGray mt-2 italic">
+        <p className="text-center text-[13px] text-note-muted mt-2 italic">
           {alt}
         </p>
       )}
@@ -582,14 +383,17 @@ const MainContent: React.FC<MainContentProps> = ({
     });
 
     return (
-      <div key={startIndex} className="my-4 overflow-x-auto">
-        <table className="w-full border-collapse text-[14px] md:text-[15px]">
+      <div key={startIndex} className="notebook-table-scroll my-4 overflow-x-auto" tabIndex={0} role="region" aria-label="Scrollable table"
+        onKeyDown={event => {
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") event.stopPropagation();
+        }}>
+        <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b border-black/20 dark:border-white/20">
+            <tr className="border-b border-black/20">
               {headerRow.map((cell, i) => (
                 <th
                   key={i}
-                  className="text-left py-2 px-3 font-semibold text-black/80 dark:text-white/80"
+                  className="text-left py-2 px-3 font-semibold text-black/80"
                 >
                   {cell}
                 </th>
@@ -600,12 +404,12 @@ const MainContent: React.FC<MainContentProps> = ({
             {dataRows.map((row, rowIndex) => (
               <tr
                 key={rowIndex}
-                className="border-b border-black/10 dark:border-white/10"
+                className="border-b border-black/10"
               >
                 {row.map((cell, cellIndex) => (
                   <td
                     key={cellIndex}
-                    className="py-2 px-3 text-black/70 dark:text-white/70"
+                    className="py-2 px-3 text-black/70"
                   >
                     {renderTextWithFormatting(cell)}
                   </td>
@@ -645,13 +449,13 @@ const MainContent: React.FC<MainContentProps> = ({
           className="my-3 w-full overflow-hidden relative"
           style={{ aspectRatio }}
         >
-          <iframe
+          {mediaActive ? <iframe
             src={src}
             className="absolute inset-0 w-full h-full"
             style={{ border: "none", background: "transparent" }}
             allow="autoplay"
-            title="simulation"
-          />
+            title={IFRAME_TITLES[src] ?? "Animated simulation"}
+          /> : <div className="flex h-full items-center justify-center text-sm opacity-60">{IFRAME_TITLES[src] ?? "Animated simulation"}</div>}
         </div>
       );
     }
@@ -659,8 +463,8 @@ const MainContent: React.FC<MainContentProps> = ({
     // Regular code block
     return (
       <div key={key} className="my-4">
-        <pre className="bg-black/5 dark:bg-white/5 rounded-lg p-4 overflow-x-auto">
-          <code className="text-[13px] md:text-[14px] font-mono text-black/80 dark:text-white/80 whitespace-pre">
+        <pre className="bg-black/5 rounded-lg p-4 overflow-x-auto">
+          <code className="text-[13px] md:text-[14px] font-mono text-black/80 whitespace-pre">
             {code}
           </code>
         </pre>
@@ -752,6 +556,10 @@ const MainContent: React.FC<MainContentProps> = ({
 
   // Content Renderer with image support
   const renderLine = (line: string, index: number) => {
+    if (/^\s{0,3}(?:(?:-\s*){3,}|(?:\*\s*){3,}|(?:_\s*){3,})$/.test(line)) {
+      return null;
+    }
+    if (/^\s*(?:\.{3,}|…)\s*$/.test(line)) return null;
     // Check for image markdown: ![alt](url)
     const imageRegex = /!\[(.*?)\]\((.*?)\)/g;
     const images: { alt: string; src: string; index: number }[] = [];
@@ -819,7 +627,7 @@ const MainContent: React.FC<MainContentProps> = ({
       return (
         <div
           key={index}
-          className={`font-bold text-black dark:text-white tracking-[-0.015em] mt-4 mb-1 leading-snug ${sizeByLevel[level - 1]}`}
+          className={`font-bold text-black tracking-[-0.015em] mt-4 mb-1 leading-snug ${sizeByLevel[level - 1]}`}
         >
           {renderTextWithFormatting(headingMatch[2])}
         </div>
@@ -832,7 +640,7 @@ const MainContent: React.FC<MainContentProps> = ({
     if (orderedMatch) {
       return (
         <div key={index} className="pl-6 relative min-h-[1.5em]">
-          <span className="absolute left-0 tabular-nums text-black/80 dark:text-white/80">
+          <span className="absolute left-0 tabular-nums text-black/80">
             {orderedMatch[2]}.
           </span>
           <span className="break-words">
@@ -852,7 +660,7 @@ const MainContent: React.FC<MainContentProps> = ({
         className={`min-h-[1.5em] ${isBullet ? "pl-5 flex relative" : ""}`}
       >
         {isBullet && (
-          <span className="absolute left-1 text-black/70 dark:text-white/70">
+          <span className="absolute left-1 text-black/70">
             •
           </span>
         )}
@@ -869,21 +677,17 @@ const MainContent: React.FC<MainContentProps> = ({
     displayMode: boolean,
     key: string | number,
   ): React.ReactNode => {
+    const cacheKey = JSON.stringify([displayMode, latex]);
     try {
-      const html = katex.renderToString(latex, {
-        displayMode,
-        throwOnError: false,
-        strict: false,
-      });
-      return (
-        <span
-          key={key}
-          className={displayMode ? "block my-4 text-center overflow-x-auto" : ""}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
-      );
+      let html = mathMarkup.get(cacheKey);
+      if (html === undefined) {
+        html = katex.renderToString(latex, { displayMode, throwOnError: false, strict: false });
+        mathMarkup.set(cacheKey, html);
+      }
+      return <span key={key}
+        className={displayMode ? "block my-4 text-center overflow-x-auto" : ""}
+        dangerouslySetInnerHTML={{ __html: html }} />;
     } catch {
-      // If KaTeX fails, return the original text
       return <span key={key}>{displayMode ? `$$${latex}$$` : `$${latex}$`}</span>;
     }
   };
@@ -912,18 +716,15 @@ const MainContent: React.FC<MainContentProps> = ({
     const renderLink = (token: string, key: string | number) => {
       const linkMatch = token.match(/^\[(.*?)\]\((.*?)\)$/);
       if (!linkMatch) return null;
-      // Only http(s) links open in a new tab; mailto:/relative open in place.
-      const isExternal = /^https?:\/\//i.test(linkMatch[2]);
       return (
         <a
           key={key}
           href={linkMatch[2]}
-          {...(isExternal
-            ? { target: "_blank", rel: "noopener noreferrer" }
-            : {})}
-          className="text-apple-yellow hover:underline cursor-pointer"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-note-link hover:underline cursor-pointer"
         >
-          {linkMatch[1]}
+          {linkMatch[1]}{'\u00a0'}<span className="notebook-link-arrow" aria-hidden="true">↗</span>
         </a>
       );
     };
@@ -946,7 +747,7 @@ const MainContent: React.FC<MainContentProps> = ({
         return (
           <code
             key={j}
-            className="px-1.5 py-0.5 mx-px rounded-md bg-black/[0.07] dark:bg-white/[0.1] font-mono text-[0.85em] text-black/85 dark:text-white/85"
+            className="px-1.5 py-0.5 mx-px rounded-md bg-black/[0.07] font-mono text-[0.85em] text-black/85"
           >
             {part.slice(1, -1)}
           </code>
@@ -981,7 +782,7 @@ const MainContent: React.FC<MainContentProps> = ({
         const inner = part.slice(1, -1);
         if (tight(inner)) {
           return (
-            <em key={j} className="italic text-apple-textGray">
+            <em key={j} className="italic text-note-muted">
               {withNestedLinks(inner, `i${j}`)}
             </em>
           );
@@ -996,97 +797,13 @@ const MainContent: React.FC<MainContentProps> = ({
     });
   };
 
-  return (
-    <>
-      {/* Image Modal */}
-      {modalImage && (
-        <ImageModal
-          src={modalImage.src}
-          alt={modalImage.alt}
-          onClose={() => setModalImage(null)}
-        />
-      )}
-
-      {/* Diagram Modal */}
-      {modalDiagram && (
-        <DiagramModal
-          svg={modalDiagram}
-          onClose={() => setModalDiagram(null)}
-        />
-      )}
-
-      <div className="flex flex-col h-full bg-apple-bgLight dark:bg-apple-bgDark relative">
-        {/* Mobile Toolbar */}
-        {isMobile && (
-          <div className="h-12 flex items-center justify-between px-2 shrink-0 bg-apple-bgLight/80 dark:bg-apple-bgDark/70 backdrop-blur-xl border-b border-black/5 dark:border-white/10 z-20">
-            <button
-              onClick={onBack}
-              aria-label="Back to notes"
-              className="flex items-center text-apple-yellow hover:opacity-70 transition-opacity"
-            >
-              <ChevronLeft className="w-7 h-7" />
-              <span className="text-[17px] font-normal leading-none -ml-1 pb-0.5">
-                notes
-              </span>
-            </button>
-
-            <div className="flex items-center space-x-4 pr-2">
-              {onToggleTheme && (
-                <button
-                  onClick={onToggleTheme}
-                  aria-label="Toggle dark mode"
-                  className="text-apple-yellow hover:opacity-70"
-                >
-                  {theme === "light" ? (
-                    <Moon className="w-5 h-5" />
-                  ) : (
-                    <Sun className="w-5 h-5" />
-                  )}
-                </button>
-              )}
-              <button
-                onClick={onShare}
-                aria-label="Share note"
-                className="text-apple-yellow hover:opacity-70"
-              >
-                <Share className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Content Area */}
-        <div
-          ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto custom-scrollbar"
-        >
-          <div className="max-w-[720px] mx-auto px-4 sm:px-6 md:px-12 py-5 md:py-7 min-h-full">
-            {/* Date Header — centered, gray, regular weight (Apple Notes) */}
-            <div className="text-center mb-3 md:mb-5 select-none">
-              <span className="text-[12px] md:text-[13px] text-apple-textGray tracking-[-0.005em]">
-                {fullDate}
-              </span>
-            </div>
-            {/* Note Title */}
-            <h1 className="text-[27px] md:text-[31px] font-bold tracking-[-0.025em] text-black dark:text-white mb-3 md:mb-5 leading-[1.14] outline-none">
-              {note.title}
-            </h1>
-            {/* Blog metadata - dynamic word count */}
-            {isBlogPost && (
-              <div className="text-[14px] md:text-[15px] text-apple-textGray mb-6 font-medium">
-                {datePart.toLowerCase()} · {readingTime} min read · {formattedWordCount} words
-              </div>
-            )}
-            {/* Note Body */}
-            <div className="text-[16px] md:text-[17px] text-black/90 dark:text-white/90 leading-[1.65] font-sans outline-none space-y-1.5">
-              {renderContent(contentWithoutMetadata)}
-            </div>
-            <div className="h-16 md:h-24" /> {/* Bottom spacer */}
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  return <>
+    {renderContent(note.content)}
+    {modalImage && createPortal(<ImageModal {...modalImage} onClose={() => setModalImage(null)} />, document.body)}
+    {modalDiagram && createPortal(<DiagramModal svg={modalDiagram} onClose={() => setModalDiagram(null)} />, document.body)}
+  </>;
 };
 
-export default MainContent;
+export default React.memo(MainContent, (previous, next) =>
+  previous.note.content === next.note.content && previous.mediaActive === next.mediaActive
+);

@@ -1,0 +1,218 @@
+// Run with a local Vite server and PLAYWRIGHT_MODULE when installed externally.
+// Uses native Chromium touch input, including scroll arbitration and cancelled drags.
+import assert from 'node:assert/strict';
+import { mkdir } from 'node:fs/promises';
+import { loadNotebookData } from './check-notebook-content.mjs';
+const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const { notebookPages, notebookSections } = await loadNotebookData();
+const origin = process.env.NOTEBOOK_ORIGIN || 'http://127.0.0.1:3000';
+const screenshots = process.env.NOTEBOOK_SCREENSHOTS;
+if (screenshots) await mkdir(screenshots, { recursive: true });
+const browser = await chromium.launch();
+const failures = [], results = [];
+const sizes = process.argv.includes('--animated-only') ? [] : [[390, 844], [320, 568], [430, 932], [844, 390], [568, 320], [932, 430]];
+const visible = '.notebook-leaf:not([inert])';
+const status = page => page.locator('.lined-notebook > .notebook-accessible-status').innerText();
+const expected = index => `Pages ${index + 1} of ${notebookPages.length}.`;
+async function settle(page) {
+  await page.waitForTimeout(100);
+  await page.waitForFunction(() => !document.querySelector('.notebook-spread')?.classList.contains('is-turning'));
+  await page.waitForTimeout(100);
+}
+async function open(page, path) {
+  await page.goto(origin + path, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  if (path === '/' || path === '/notebook') {
+    const welcome = page.getByRole('button', { name: 'Okay, let me explore' });
+    if (await welcome.count()) await welcome.click();
+    await page.getByRole('button', { name: 'Open notebook', exact: true }).click();
+  }
+  await page.waitForSelector('.notebook-spread');
+  await page.evaluate(() => document.fonts.ready);
+  await settle(page);
+}
+async function touch(page, client, points, { cancel = false, hold = 0, whileHeld } = {}) {
+  const [start, ...ends] = points;
+  await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ ...start, id: 1 }] });
+  let previous = start;
+  for (const end of ends) {
+    for (let step = 1; step <= 16; step++) {
+      await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: previous.x + (end.x - previous.x) * step / 16, y: previous.y + (end.y - previous.y) * step / 16, id: 1 }] });
+      await page.waitForTimeout(12);
+    }
+    previous = end;
+  }
+  if (whileHeld) await whileHeld();
+  if (hold) await page.waitForTimeout(hold);
+  await client.send('Input.dispatchTouchEvent', { type: cancel ? 'touchCancel' : 'touchEnd', touchPoints: [] });
+  await settle(page);
+}
+async function scrollBody(page, client, selector = `${visible} .notebook-writing`) {
+  const box = await page.locator(selector).boundingBox();
+  const top = Math.max(0, box.y), bottom = Math.min(page.viewportSize().height, box.y + box.height);
+  assert(bottom - top > 60, 'A usable writing area must be visible');
+  // Native momentum can outlast the page-turn settle check. Subscribe before
+  // the swipe so even an early scrollend is captured before taking snapshots.
+  const completion = await page.locator(selector).evaluateHandle(element => {
+    const state = { started: false, ended: false, dispose: () => {} };
+    const scroll = () => { state.started = true; state.ended = false; };
+    const end = () => { state.ended = true; };
+    element.addEventListener('scroll', scroll);
+    element.addEventListener('scrollend', end);
+    state.dispose = () => {
+      element.removeEventListener('scroll', scroll);
+      element.removeEventListener('scrollend', end);
+    };
+    return state;
+  });
+  try {
+    await touch(page, client, [{ x: box.x + box.width / 2, y: bottom - 18 }, { x: box.x + box.width / 2, y: top + 18 }]);
+    // A gesture at the boundary may cause no scrolling and emit no scrollend.
+    await page.waitForFunction(state => !state.started || state.ended, completion);
+  } finally {
+    await completion.evaluate(state => state.dispose());
+    await completion.dispose();
+  }
+}
+async function edgeTurn(page, client, side, cancel = false, position = 'middle', inspectFold = false, inset = 10) {
+  const box = await page.locator(`${visible} .notebook-mobile-grip[data-side="${side}"]`).boundingBox();
+  const y = position === 'top' ? box.y + 8 : position === 'bottom' ? box.y + box.height - 2 : Math.max(0, box.y) + Math.min(box.height, page.viewportSize().height - box.y) / 2;
+  const mount = await page.locator('.notebook-mount').boundingBox();
+  await touch(page, client, [{ x: side === 'left' ? mount.x + inset : mount.x + mount.width - inset, y }, { x: mount.x + mount.width * (side === 'right' ? .2 : .8), y: y + (position === 'top' ? 28 : -28) }], { cancel, whileHeld: inspectFold ? () => assertFold(page, `${side} ${position} ${inset}px`) : undefined });
+}
+async function assertFold(page, label) {
+  if (screenshots) await page.screenshot({ path: `${screenshots}/fold-${label.replaceAll(' ', '-')}.png` });
+  assert(await page.locator('.notebook-leaf').evaluateAll(leaves => leaves.some(leaf => leaf.style.clipPath.includes('polygon') && leaf.getBoundingClientRect().height > 0)), `${label}: touch renders the same flexible paper polygon as desktop`);
+}
+async function geometry(page) {
+  const result = await page.evaluate(selector => {
+    const box = element => { const r = element.getBoundingClientRect(); return { x: r.x, y: r.y, right: r.right, bottom: r.bottom, width: r.width, height: r.height }; };
+    const root = document.querySelector('.lined-notebook');
+    const sheet = document.querySelector(`${selector} .notebook-sheet`);
+    return { mobile: root.classList.contains('is-mobile'), outerOverflow: root.scrollHeight - root.clientHeight, horizontalOverflow: document.documentElement.scrollWidth - innerWidth,
+      paper: box(sheet), mount: box(document.querySelector('.notebook-mount')), body: box(sheet.querySelector('.notebook-writing')),
+      folio: box(sheet.querySelector('.notebook-page-number')), first: sheet.dataset.contentsPart === '0',
+      buttons: [...sheet.querySelectorAll('.notebook-mobile-previous,.notebook-mobile-turn')].map(button => ({ name: button.getAttribute('aria-label'), rect: box(button) })) };
+  }, visible);
+  assert.equal(await page.getByRole('button', { name: 'Next notebook page', exact: true }).count(), 0, 'Mobile has no Next control');
+  assert(result.mobile, 'Touch phones must use the focused mobile page, including landscape');
+  assert(result.outerOverflow <= 1, `Only the paper body scrolls; outer overflow ${result.outerOverflow}px`);
+  assert(result.horizontalOverflow <= 1, 'No horizontal document overflow');
+  assert(result.paper.y >= 0 && result.paper.bottom <= page.viewportSize().height + 1, 'Whole page and folio fit the viewport');
+  assert(Math.abs(result.paper.height - result.mount.height) <= 1, 'Engine and paper use the same height');
+  assert.deepEqual(result.buttons.map(button => button.name), result.first ? [] : ['Previous notebook page'], 'Only Previous appears after the first leaf; Next never appears');
+  assert(result.buttons.every(({rect}) => rect.height >= 44 && rect.width >= 44 && rect.bottom <= page.viewportSize().height + 1), 'Previous remains an on-screen 44px target');
+  assert(result.folio.y >= 0 && result.folio.bottom <= page.viewportSize().height + 1, 'Page number stays on screen');
+  return result;
+}
+try {
+  for (const [width, height] of sizes) {
+    const page = await browser.newPage({ viewport: { width, height }, isMobile: true, hasTouch: true, reducedMotion: 'reduce' });
+    page.setDefaultTimeout(8000);
+    page.setDefaultNavigationTimeout(45000);
+    console.log(`Checking ${width}×${height}`);
+    const client = await page.context().newCDPSession(page);
+    page.on('pageerror', error => failures.push(`${width}×${height}: ${error.message}`));
+    try {
+      await open(page, '/');
+      assert.equal(await status(page), expected(0), 'The landing page opens about me');
+      await page.getByRole('button', { name: 'Open contents', exact: true }).click(); await settle(page);
+      assert.equal(await status(page), 'Contents.');
+      const layout = await geometry(page);
+      // The first leaf exposes a plain inside cover, not a phantom ruled sheet.
+      assert.equal(await page.locator('.notebook-mobile-facing').count(), 0, 'First leaf has no preceding ruled page');
+      assert(await page.locator('.notebook-mobile-cover').isVisible(), 'First leaf exposes the inside cover');
+      const cover = await page.locator('.notebook-mobile-cover').boundingBox();
+      assert(cover.x < 0 && cover.width >= layout.paper.width - 1 && Math.abs(cover.x + cover.width - layout.paper.x) <= 1 && Math.abs(cover.y - layout.paper.y) <= 4 && Math.abs(cover.y + cover.height - layout.paper.bottom) <= 7, 'The full open cover sits left of the hinge with its 4px top and 7px bottom board rim');
+      assert(await page.locator('.notebook-mobile-cover').evaluate(element => element.textContent === '' && getComputedStyle(element, '::before').backgroundImage === 'none'), 'Inside cover is plain endpaper with no phantom writing or ruled lines');
+      if (screenshots) await page.screenshot({ path: `${screenshots}/${width}x${height}-inside-cover.png` });
+      assert(await page.locator('.stack-read').isHidden(), 'First leaf has no turned-page stack');
+      assert.equal(await page.locator(`${visible} .notebook-writing`).evaluate(e => getComputedStyle(e).backgroundAttachment), 'local', 'Ruled lines scroll with the writing');
+      assert.equal(await page.locator('.notebook-contents-page button').count(), notebookSections.length);
+      await scrollBody(page, client);
+      assert(await page.locator(`${visible} .notebook-writing`).evaluate(e => e.scrollTop) > 0, 'Contents scrolls with native touch');
+      await edgeTurn(page, client, 'right');
+      assert.equal(await page.locator(`${visible} [data-contents-part]`).getAttribute('data-contents-part'), '1');
+      assert(await page.locator('.notebook-mobile-facing').isVisible(), 'Turned pages restore the neighboring paper');
+      assert.equal(await page.locator('.notebook-mobile-facing [data-contents-part="0"]').count(), 1, 'The neighboring face uses the actual previous contents page');
+      assert(await page.locator('.notebook-mobile-facing').evaluate(e => e.inert && e.querySelectorAll('[id]').length === 0), 'The visual neighbor adds no duplicate IDs or interactive controls');
+      await edgeTurn(page, client, 'left');
+      assert.equal(await page.locator(`${visible} [data-contents-part]`).getAttribute('data-contents-part'), '0');
+      await open(page, '/profile/about-me');
+      await scrollBody(page, client);
+      const scrollTop = await page.locator(`${visible} .notebook-writing`).evaluate(e => e.scrollTop);
+      assert(scrollTop > 0, 'Native prose swipe scrolls the body');
+      assert.equal(await status(page), expected(0), 'Vertical prose swipe never turns the page');
+      await edgeTurn(page, client, 'right', true);
+      assert.equal(await status(page), expected(0), 'Cancelled grip returns to the same page');
+      await edgeTurn(page, client, 'right');
+      assert.equal(await status(page), expected(1), 'Right grip flips forward');
+      const routed = page.url(); await page.reload(); await settle(page);
+      assert.equal(page.url(), routed); assert.equal(await status(page), expected(1), 'Reload restores exact source page');
+      await edgeTurn(page, client, 'left');
+      assert.equal(await status(page), expected(0), 'Left grip flips backward');
+      // Scroll restoration is intentionally tested without a document reload.
+      await scrollBody(page, client);
+      const remembered = await page.locator(`${visible} .notebook-writing`).evaluate(e => e.scrollTop);
+      await edgeTurn(page, client, 'right'); await edgeTurn(page, client, 'left');
+      assert(Math.abs(await page.locator(`${visible} .notebook-writing`).evaluate(e => e.scrollTop) - remembered) <= 2, 'Returning to a page restores its body scroll');
+      await page.getByRole('button', { name: 'Open contents', exact: true }).click(); await settle(page);
+      assert.equal(new URL(page.url()).pathname, '/contents');
+      await page.goBack(); await settle(page); assert.equal(await status(page), expected(0));
+      if (screenshots) await page.screenshot({ path: `${screenshots}/${width}x${height}-prose.png` });
+      results.push({ width, height, layout, nativeScroll: scrollTop });
+    } catch (error) { failures.push(`${width}×${height}: ${error.message}`); console.error(failures.at(-1)); }
+    finally { await page.close(); }
+  }
+  // Normal animation, orientation and the removable sheet need real pointer input too.
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  page.setDefaultTimeout(8000);
+  const client = await page.context().newCDPSession(page);
+  try {
+    await open(page, '/profile/about-me');
+    const partialGrip = await page.locator(`${visible} .notebook-mobile-grip[data-side="right"]`).boundingBox();
+    const partial = { x: partialGrip.x + partialGrip.width / 2, y: partialGrip.y + partialGrip.height / 2 };
+    await touch(page, client, [partial, { x: partial.x - 80, y: partial.y - 8 }]);
+    assert.equal(await status(page), expected(0), 'Partial animated fold returns home');
+    await edgeTurn(page, client, 'right', true, 'middle', true);
+    assert.equal(await status(page), expected(0), 'Cancelled animated fold never commits');
+    for (const [position, inset] of [['top',10],['bottom',10],['middle',10],['top',30],['bottom',30]]) {
+      await edgeTurn(page, client, 'right', false, position, true, inset);
+      assert.equal(await status(page), expected(1), `${position} right drag completes forward`);
+      await edgeTurn(page, client, 'left', false, position, true, inset);
+      assert.equal(await status(page), expected(0), `${position} left drag completes backward`);
+    }
+    await edgeTurn(page, client, 'right');
+    await page.getByRole('button', { name: 'Previous notebook page', exact: true }).click();
+    await page.waitForTimeout(50); await assertFold(page, 'Previous button'); await settle(page);
+    assert.equal(await status(page), expected(0), 'Previous animates to the previous leaf');
+    await edgeTurn(page, client, 'right'); assert.equal(await status(page), expected(1));
+    const route = page.url();
+    await page.setViewportSize({ width: 844, height: 390 }); await settle(page);
+    await geometry(page); assert.equal(page.url(), route); assert.equal(await status(page), expected(1), 'Orientation preserves exact page');
+    await page.setViewportSize({ width: 390, height: 844 }); await settle(page);
+    await geometry(page); assert.equal(await status(page), expected(1));
+    await edgeTurn(page, client, 'left'); assert.equal(await status(page), expected(0));
+    const grip = await page.locator(`${visible} .notebook-mobile-grip[data-side="right"]`).boundingBox();
+    const start = { x: grip.x + grip.width / 2, y: grip.y + 120 };
+    await touch(page, client, [start, { x: start.x + 12, y: start.y }, { x: start.x + 12, y: start.y + 200 }], { hold: 250 });
+    assert.equal(await page.locator('.notebook-loose.is-released').count(), 1, 'Mobile outward pull and hold detaches paper');
+    const beforeScroll = await page.locator('.notebook-loose').boundingBox();
+    await scrollBody(page, client, '.notebook-loose .notebook-writing');
+    const afterScroll = await page.locator('.notebook-loose').boundingBox();
+    assert(Math.abs(beforeScroll.x - afterScroll.x) < 1 && Math.abs(beforeScroll.y - afterScroll.y) < 1, 'Loose prose scroll does not drag the sheet');
+    const header = await page.locator('.notebook-loose .notebook-running-head').boundingBox();
+    const mount = await page.locator('.notebook-mount').boundingBox();
+    const from = { x: header.x + header.width / 2, y: header.y + header.height / 2 };
+    await touch(page, client, [from, { x: from.x + mount.x - afterScroll.x, y: from.y + mount.y - afterScroll.y }]);
+    await page.locator('.notebook-loose').waitFor({ state: 'detached' });
+    assert.equal(await page.locator('.notebook-loose').count(), 0, 'Header drag returns sheet to binding');
+    await page.getByRole('button', { name: 'Open contents', exact: true }).tap(); await settle(page);
+    assert.equal(new URL(page.url()).pathname, '/contents', 'Native contents tap remains available above the corner targets');
+    await page.getByRole('button', { name: 'Back to reading', exact: true }).tap(); await settle(page);
+    assert.equal(await status(page), expected(0), 'Native continue-reading tap returns to the source page');
+    results.push({ animatedTurns: true, fourCornersAndSides: true, previousAnimation: true, orientationRestore: true, looseSheet: true, nativeContentsTap: true });
+  } catch (error) { failures.push(`Animated mobile: ${error.message}`); }
+  finally { await page.close(); }
+  console.log(JSON.stringify({ results, failures }, null, 2));
+  assert.deepEqual(failures, [], 'Mobile notebook regressions');
+} finally { await browser.close(); }

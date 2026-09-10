@@ -1,0 +1,59 @@
+.notebook-content { overflow-wrap: anywhere; padding-bottom: 12px; }
+.notebook-content .notebook-note-title { margin: 0 0 29px; font: 400 38px/58px var(--hand); color: var(--ink); }
+.notebook-content [class*="min-h-"] { min-height: 29px; }
+.notebook-content [class*="text-black"], .notebook-content [class*="text-note-muted"] { color: inherit; }
+.notebook-content [class*="leading-snug"] { font: 400 29px/29px var(--hand); margin-top: 29px; margin-bottom: 0; }
+.notebook-content strong { font-weight: 700; }
+.notebook-content em { color: inherit; }
+.notebook-content pre { font: 12px/1.6 ui-monospace, monospace; white-space: pre; overflow: auto; background: #e5e1d3; }
+.notebook-content pre code { font-size: inherit; }
+.notebook-content table { font: 400 24px/1.2 var(--hand); color: var(--ink); }
+.notebook-content .notebook-table-scroll { max-width: 100%; overscroll-behavior-x: contain; touch-action: auto; }
+.notebook-content .notebook-table-scroll:focus-visible { outline: 1px solid var(--ink); outline-offset: 3px; }
+.notebook-content th, .notebook-content td { padding: 6px 8px; border-color: #b7b0a0; vertical-align: top; overflow-wrap: normal; }
+.notebook-content th { font-weight: 700; }
+.notebook-content .katex { font-size: 1em; }
+/* Both the scroll wrapper and KaTeX add vertical margins. Keep their combined
+   separation modest without touching fraction, bracket or superscript geometry. */
+.notebook-content span:has(> .katex-display) { margin-block: 12px; }
+.notebook-content .katex-display { margin: 10px 0; }
+.notebook-content img { max-height: min(440px, var(--notebook-figure-height, 440px)); object-fit: contain; }
+.notebook-content iframe { display: block; background: transparent; }
+.notebook-content svg[id^="mermaid-"] { max-width: 100%; height: auto; max-height: min(450px, var(--notebook-figure-height, 450px)); }
+.notebook-content button[title="Expand diagram"] { opacity: 1; background: transparent; color: var(--ink); width: 44px; height: 44px; display: grid; place-items: center; }
+.notebook-content button[title="Expand diagram"]:hover { background: #303f530d; }
+.notebook-content .notebook-location { white-space: pre-line; }
+@media (max-width: 700px) {
+  .notebook-content .notebook-note-title { font-size: 34px; }
+  .notebook-content table { font-size: 23px; }
+}
+
+/* Fit the complete SVG viewBox on the paper; expansion offers close reading. */
+.notebook-diagram > div { justify-content: center; overflow: hidden; }
+.notebook-diagram svg { margin-inline: auto; min-width: 0; flex-shrink: 1; }
+/* Keep published page allocations while fitting the corrected complete SVG.
+   Reserving this box also prevents a jump while Mermaid loads. */
+.notebook-diagram.has-measured-frame { width: 100%; max-height: min(450px, var(--notebook-figure-height, 450px)); }
+.notebook-diagram.has-measured-frame > div { height: 100%; }
+.notebook-content .notebook-diagram.has-measured-frame > div > svg { width: 100%; height: 100%; max-height: 100%; }
+.notebook-diagram.is-wide > div { width: calc(100% - 56px); }
+
+/* Every visible equation glyph comes from the notebook's handwritten font.
+   KaTeX still owns fraction, superscript, delimiter and radical geometry. */
+@font-face { font-family: 'Notebook Math'; src: url('/fonts/notebook-math.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+.notebook-content .katex,
+.notebook-content .katex .katex-html * {
+  font-family: 'Notebook Math', 'Reenie Beanie', cursive !important;
+  font-style: normal;
+  color: var(--ink, #303f53);
+}
+.notebook-content .katex .mathbb { font-feature-settings: 'ss01' 1; }
+.notebook-content .katex .mathcal { font-feature-settings: 'ss02' 1; }
+.notebook-content .katex .delimsizing.size1,
+.notebook-content .katex .delim-size1 > span,
+.notebook-content .katex .op-symbol.small-op { font-feature-settings: 'ss03' 1; }
+.notebook-content .katex .delimsizing.size2,
+.notebook-content .katex .op-symbol.large-op { font-feature-settings: 'ss04' 1; }
+.notebook-content .katex .delimsizing.size3 { font-feature-settings: 'ss05' 1; }
+.notebook-content .katex .delimsizing.size4,
+.notebook-content .katex .delim-size4 > span { font-feature-settings: 'ss06' 1; }

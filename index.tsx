@@ -1,3 +1,4 @@
+import "./styles.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router";
@@ -13,9 +14,11 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
+        <Route path="/notebook" element={<App />} />
         <Route path="/" element={<App />} />
         <Route path="/:folder" element={<App />} />
         <Route path="/:folder/:slug" element={<App />} />
+        <Route path="*" element={<App />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,

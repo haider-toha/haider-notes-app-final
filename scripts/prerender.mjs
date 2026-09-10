@@ -220,7 +220,7 @@ function siteIndex(notes, folders, seo) {
     }))
     .filter((g) => g.notes.length);
 
-  let html = `<nav class="ssg-index" aria-label="All notes"><h2>All notes</h2>`;
+  let html = `<nav class="ssg-index" aria-label="Notebook contents"><h2>Contents</h2>`;
   for (const g of groups) {
     html += `<h3><a href="/${g.id}">${escapeHtml(g.label)}</a></h3><ul>`;
     for (const n of g.notes) {
@@ -313,6 +313,13 @@ function headTags(meta, jsonld, seo) {
 // ---------------------------------------------------------------------------
 
 function renderPage(template, { meta, head, body }) {
+  // Keep the no-JavaScript reading surface consistent with notebook hyperlinks.
+  body = body.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi, (_match, attributes, label) => {
+    const existingRel = attributes.match(/\srel="([^"]*)"/i)?.[1] ?? "";
+    const rel = [...new Set([...existingRel.split(/\s+/).filter(Boolean), "noopener", "noreferrer"])].join(" ");
+    const clean = attributes.replace(/\s(?:target|rel)="[^"]*"/gi, "");
+    return `<a${clean} target="_blank" rel="${rel}">${label}&#160;<span aria-hidden="true">↗</span></a>`;
+  });
   return template
     .replace(/<title[^>]*>[\s\S]*?<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`)
     // Drop the placeholder comments first (Vite may or may not keep them), then
@@ -380,6 +387,15 @@ async function main() {
     const head = headTags(meta, [person, seo.websiteJsonLd(), seo.profilePageJsonLd()], seo);
     written.push(await writeHtml("/", renderPage(template, { meta, head, body: homeBody(notes, folders, seo) })));
     sitemap.push({ path: "/", lastmod: latest, changefreq: "weekly", priority: "1.0" });
+  }
+
+  // The physical contents spread is also a directly addressable route.
+  {
+    const meta = { ...seo.homeMeta(), path: "/contents", title: "Contents · Haider Toha" };
+    const head = headTags(meta, [person, seo.websiteJsonLd()], seo);
+    const body = `<div id="ssg-root">${siteIndex(notes, folders, seo)}${contactFooter(seo)}</div>`;
+    written.push(await writeHtml("/contents", renderPage(template, { meta, head, body })));
+    sitemap.push({ path: "/contents", lastmod: latest, changefreq: "weekly", priority: "0.9" });
   }
 
   // Folder landing pages (skip "all" — it duplicates home)

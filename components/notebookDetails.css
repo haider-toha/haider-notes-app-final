@@ -1,0 +1,54 @@
+/* The cut edges sit behind the live leaves; the renderer owns page geometry. */
+.notebook-spread {
+  --stack-left: 1px;
+  --stack-right: 13px;
+  box-shadow: none;
+}
+.notebook-mount { position: relative; z-index: 1; }
+.notebook-paper-stack {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  pointer-events: none;
+  background: #e8e3d5;
+  /* Each cut layer is a complete rounded sheet. Separate bottom/side strips
+     cannot meet cleanly around a corner, especially on the blank last spread. */
+  box-shadow:
+    calc(var(--edge-direction) * var(--depth) * .06) 0 0 #d4cebf,
+    calc(var(--edge-direction) * var(--depth) * .12) 0 0 #f5f1e6,
+    calc(var(--edge-direction) * var(--depth) * .2) 0 0 #c8c1b2;
+}
+.stack-read { left: 0; --depth: var(--stack-left); --edge-direction: -1; border-radius: 14px 0 0 14px; }
+.stack-unread { right: 0; --depth: var(--stack-right); --edge-direction: 1; border-radius: 0 14px 14px 0; }
+.is-portrait .stack-read { display: none; }
+.is-portrait .stack-unread { width: 100%; border-radius: 14px; }
+.notebook-leaf.--left > .notebook-sheet { transform-origin: right center; }
+.notebook-leaf.--right > .notebook-sheet { transform-origin: left center; }
+
+/* Render this decoration with aria-hidden="true". The supplied text is the
+   reverse face, not a copy of the front. */
+.notebook-reverse-ink {
+  position: absolute;
+  inset: 70px 36px 45px;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 400 24px/29px var(--hand);
+  color: #655844;
+  opacity: .021;
+  transform: scaleX(-1);
+  filter: blur(.35px);
+}
+/* --simple is the renderer's flat drawing mode. */
+.is-turning .notebook-leaf:not(.--simple) > .notebook-sheet > .notebook-reverse-ink { opacity: .055; }
+.notebook-loose .notebook-reverse-ink { opacity: calc(.021 + var(--loose-lift) * .039); }
+@media (max-width: 950px) { .notebook-reverse-ink { left: 24px; right: 24px; } }
+@media (min-width: 701px) and (max-width: 950px) { .notebook-reverse-ink { font-size: 21px; } }
+@media (max-width: 700px) { .notebook-reverse-ink { inset: 66px 26px 44px; font-size: 23px; } }
+
+/* Cut layers meet at one baseline; clip sideways shadow spill at the spine. */
+.stack-read { clip-path: inset(-8px 0 -8px -8px); }
+.stack-unread { clip-path: inset(-8px -8px -8px 0); }

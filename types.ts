@@ -24,5 +24,3 @@ export interface Folder {
     | "reflections";
   isExpanded?: boolean;
 }
-
-export type Theme = "light" | "dark";

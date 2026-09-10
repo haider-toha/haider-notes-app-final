@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Rolling Cylinder in a Free-Sliding Cradle</title>
 <style>
+  @font-face{font-family:"Notebook Math";src:url("/fonts/notebook-math.woff2") format("woff2");font-display:swap;}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:transparent;}
-  body{font-family:Georgia,"Times New Roman",serif;}
+  body{font-family:"Notebook Math",cursive;}
   .wrap{max-width:720px;margin:0 auto;padding:0;}
   #scene{width:100%;height:auto;display:block;background:transparent;border-radius:0;}
   .hidden-refs{display:none !important;}
@@ -142,12 +143,20 @@ function rebaseline(){           // keep motion, re-zero the energy reference
 const cv  = document.getElementById('scene');
 const ctx = cv.getContext('2d');
 const CW = 900, CH = 420;        // CSS logical size
-(function setupHiDPI(){
+// Keep the original drawing coordinates and physics; allocate only the pixels
+// actually displayed in this iframe. ResizeObserver also handles phone rotation.
+cv.style.aspectRatio = CW+'/'+CH;
+function resizeScene(){
   const dpr = Math.max(1, Math.min(3, window.devicePixelRatio||1));
-  cv.width = CW*dpr; cv.height = CH*dpr;
-  cv.style.aspectRatio = CW+'/'+CH;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-})();
+  const width = Math.max(1, Math.round(cv.clientWidth*dpr));
+  const height = Math.max(1, Math.round(width*CH/CW));
+  if(cv.width === width && cv.height === height) return;
+  cv.width = width; cv.height = height;
+  ctx.setTransform(width/CW,0,0,height/CH,0,0);
+}
+resizeScene();
+new ResizeObserver(resizeScene).observe(cv);
+window.addEventListener('resize', resizeScene);
 
 let INK='#1c1b18', INKSOFT='#6a655c', FILL='#cdc6b6', FILL2='#e3ddcf', WHITEFILL='#fffefb', MARK='#a8324a';
 
@@ -157,7 +166,7 @@ function setTheme(dark){
     cv.style.background='transparent';
   } else {
     INK='#1c1b18'; INKSOFT='#6a655c'; FILL='#cdc6b6'; FILL2='#e3ddcf'; WHITEFILL='#fffefb'; MARK='#a8324a';
-    cv.style.background='#fffefb';
+    cv.style.background='transparent';
   }
 }
 (function detectTheme(){
@@ -169,7 +178,8 @@ function setTheme(dark){
   } catch(e){}
 })();
 
-function serif(size, italic){ return (italic?'italic ':'')+size+'px Georgia, serif'; }
+function serif(size, italic){ return size+'px "Notebook Math", cursive'; }
+document.fonts.load('16px "Notebook Math"');
 function lab(txt,x,y,opt={}){
   ctx.save();
   ctx.fillStyle = opt.color||INK;
@@ -366,11 +376,8 @@ function fmtSci(v){
 const ech = document.getElementById('echart');
 const ectx= ech.getContext('2d');
 const ECW=380, ECH=150;
-(function(){
-  const dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
-  ech.width=ECW*dpr; ech.height=ECH*dpr; ech.style.aspectRatio=ECW+'/'+ECH;
-  ectx.setTransform(dpr,0,0,dpr,0,0);
-})();
+// Diagnostic canvas is never displayed by these minimal embeds.
+ech.width = ech.height = 1;
 const eHist=[];               // {t,T,V,E}
 const HIST_MAX=600;           // ~ last 9.6 s
 
@@ -431,9 +438,10 @@ function frame(){
       S.x=ns[0]; S.th=ns[1]; S.v=ns[2]; S.w=ns[3];
       simT+=DT;
     }
-    if(simT-lastSample>=0.03){ pushHist(); lastSample=simT; }
+    // No history sampling for the permanently hidden diagnostic chart.
   }
-  draw(); drawChart(); updateReadout();
+  // The minimal embeds hide the diagnostic chart and readout permanently.
+  draw();
   requestAnimationFrame(frame);
 }
 
@@ -518,7 +526,7 @@ function typeset(){
 
 /* ---------- go ---------- */
 resetState();
-typeset();
+// Derivation elements are absent; do not poll for an unused KaTeX runtime.
 requestAnimationFrame(frame);
 </script>
 

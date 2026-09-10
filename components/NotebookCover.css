@@ -1,0 +1,77 @@
+.notebook-experience {
+  --cover-progress: 0;
+  --cover-layout: 0;
+  --cover-lift: 0;
+  --cover-ready: 0;
+  --cover-shift-x: 0px;
+  --cover-shift-y: 0px;
+  --cover-scale-x: 1;
+  --cover-scale-y: 1;
+  --reading-hinge-x: 50%;
+  --reading-hinge-y: 50%;
+}
+.notebook-cover-desk { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; overflow: hidden; background: rgb(255 255 255 / calc(1 - var(--cover-ready))); padding: 24px 24px 76px; }
+.notebook-cover-stage {
+  width: min(540px, calc((100dvh - 100px) * .75), 100%);
+  aspect-ratio: 3 / 4;
+  perspective: 2600px;
+  perspective-origin: left center;
+  transform-origin: top left;
+  transform: translate(calc(var(--cover-shift-x) * var(--cover-layout)), calc(var(--cover-shift-y) * var(--cover-layout))) scale(calc(1 + (var(--cover-scale-x) - 1) * var(--cover-layout)), calc(1 + (var(--cover-scale-y) - 1) * var(--cover-layout)));
+}
+/* Both sides use the same hinge and camera scale at every frame. */
+.has-cover > .notebook-cover-reading {
+  transform-origin: var(--reading-hinge-x) var(--reading-hinge-y);
+  transform: translate(calc(var(--cover-shift-x) * (var(--cover-layout) - 1)), calc(var(--cover-shift-y) * (var(--cover-layout) - 1))) scale(calc((1 + (var(--cover-scale-x) - 1) * var(--cover-layout)) / var(--cover-scale-x)), calc((1 + (var(--cover-scale-y) - 1) * var(--cover-layout)) / var(--cover-scale-y)));
+}
+.notebook-cover {
+  position: relative; display: block; width: 100%; height: 100%; padding: 0; border: 0;
+  border-radius: 3px 10px 10px 3px; background: #6b241c; cursor: pointer;
+  transform-origin: left center;
+  transform: rotateY(calc(-180deg * var(--cover-progress)));
+  transform-style: preserve-3d;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent; touch-action: pan-y pinch-zoom; user-select: none;
+}
+.notebook-cover picture, .notebook-cover img { display: block; width: 100%; height: 100%; border-radius: inherit; }
+.notebook-cover img { object-fit: contain; }
+.notebook-cover picture { backface-visibility: hidden; transform: translateZ(1px); }
+.notebook-cover-inside { position: absolute; inset: 0; border-radius: inherit; display: block; overflow: hidden; background: #f1eee3; transform: rotateY(180deg) translateZ(1px); backface-visibility: hidden; --hand: 'Reenie Beanie', cursive; --ink: #303f53; text-align: left; cursor: default; }
+.notebook-cover-inside .notebook-sheet { border-radius: 10px 0 0 3px; background: linear-gradient(90deg, #e9e5d9 0, #f1eee3 2%, #f1eee3 80%, #eeeadf 94%, #ddd7c9 99.7%, #c9c1b1); }
+.notebook-cover-inside::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: #514332; opacity: calc(var(--cover-lift) * .13); }
+.notebook-cover::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(90deg, #28120e55, transparent 2.5%, #f4dba017 3.5%, transparent 6%); backface-visibility: hidden; transform: translateZ(2px); }
+.notebook-cover:focus-visible { outline: 3px solid #536b87; outline-offset: 12px; }
+.notebook-cover-desk.is-opening .notebook-cover { cursor: default; }
+.notebook-cover-desk.is-dragging .notebook-cover { cursor: grabbing; }
+/* The facing flyleaf moves with the board; its live twin takes over at rest. */
+.has-cover .notebook-spread:not(.is-portrait) { clip-path: inset(-80px -80px -80px 50%); }
+.has-cover .notebook-spread.is-portrait { clip-path: inset(-80px -80px -80px 0); }
+.has-cover .notebook-mobile-cover { visibility: hidden; }
+
+/* WebKit can composite the reverse face above the artwork despite backface
+   culling. Explicit face visibility also prevents mirrored ink flashing. */
+.notebook-cover-inside { visibility: hidden; -webkit-backface-visibility: hidden; }
+.notebook-cover picture { -webkit-backface-visibility: hidden; }
+.notebook-cover[data-face="inside"] .notebook-cover-inside { visibility: visible; }
+.notebook-cover[data-face="inside"] picture { visibility: hidden; }
+
+/* The flyleaf stays on its board during the turn. Match the stationary case
+   overhang so its burgundy edge does not pop in at the reading handoff. */
+.notebook-cover-inside { overflow: visible; border-radius: 14px 0 0 14px; }
+.notebook-cover-inside::before { content: ''; position: absolute; inset: -4px 0 -7px -8px; border-radius: 18px 0 0 18px; background: #6b241c; border-left: 3px solid #83452f; border-bottom: 3px solid #481b16; z-index: -1; }
+.notebook-cover-inside .notebook-sheet { border-radius: 14px 0 0 14px; overflow: hidden; }
+.notebook-cover-inside::after { border-radius: inherit; }
+
+/* Solid wrapped board beneath the artwork; no cast shadow or motion change. */
+.notebook-cover::before { content: ''; position: absolute; inset: 0 -7px -5px 0; border-radius: 3px 12px 12px 3px; background: #6b241c; border-right: 3px solid #83452f; border-bottom: 3px solid #481b16; transform: translateZ(-1px); }
+.notebook-cover[data-face="inside"]::before { visibility: hidden; }
+
+/* Phones reveal an unwritten pastedown, whereas desktop carries its flyleaf.
+   Paint paper above the thick board instead of relying on the face background. */
+.notebook-cover-endpaper { position: absolute; inset: 0; display: block; border-radius: inherit; background: #f1eee3; }
+
+.notebook-mobile-welcome { min-height: 100dvh; box-sizing: border-box; display: grid; place-items: center; padding: 32px; background: #fff; color: #303f53; font-family: 'Reenie Beanie', cursive; }
+.notebook-mobile-welcome > div { max-width: 300px; }
+.notebook-mobile-welcome h1 { margin: 0 0 28px; font-size: 36px; font-weight: 400; line-height: 1.05; }
+.notebook-mobile-welcome button { min-height: 44px; padding: 6px 0; border: 0; background: transparent; color: #355b78; font: 25px/1.2 'Reenie Beanie', cursive; text-decoration: underline; text-underline-offset: 5px; cursor: pointer; }
+.notebook-mobile-welcome button:focus-visible { outline: 2px solid #536b87; outline-offset: 5px; }

@@ -1,0 +1,288 @@
+/* The phone is a focused leaf of the same book. Desktop rules stay untouched. */
+.lined-notebook.is-mobile {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.lined-notebook.is-mobile .notebook-desk {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  padding: calc(18px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(30px + env(safe-area-inset-bottom)) calc(32px + env(safe-area-inset-left));
+}
+
+.lined-notebook.is-mobile .notebook-spread {
+  width: 100%;
+  max-width: 540px;
+  border-radius: 2px 14px 14px 2px;
+  touch-action: auto;
+}
+
+.lined-notebook.is-mobile .notebook-leaf {
+  border-radius: 2px 14px 14px 2px;
+}
+
+.lined-notebook.is-mobile .notebook-sheet {
+  padding: 24px 22px 54px;
+}
+
+.lined-notebook.is-mobile .notebook-leaf > .notebook-sheet {
+  background: linear-gradient(90deg, #d9d3c5 0, #e9e5d8 5px, #f1eee3 18px, #f1eee3 94%, #ece8db 100%);
+}
+
+.lined-notebook.is-mobile .notebook-writing {
+  min-height: 0;
+  font-size: 23px;
+  line-height: 29px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lined-notebook.is-mobile .notebook-running-head {
+  justify-content: flex-end;
+  padding-left: 108px;
+  font-size: 18px;
+}
+
+.lined-notebook.is-mobile .notebook-running-head span {
+  max-width: 100%;
+}
+
+.lined-notebook.is-mobile .notebook-contents-link {
+  top: 14px;
+  left: 22px;
+  right: auto;
+  height: 44px;
+  touch-action: manipulation;
+}
+
+.lined-notebook.is-mobile .notebook-intro h1 {
+  font-size: 48px;
+}
+
+.lined-notebook.is-mobile .notebook-note-title {
+  font-size: 34px;
+}
+
+.lined-notebook.is-mobile .notebook-contents-page > h1 {
+  font-size: 40px;
+}
+
+.lined-notebook.is-mobile .notebook-contents-page button {
+  min-height: 44px;
+  align-items: center;
+  padding-left: 12px;
+  font-size: 22px;
+  line-height: 22px;
+}
+
+.lined-notebook.is-mobile .notebook-contents-page small {
+  line-height: 22px;
+}
+
+/* The actual preceding face continues beyond the viewport at the binding. */
+.lined-notebook.is-mobile .notebook-mobile-facing,
+.notebook-cover-inside .notebook-mobile-facing {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 3px 0 0 3px;
+  background: linear-gradient(90deg, #f1eee3 0 94%, #e4decf 98%, #cfc6b4);
+  user-select: none;
+  pointer-events: none;
+}
+
+.lined-notebook.is-mobile .notebook-mobile-facing {
+  clip-path: inset(0 0 0 calc(100% - 32px));
+}
+.notebook-mobile-facing > .notebook-sheet { opacity: .6; }
+/* This inert phone preview shows ink near the fold, not scrollable UI.
+   Shift the writing without reflowing the source page's line breaks. The
+   moving cover uses this same preview so the handoff stays continuous. */
+.notebook-mobile-facing .notebook-writing {
+  transform: translateX(14px);
+}
+.notebook-mobile-facing .notebook-writing,
+.notebook-mobile-facing .notebook-writing * {
+  scrollbar-width: none;
+}
+.notebook-mobile-facing .notebook-writing::-webkit-scrollbar,
+.notebook-mobile-facing .notebook-writing *::-webkit-scrollbar {
+  display: none;
+}
+.notebook-cover-inside .notebook-mobile-facing {
+  right: auto;
+  left: 0;
+  bottom: auto;
+  border-radius: inherit;
+}
+
+.lined-notebook.is-mobile .notebook-mobile-facing::after,
+.notebook-cover-inside .notebook-mobile-facing::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 5px;
+  background: linear-gradient(90deg, transparent, #766e5d38);
+}
+
+.lined-notebook.is-mobile .stack-read {
+  display: block;
+  left: -20px;
+  width: 20px;
+  border-radius: 3px 0 0 3px;
+}
+
+
+
+.lined-notebook.is-mobile .stack-unread {
+  width: 100%;
+  border-radius: 2px 14px 14px 2px;
+}
+
+
+/* Only the explicit paper grips claim a gesture; writing keeps native scrolling. */
+.lined-notebook.is-mobile .notebook-mobile-grip {
+  position: absolute;
+  z-index: 25;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  touch-action: none;
+  cursor: grab;
+}
+
+.lined-notebook.is-mobile .notebook-mobile-grip[data-side='left'] { left: 0; }
+.lined-notebook.is-mobile .notebook-mobile-grip[data-side='right'] { right: 0; }
+.lined-notebook.is-mobile .notebook-mobile-grip:active { cursor: grabbing; }
+
+.lined-notebook.is-mobile .notebook-page-number {
+  bottom: 17px;
+  pointer-events: none;
+}
+
+.lined-notebook.is-mobile .notebook-content [class*='overflow-x-auto'],
+.lined-notebook.is-mobile .notebook-content pre {
+  max-width: 100%;
+  overscroll-behavior-x: contain;
+  touch-action: auto;
+}
+
+/* Keep wide handwritten tables legible; the existing wrapper pans natively. */
+.lined-notebook.is-mobile .notebook-content table:has(tr > :nth-child(3)) {
+  min-width: 420px;
+}
+
+.lined-notebook.is-mobile .notebook-loose {
+  touch-action: auto;
+}
+
+.lined-notebook.is-mobile .notebook-loose .notebook-running-head {
+  touch-action: none;
+  cursor: grab;
+}
+
+.lined-notebook.is-mobile .notebook-reverse-ink {
+  inset: 66px 22px 54px;
+  font-size: 23px;
+}
+
+/* The face-owned grips replace the spread's hit areas. */
+.lined-notebook.is-mobile .notebook-edge { display: none; }
+
+
+/* A quiet paper fade disappears once the reader reaches the end of the leaf. */
+.lined-notebook.is-mobile .notebook-sheet[data-more-below='true']::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  bottom: 54px;
+  left: 22px;
+  right: 22px;
+  height: 18px;
+  background: linear-gradient(transparent, #f1eee3);
+  pointer-events: none;
+}
+
+/* The first leaf has no turned paper or neighboring fold on its left. */
+.lined-notebook.is-mobile .is-first-page .stack-read { display: none; }
+.lined-notebook.is-mobile .is-first-page .notebook-leaf > .notebook-sheet {
+  background: linear-gradient(90deg, #f1eee3 0 94%, #ece8db 100%);
+}
+
+/* Corners join the full side edges, while prose retains native scrolling. */
+.lined-notebook.is-mobile .notebook-mobile-corner {
+  position: absolute;
+  z-index: 25;
+  width: 44px;
+  height: 44px;
+  touch-action: none;
+  cursor: grab;
+}
+.lined-notebook.is-mobile .notebook-mobile-corner,
+.lined-notebook.is-mobile .notebook-mobile-grip {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.lined-notebook.is-mobile .notebook-mobile-corner[data-corner^='top'] { top: 0; }
+.lined-notebook.is-mobile .notebook-mobile-corner[data-corner^='bottom'] { bottom: 0; }
+.lined-notebook.is-mobile .notebook-mobile-corner[data-corner$='left'] { left: 0; }
+.lined-notebook.is-mobile .notebook-mobile-corner[data-corner$='right'] { right: 0; }
+.lined-notebook.is-mobile .notebook-contents-link { z-index: 30; }
+.lined-notebook.is-mobile .notebook-mobile-previous {
+  position: absolute;
+  z-index: 30;
+  left: 22px;
+  bottom: 3px;
+  min-height: 44px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: 400 20px/29px var(--hand);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.lined-notebook.is-mobile .notebook-mobile-previous:disabled { opacity: 1; cursor: default; }
+.lined-notebook.is-mobile .notebook-mobile-previous:hover { text-decoration: underline; text-underline-offset: 4px; }
+/* The open front cover is a full board to the left of the hinge. Most of it
+   sits outside the focused phone viewport; its outer rim never frames the leaf. */
+.lined-notebook.is-mobile .notebook-mobile-cover {
+  position: absolute;
+  z-index: 0;
+  top: -4px;
+  bottom: -7px;
+  right: 100%;
+  width: 100%;
+  background: #6b241c;
+  border-left: 3px solid #83452f;
+  border-bottom: 3px solid #481b16;
+  border-radius: 10px 0 0 10px;
+  box-shadow: none;
+  pointer-events: none;
+}
+.lined-notebook.is-mobile .notebook-mobile-cover::before {
+  content: '';
+  position: absolute;
+  inset: 4px 0 4px 5px;
+  background: #f1eee3;
+  border-radius: 7px 0 0 7px;
+}
+.lined-notebook.is-mobile .notebook-mobile-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 9px;
+  background: linear-gradient(90deg, transparent, #74695421 70%, #74695438);
+}
+/* At the hinge the first paper edge is square, just like subsequent leaves. */
+.lined-notebook.is-mobile .is-first-page,
+.lined-notebook.is-mobile .is-first-page .notebook-leaf { border-radius: 2px 14px 14px 2px; }
