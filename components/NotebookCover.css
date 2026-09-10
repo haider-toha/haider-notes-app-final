@@ -64,3 +64,7 @@
 /* Solid wrapped board beneath the artwork; no cast shadow or motion change. */
 .notebook-cover::before { content: ''; position: absolute; inset: 0 -7px -5px 0; border-radius: 3px 12px 12px 3px; background: #6b241c; border-right: 3px solid #83452f; border-bottom: 3px solid #481b16; transform: translateZ(-1px); }
 .notebook-cover[data-face="inside"]::before { visibility: hidden; }
+
+/* Phones reveal an unwritten pastedown, whereas desktop carries its flyleaf.
+   Paint paper above the thick board instead of relying on the face background. */
+.notebook-cover-endpaper { position: absolute; inset: 0; display: block; border-radius: inherit; background: #f1eee3; }

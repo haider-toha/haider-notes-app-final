@@ -57,6 +57,8 @@ try {
     await pull(.12);
     await page.waitForTimeout(820);
     assert(await cover.isVisible(), 'A short pull returns to the closed cover');
+    assert.equal(await page.locator('.notebook-experience').evaluate(e => e.style.getPropertyValue('--cover-ready')), '0', 'Canceled opening restores the opaque closed desk');
+    if (width !== 1440) assert.equal(await page.locator('.notebook-cover-endpaper').count(), 1, 'Phone cover has a paper lining over the thick board');
     await pull(.55);
     await cover.waitFor({state:'detached'});
     const samples = await page.evaluate(() => window.coverMotionSamples);

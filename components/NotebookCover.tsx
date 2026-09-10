@@ -26,6 +26,7 @@ export default function NotebookCover({ opening, onOpen, onPrepare, onOpened }: 
     // Projected board travel is cosine-shaped. The camera follows that travel,
     // rather than sliding the spine at constant speed through an angular turn.
     scene.style.setProperty('--cover-progress', String(value));
+    scene.style.setProperty('--cover-ready', prepared.current && value > 0 ? '1' : '0');
     scene.style.setProperty('--cover-layout', String((1 - Math.cos(Math.PI * value)) / 2));
     scene.style.setProperty('--cover-lift', String(Math.sin(Math.PI * value)));
   };
@@ -151,7 +152,9 @@ export default function NotebookCover({ opening, onOpen, onPrepare, onOpened }: 
           <source type="image/webp" srcSet="/cover-600.webp 600w, /cover.webp 1086w" sizes="(max-width: 600px) 85vw, 540px" />
           <img src="/cover.png" width="1086" height="1448" alt="" fetchPriority="high" draggable={false} />
         </picture>
-        <span ref={inside} className="notebook-cover-inside" aria-hidden="true" inert />
+        <span ref={inside} className="notebook-cover-inside" aria-hidden="true" inert>
+          <span className="notebook-cover-endpaper" />
+        </span>
       </button>
       <p id="notebook-cover-hint" className="sr-only">Click, tap, or drag the cover left to open. Keyboard: Enter or Space.</p>
     </div>
