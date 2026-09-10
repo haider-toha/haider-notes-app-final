@@ -53,3 +53,10 @@
 .notebook-cover picture { -webkit-backface-visibility: hidden; }
 .notebook-cover[data-face="inside"] .notebook-cover-inside { visibility: visible; }
 .notebook-cover[data-face="inside"] picture { visibility: hidden; }
+
+/* The flyleaf stays on its board during the turn. Match the stationary case
+   overhang so its burgundy edge does not pop in at the reading handoff. */
+.notebook-cover-inside { overflow: visible; border-radius: 14px 0 0 14px; }
+.notebook-cover-inside::before { content: ''; position: absolute; inset: -2px 0 -4px -3px; border-radius: 16px 0 0 16px; background: #6b241c; z-index: -1; }
+.notebook-cover-inside .notebook-sheet { border-radius: 14px 0 0 14px; overflow: hidden; }
+.notebook-cover-inside::after { border-radius: inherit; }
