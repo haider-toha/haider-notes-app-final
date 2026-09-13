@@ -8,6 +8,8 @@ import './LinedNotebook.css';
 import { useLooseSheet } from './useLooseSheet';
 import { reverseInkText, useNotebookDetails } from './notebookDetails';
 import './NotebookMobile.css';
+import HapticButton from './HapticButton';
+import { notebookHaptic } from './notebookHaptics';
 
 const phoneLayout = '(max-width: 700px), (max-height: 500px) and (pointer: coarse)';
 const contentsPages = 2;
@@ -82,6 +84,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
   const book = useRef<PageFlip | null>(null);
   const resizeBook = useRef<() => void>(() => {});
   const currentPage = useRef(page);
+  const hapticTurn = useRef(false);
   const readingPage = useRef((initialPage ?? savedPage()) + contentsPages);
   const [turning, setTurning] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -106,6 +109,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     if (!book.current || turning || target === page || (loose.sheet && !loose.sheet.released)) return;
     // Mount the destination before the engine takes its first animation frame.
     flushSync(() => setDestination(target));
+    hapticTurn.current = true;
     if (reducedMotion) book.current.turnToPage(target);
     else book.current.flip(target, 'bottom');
   };
@@ -188,6 +192,8 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
       const previous = currentPage.current;
       sync();
       const index = instance.getCurrentPageIndex();
+      if (index !== previous && hapticTurn.current) notebookHaptic('turn');
+      hapticTurn.current = false;
       try {
         if (index >= contentsPages) {
           readingPage.current = index;
@@ -229,7 +235,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     instance.on('changeState', event => {
       setTurning(event.data === 'flipping' || event.data === 'user_fold' || !!navigationJourney.current);
       if (event.data === 'read' && resizePending) scheduleResize();
-      if (event.data === 'read') navigationJourney.current?.onRead();
+      if (event.data === 'read') { hapticTurn.current = false; navigationJourney.current?.onRead(); }
     });
     const dispose = loadNotebookPages(instance, leaves);
     const observer = new ResizeObserver(scheduleResize);
@@ -385,7 +391,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
     <section className="notebook-desk" aria-label="Interactive lined notebook">
       <div className={`notebook-spread ${mobile ? 'is-portrait' : ''} ${page === 0 ? 'is-first-page' : ''} ${turning ? 'is-turning' : ''}`} style={paperStyle} tabIndex={0} aria-label="Notebook. Drag either outer edge or use left and right arrow keys to turn pages."
         onKeyDown={e => {
-          if ((e.target as HTMLElement).closest('button, a, input, textarea, select, iframe, [role=dialog]')) return;
+          if ((e.target as HTMLElement).closest('button, [role=button], a, input, textarea, select, iframe, [role=dialog]')) return;
           if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
             if (navigationJourney.current) { e.preventDefault(); navigationJourney.current.cancel(true); return; }
             e.preventDefault(); move(currentPage.current + (e.key === 'ArrowRight' ? step : -step));
@@ -393,7 +399,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
         }}
         onPointerDown={e => {
           if (navigationJourney.current && e.button === 0) { navigationJourney.current.cancel(true); return; }
-          if (e.button !== 0 || pointer.current || (e.target as HTMLElement).closest('a, button:not(.notebook-edge):not(.notebook-mobile-grip):not(.notebook-mobile-corner), input, textarea, select, iframe, .notebook-diagram, [role=dialog]') || turning) return;
+          if (e.button !== 0 || pointer.current || (e.target as HTMLElement).closest('a, button:not(.notebook-edge):not(.notebook-mobile-grip):not(.notebook-mobile-corner), input:not(.notebook-haptic-drag-input), textarea, select, iframe, .notebook-diagram, [role=dialog]') || turning) return;
           if (compact && !(e.target as HTMLElement).closest('.notebook-edge, .notebook-mobile-grip, .notebook-mobile-corner')) return;
           const rect = host.current!.getBoundingClientRect();
           const x = e.clientX - rect.left;
@@ -406,8 +412,11 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
           // Start flat at the outer boundary and apply only pointer displacement.
           const anchor = { x: back ? 1 : rect.width - 1, y: start.y < rect.height / 2 ? 1 : rect.height - 1 };
           pointer.current = { id: e.pointerId, back, corner: !!corner, start, anchor, mode: 'pending' };
-          e.currentTarget.setPointerCapture(e.pointerId);
-          e.preventDefault();
+          const nativeInput = (e.target as HTMLElement).closest<HTMLElement>('.notebook-haptic-drag-input');
+          (nativeInput ?? (e.target as HTMLElement).closest<HTMLElement>('.notebook-edge, .notebook-mobile-grip, .notebook-mobile-corner') ?? e.currentTarget).setPointerCapture(e.pointerId);
+          // Cancelling pointer-down also suppresses Safari's native mouse-down
+          // and prevents the switch from starting its haptic drag tracking.
+          if (!nativeInput) e.preventDefault();
         }}
         onPointerMove={e => {
           const drag = pointer.current;
@@ -428,6 +437,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
               if (!compact && mobile && outward > -8 && Math.abs(dy) <= 24) return;
               if ((drag.back && page === 0) || (!drag.back && page >= lastPage)) return;
               drag.mode = 'turn';
+              hapticTurn.current = true;
               if (!reducedMotion) book.current.startUserTouch(drag.anchor);
             }
           }
@@ -456,6 +466,7 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
           else book.current?.userStop(point(e));
         }}
         onPointerCancel={e => {
+          hapticTurn.current = false;
           if (pointer.current?.mode === 'loose') loose.finish(true);
           else if (pointer.current?.mode === 'turn') {
             if (compact && book.current) finishNotebookTouch(book.current, false);
@@ -470,10 +481,8 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
         <div className="notebook-paper-stack stack-unread" aria-hidden="true" />
         {compact && page > 0 && <span ref={facing} className="notebook-mobile-facing" aria-hidden="true" inert />}
         <div className="notebook-mount" ref={host} />
-        {!turning && <>
-          <button className="notebook-edge edge-back" aria-label="Turn previous page" aria-disabled={page === 0} onClick={e => { if (e.detail === 0) move(page - step); }}></button>
-          <button className="notebook-edge edge-next" aria-label="Turn next page" aria-disabled={page >= lastPage} onClick={e => { if (e.detail === 0) move(page + step); }}></button>
-        </>}
+        <HapticButton nativeDrag className="notebook-edge edge-back" aria-label="Turn previous page" feedbackDisabled={turning} aria-disabled={page === 0} onClick={e => { if (e.detail === 0 && !(e.target instanceof HTMLInputElement)) move(page - step); }} />
+        <HapticButton nativeDrag className="notebook-edge edge-next" aria-label="Turn next page" feedbackDisabled={turning} aria-disabled={page >= lastPage} onClick={e => { if (e.detail === 0 && !(e.target instanceof HTMLInputElement)) move(page + step); }} />
         {leaves.map((leaf, index) => {
           const removed = loose.sheet?.index === index;
           const underneath = index + (loose.sheet?.left ? -2 : (mobile ? 1 : 2));
@@ -498,9 +507,13 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
         if (e.key === 'Enter') { e.preventDefault(); loose.finish(); }
       }}
       onPointerDown={e => {
-        if (!loose.sheet?.released || (e.target as HTMLElement).closest('a, button:not(.notebook-mobile-grip):not(.notebook-mobile-corner), input, textarea, select, iframe')) return;
+        if (!loose.sheet?.released || (e.target as HTMLElement).closest('a, button:not(.notebook-mobile-grip):not(.notebook-mobile-corner), input:not(.notebook-haptic-drag-input), textarea, select, iframe')) return;
         if (compact && !(e.target as HTMLElement).closest('.notebook-mobile-grip, .notebook-mobile-corner, .notebook-running-head')) return;
-        e.preventDefault(); e.stopPropagation();
+        const nativeInput = (e.target as HTMLElement).closest<HTMLElement>('.notebook-haptic-drag-input');
+        if (!nativeInput) e.preventDefault();
+        e.stopPropagation();
+        // The loose-sheet release handler owns capture; native mouse-down
+        // remains uncancelled so the switch can also track the gesture.
         e.currentTarget.setPointerCapture(e.pointerId);
         loose.pickUp(e.pointerId, e.clientX, e.clientY);
       }}

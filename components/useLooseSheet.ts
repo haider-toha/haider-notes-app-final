@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { notebookHaptic } from './notebookHaptics';
 
 type Pose = { x: number; y: number; angle: number; lift: number };
 type Sheet = { index: number; width: number; height: number; left: boolean; released: boolean; padding: string; background: string; radius: string; headingAlign: string; scrollTop: number };
@@ -86,6 +87,7 @@ export function useLooseSheet(reducedMotion: boolean, onAttach: (index: number) 
     const current = sheetRef.current;
     if (!current || !grip.current) return;
     const next = { ...current, released: true };
+    notebookHaptic('release');
     sheetRef.current = next; setSheet(next);
     // Preserve the position at separation: subsequent movement is relative to it.
     grip.current.origin = { ...target.current };
@@ -140,6 +142,7 @@ export function useLooseSheet(reducedMotion: boolean, onAttach: (index: number) 
     const innerEdge = target.current.x + (current.left ? current.width : 0);
     const aligned = Math.abs(innerEdge - spine) < 65 && rect && Math.abs(target.current.y - rect.y) < Math.min(180, current.height * .25);
     if (!cancelled && g.canAttach && aligned) {
+      notebookHaptic('attach');
       const home = onAttach(current.index);
       target.current = { x: home.x, y: home.y, angle: 0, lift: 0 };
       done.current = clear; animate();

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './NotebookCover.css';
+import HapticButton from './HapticButton';
+import { notebookHaptic } from './notebookHaptics';
 
 interface NotebookCoverProps {
   opening: boolean;
@@ -106,6 +108,7 @@ export default function NotebookCover({ opening, onOpen, onPrepare, onOpened }: 
     updatePosition(position.current);
   };
   const beginOpening = () => {
+    notebookHaptic('open');
     onPrepare();
     cancelAnimationFrame(frame.current);
     frame.current = requestAnimationFrame(() => {
@@ -120,18 +123,19 @@ export default function NotebookCover({ opening, onOpen, onPrepare, onOpened }: 
   return <main className={`notebook-cover-desk${opening ? ' is-opening' : ''}${dragging ? ' is-dragging' : ''}`} aria-label="Haider Toha’s notebook">
     <h1 className="sr-only">Haider Toha’s notebook</h1>
     <div ref={stage} className="notebook-cover-stage">
-      <button type="button" className="notebook-cover" aria-label="Open notebook" aria-describedby="notebook-cover-hint" disabled={opening}
+      <HapticButton nativeDrag type="button" className="notebook-cover" aria-label="Open notebook" aria-describedby="notebook-cover-hint" disabled={opening}
         onClick={event => {
           const ignorePointerClick = suppressClick.current && event.detail > 0;
           suppressClick.current = false;
           if (!ignorePointerClick) beginOpening();
+          else event.preventDefault();
         }}
         onPointerDown={event => {
           if (!event.isPrimary || event.button !== 0 || opening) return;
           suppressClick.current = false;
           cancelAnimationFrame(frame.current);
           drag.current = { id: event.pointerId, x: event.clientX, width: event.currentTarget.clientWidth, start: position.current, moved: false, progress: position.current, time: event.timeStamp, velocity: 0 };
-          event.currentTarget.setPointerCapture(event.pointerId);
+          (event.target instanceof HTMLInputElement ? event.target : event.currentTarget).setPointerCapture(event.pointerId);
           onPrepare();
           frame.current = requestAnimationFrame(measureHinge);
         }}
@@ -155,7 +159,7 @@ export default function NotebookCover({ opening, onOpen, onPrepare, onOpened }: 
           suppressClick.current = held.moved;
           if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
           const velocity = event.timeStamp - held.time < 100 ? held.velocity : 0;
-          if (held.moved && held.progress >= .25) { onOpen(); settle(1, velocity); }
+          if (held.moved && held.progress >= .25) { notebookHaptic('open'); onOpen(); settle(1, velocity); }
           else if (held.moved) settle(0, velocity);
           setDragging(false);
         }}
@@ -169,7 +173,7 @@ export default function NotebookCover({ opening, onOpen, onPrepare, onOpened }: 
         <span ref={inside} className="notebook-cover-inside" aria-hidden="true" inert>
           <span className="notebook-cover-endpaper" />
         </span>
-      </button>
+      </HapticButton>
       <p id="notebook-cover-hint" className="sr-only">Click, tap, or drag the cover left to open. Keyboard: Enter or Space.</p>
     </div>
   </main>;

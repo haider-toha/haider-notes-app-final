@@ -2,6 +2,7 @@ import { memo } from 'react';
 import NotebookContent from './NotebookContent';
 import NotebookContents, { type NotebookSection } from './NotebookContents';
 import type { NotebookPage } from './notebookPages';
+import HapticButton from './HapticButton';
 
 interface NotebookSheetProps {
   index: number;
@@ -23,19 +24,19 @@ interface NotebookSheetProps {
 export default memo(function NotebookSheet({ index, content, reverseInk, sections, nearby, active,
   mobile, compact, turning, onContents, onNavigate, onPrevious, onScroll }: NotebookSheetProps) {
   const contents = index < 2;
-  const navigation = !mobile && index % 2 === 1 ? null : <button className="notebook-contents-link"
+  const navigation = !mobile && index % 2 === 1 ? null : <HapticButton directTap className="notebook-contents-link"
     aria-label={contents ? 'Back to reading' : 'Open contents'} disabled={turning} onClick={() => onContents(index)}>
     {!contents && <svg className="notebook-navigation-arrow points-left" viewBox="0 0 30 18" aria-hidden="true" focusable="false"><path d="M3 10 Q14 8.5 26 9 M19 3 Q22 6 26 9 Q22 11 19 15" /></svg>}
     {contents ? 'continue reading' : 'contents'}
     {contents && <svg className="notebook-navigation-arrow" viewBox="0 0 30 18" aria-hidden="true" focusable="false"><path d="M3 10 Q14 8.5 26 9 M19 3 Q22 6 26 9 Q22 11 19 15" /></svg>}
-  </button>;
+  </HapticButton>;
   const grips = compact && nearby && <>
-    <button type="button" tabIndex={-1} className="notebook-mobile-grip" data-side="left" aria-hidden="true" />
-    <button type="button" tabIndex={-1} className="notebook-mobile-grip" data-side="right" aria-hidden="true" />
+    <HapticButton nativeDrag type="button" tabIndex={-1} className="notebook-mobile-grip" data-side="left" aria-hidden="true" feedbackDisabled={turning} aria-disabled={index === 0} />
+    <HapticButton nativeDrag type="button" tabIndex={-1} className="notebook-mobile-grip" data-side="right" aria-hidden="true" feedbackDisabled={turning} />
     {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(corner =>
-      <button key={corner} type="button" tabIndex={-1} className="notebook-mobile-corner" data-corner={corner} aria-hidden="true" />)}
-    {index > 0 && <button className="notebook-mobile-previous" aria-label="Previous notebook page" disabled={turning}
-      onClick={() => onPrevious(index)}>← previous</button>}
+      <HapticButton nativeDrag key={corner} type="button" tabIndex={-1} className="notebook-mobile-corner" data-corner={corner} aria-hidden="true" feedbackDisabled={turning} aria-disabled={index === 0 && corner.endsWith('left')} />)}
+    {index > 0 && <HapticButton directTap className="notebook-mobile-previous" aria-label="Previous notebook page" disabled={turning}
+      onClick={() => onPrevious(index)}>← previous</HapticButton>}
   </>;
   return <article className={`notebook-sheet${contents ? ' notebook-contents-sheet' : ''}`}
     data-page-side={index % 2 ? 'right' : 'left'} data-contents-part={contents ? index : undefined}
