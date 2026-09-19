@@ -127,14 +127,39 @@ export function loadNotebookPages(book: PageFlip, elements: HTMLElement[]) {
     wake();
   };
   document.addEventListener('visibilitychange', onVisibility);
+  const restoreTemporaryFaces: Array<() => void> = [];
   try {
     book.loadFromHTML(elements);
+    // In portrait mode page-flip turns a temporary clone of the current page.
+    // That makes the lifted paper repeat the front writing. Replace only that
+    // visual clone with the adjacent page so the moving reverse face carries
+    // the content that is physically printed on the other side of the sheet.
+    elements.forEach((_, index) => {
+      const page = book.getPage(index);
+      const original = page.newTemporaryCopy.bind(page);
+      page.newTemporaryCopy = () => {
+        const copy = original();
+        const copyElement = (copy as unknown as { getElement(): HTMLElement }).getElement();
+        const reverseFace = elements[index + 1]?.querySelector<HTMLElement>(':scope > .notebook-sheet');
+        if (copyElement !== elements[index] && reverseFace) {
+          const article = reverseFace.cloneNode(true) as HTMLElement;
+          article.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
+          copyElement.replaceChildren(article);
+          copyElement.classList.add('notebook-reverse-face');
+          copyElement.setAttribute('aria-hidden', 'true');
+          copyElement.inert = true;
+        }
+        return copy;
+      };
+      restoreTemporaryFaces.push(() => { page.newTemporaryCopy = original; });
+    });
     // The library marks an unpaired final page hard even with showCover false.
     // This notebook has no covers: keep odd page counts folding like paper too.
     elements.forEach((_, index) => book.getPage(index).setDensity(PageDensity.SOFT));
   }
   catch (error) {
     disposed = true;
+    restoreTemporaryFaces.forEach(restore => restore());
     touchQueues.delete(book);
     cancelAnimationFrame(frame);
     document.removeEventListener('visibilitychange', onVisibility);
@@ -143,6 +168,7 @@ export function loadNotebookPages(book: PageFlip, elements: HTMLElement[]) {
   finally { Render.prototype.start = originalStart; }
   return () => {
     disposed = true;
+    restoreTemporaryFaces.forEach(restore => restore());
     touchQueues.delete(book);
     cancelAnimationFrame(frame);
     document.removeEventListener('visibilitychange', onVisibility);

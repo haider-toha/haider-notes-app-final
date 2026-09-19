@@ -82,6 +82,19 @@ async function edgeTurn(page, client, side, cancel = false, position = 'middle',
 async function assertFold(page, label) {
   if (screenshots) await page.screenshot({ path: `${screenshots}/fold-${label.replaceAll(' ', '-')}.png` });
   assert(await page.locator('.notebook-leaf').evaluateAll(leaves => leaves.some(leaf => leaf.style.clipPath.includes('polygon') && leaf.getBoundingClientRect().height > 0)), `${label}: touch renders the same flexible paper polygon as desktop`);
+  const faces = await page.locator('.notebook-leaf').evaluateAll(leaves => {
+    const identity = leaf => {
+      const sheet = leaf.querySelector(':scope > .notebook-sheet');
+      return sheet?.dataset.pageIndex === undefined ? `contents:${sheet?.dataset.contentsPart}` : `page:${sheet.dataset.pageIndex}`;
+    };
+    const visible = leaves.filter(leaf => getComputedStyle(leaf).display !== 'none' && leaf.getBoundingClientRect().height > 0);
+    return {
+      stationary: visible.find(leaf => leaf.classList.contains('--simple')) ? identity(visible.find(leaf => leaf.classList.contains('--simple'))) : null,
+      moving: visible.find(leaf => leaf.style.zIndex === '5' && leaf.style.clipPath.includes('polygon')) ? identity(visible.find(leaf => leaf.style.zIndex === '5' && leaf.style.clipPath.includes('polygon'))) : null,
+    };
+  });
+  assert(faces.stationary && faces.moving && faces.stationary !== faces.moving,
+    `${label}: lifted reverse face shows the adjacent page instead of repeating ${faces.stationary}`);
 }
 async function geometry(page) {
   const result = await page.evaluate(selector => {

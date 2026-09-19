@@ -60,6 +60,10 @@ try {
   await page.mouse.move(x - 140, y - 30, { steps: 15 }); await delay(page, 60);
   assert.equal(await page.locator('.notebook-leaf.--hard').count(), 0, 'Reading leaves remain soft');
   assert(await page.locator('.notebook-leaf').evaluateAll(leaves => leaves.some(e => e.style.clipPath.includes('polygon'))), 'Drag must render a flexible fold');
+  assert.equal(await page.locator('.notebook-leaf').evaluateAll(leaves => {
+    const moving = leaves.find(leaf => leaf.style.zIndex === '5' && leaf.style.clipPath.includes('polygon'));
+    return moving?.querySelector(':scope > .notebook-sheet')?.getAttribute('data-page-index');
+  }), '2', 'Desktop forward fold carries the first page of the next spread');
   assert(await page.locator('.notebook-leaf').evaluateAll(leaves => leaves.filter(leaf => leaf.style.clipPath.includes('polygon')).every(leaf => {
     const control = leaf.querySelector('.notebook-sheet > .notebook-contents-link');
     if (leaf.querySelector('.notebook-sheet')?.dataset.pageSide === 'right') return control === null;
