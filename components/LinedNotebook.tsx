@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal, flushSync } from 'react-dom';
-import { PageFlip, loadNotebookPages, finishNotebookTouch } from './notebookPageFlip';
+import { PageFlip, loadNotebookPages, finishNotebookTouch, flushNotebookTouch, moveNotebookTouch } from './notebookPageFlip';
 import { notebookPages as pages, notebookSections, sheetTexts } from './notebookPages';
 import NotebookSheet from './NotebookSheet';
 import { decodeNotebookPlace, encodeNotebookPlace } from './notebookPlace';
@@ -442,10 +442,10 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
             }
           }
           if (drag.mode === 'loose') { loose.move(e.pointerId, e.clientX, e.clientY); return; }
-          if (!reducedMotion && drag.mode === 'turn') book.current.userMove({
+          if (!reducedMotion && drag.mode === 'turn') moveNotebookTouch(book.current, {
             x: drag.anchor.x + dx,
             y: drag.anchor.y + dy,
-          }, true);
+          });
         }}
         onPointerUp={e => {
           const drag = pointer.current;
@@ -463,14 +463,20 @@ export default function LinedNotebook({ initialPage, showContents = false, onOpe
             return;
           }
           if (reducedMotion || drag.mode === 'pending') move(page + (drag.back ? -step : step));
-          else book.current?.userStop(point(e));
+          else if (book.current) {
+            flushNotebookTouch(book.current);
+            book.current.userStop(point(e));
+          }
         }}
         onPointerCancel={e => {
           hapticTurn.current = false;
           if (pointer.current?.mode === 'loose') loose.finish(true);
           else if (pointer.current?.mode === 'turn') {
             if (compact && book.current) finishNotebookTouch(book.current, false);
-            else book.current?.userStop(point(e));
+            else if (book.current) {
+              flushNotebookTouch(book.current);
+              book.current.userStop(point(e));
+            }
           }
           pointer.current = null;
           resizeBook.current();

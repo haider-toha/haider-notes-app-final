@@ -29,6 +29,7 @@
 /* Render this decoration with aria-hidden="true". The supplied text is the
    reverse face, not a copy of the front. */
 .notebook-reverse-ink {
+  --reverse-ink-opacity: .08;
   position: absolute;
   inset: 70px 36px 45px;
   overflow: hidden;
@@ -38,13 +39,13 @@
   overflow-wrap: anywhere;
   font: 400 24px/29px var(--hand);
   color: #655844;
-  opacity: .021;
+  opacity: var(--reverse-ink-opacity);
   transform: scaleX(-1);
-  filter: blur(.35px);
+  filter: blur(.45px);
 }
 /* --simple is the renderer's flat drawing mode. */
-.is-turning .notebook-leaf:not(.--simple) > .notebook-sheet > .notebook-reverse-ink { opacity: .055; }
-.notebook-loose .notebook-reverse-ink { opacity: calc(.021 + var(--loose-lift) * .039); }
+.is-turning .notebook-leaf:not(.--simple) > .notebook-sheet > .notebook-reverse-ink,
+.notebook-loose .notebook-reverse-ink { opacity: var(--reverse-ink-opacity); }
 @media (max-width: 950px) { .notebook-reverse-ink { left: 24px; right: 24px; } }
 @media (min-width: 701px) and (max-width: 950px) { .notebook-reverse-ink { font-size: 21px; } }
 @media (max-width: 700px) { .notebook-reverse-ink { inset: 66px 26px 44px; font-size: 23px; } }

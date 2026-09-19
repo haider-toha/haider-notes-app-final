@@ -10,7 +10,8 @@ try {
   await page.route('**/__render-loop-check', route => route.fulfill({ contentType: 'text/html', body: '<div id="host" style="width:800px;height:600px"></div>' }));
   await page.goto(`${origin}/__render-loop-check`);
   await page.evaluate(async () => {
-    const { PageFlip, loadNotebookPages } = await import('/components/notebookPageFlip.ts');
+    const { PageFlip, loadNotebookPages, flushNotebookTouch, moveNotebookTouch } = await import('/components/notebookPageFlip.ts');
+    window.notebookTouch = { flushNotebookTouch, moveNotebookTouch };
     window.mountBook = () => {
       const host = document.getElementById('host');
       const mount = document.createElement('div');
@@ -33,6 +34,18 @@ try {
   const initial = await page.evaluate(() => probe.draws);
   await page.waitForTimeout(450);
   assert.equal(await page.evaluate(() => probe.draws), initial, 'Idle renderer schedules no draws');
+  const coalescedMoves = await page.evaluate(async () => {
+    const original = probe.book.userMove;
+    let calls = 0;
+    probe.book.userMove = function (...args) { calls++; return original.apply(this, args); };
+    for (let x = 390; x >= 300; x -= 10) notebookTouch.moveNotebookTouch(probe.book, { x, y: 590 });
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const paintedCalls = calls;
+    notebookTouch.moveNotebookTouch(probe.book, { x: 280, y: 590 });
+    notebookTouch.flushNotebookTouch(probe.book);
+    return { paintedCalls, flushedCalls: calls };
+  });
+  assert.deepEqual(coalescedMoves, { paintedCalls: 1, flushedCalls: 2 }, 'High-frequency pointer moves coalesce once per paint and release flushes the final position');
   await page.evaluate(() => probe.book.flipNext());
   await page.waitForTimeout(70);
   assert(await page.evaluate(() => probe.book.getState() !== 'read' && probe.leaves.some(e => e.style.clipPath.includes('polygon'))), 'First turn after idle animates a soft fold');

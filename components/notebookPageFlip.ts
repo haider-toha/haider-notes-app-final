@@ -3,8 +3,29 @@ import { Render } from 'page-flip/src/Render/Render';
 import { PageDensity } from 'page-flip/src/Page/Page';
 import type { Point } from 'page-flip/src/BasicTypes';
 
+type TouchQueue = {
+  flush(): void;
+  move(point: Point): void;
+};
+
+// Pointer hardware can report faster than the display can paint. Keep only the
+// newest fold position for each book so expensive geometry runs once per
+// browser frame while the paper still lands exactly under the pointer.
+const touchQueues = new WeakMap<PageFlip, TouchQueue>();
+
+export function moveNotebookTouch(book: PageFlip, point: Point) {
+  const queue = touchQueues.get(book);
+  if (queue) queue.move(point);
+  else book.userMove(point, true);
+}
+
+export function flushNotebookTouch(book: PageFlip) {
+  touchQueues.get(book)?.flush();
+}
+
 /** Settle a phone fold without requiring its corner to leave the screen. */
 export function finishNotebookTouch(book: PageFlip, commit: boolean) {
+  flushNotebookTouch(book);
   const controller = book.getFlipController();
   const calculation = controller.getCalculation();
   // Clear the library's pointer state without its desktop binding-crossing rule.
@@ -28,6 +49,7 @@ export function loadNotebookPages(book: PageFlip, elements: HTMLElement[]) {
   let frame = 0;
   let disposed = false;
   let drawing = false;
+  let pendingTouch: Point | null = null;
   let renderer: { render(time: number): void; animation: unknown; timer: number } | undefined;
   const wake = () => {
     if (!disposed && !drawing && !frame && !document.hidden) {
@@ -41,12 +63,32 @@ export function loadNotebookPages(book: PageFlip, elements: HTMLElement[]) {
     // A callback queued during the current browser frame can carry a timestamp
     // slightly older than startAnimation's performance.now(). Never index the
     // library's animation frames with a negative elapsed time.
-    try { renderer.render(Math.max(time, renderer.timer)); }
+    try {
+      if (pendingTouch) {
+        const point = pendingTouch;
+        pendingTouch = null;
+        book.userMove(point, true);
+      }
+      renderer.render(Math.max(time, renderer.timer));
+    }
     finally { drawing = false; }
     // Pointer-driven folds wake through setters. Only timed animations need
     // continuous frames; their final frame also draws the settled pages.
     if (renderer.animation !== null) wake();
   };
+  const touchQueue: TouchQueue = {
+    flush: () => {
+      if (!pendingTouch || disposed) return;
+      const point = pendingTouch;
+      pendingTouch = null;
+      book.userMove(point, true);
+    },
+    move: point => {
+      pendingTouch = point;
+      wake();
+    },
+  };
+  touchQueues.set(book, touchQueue);
   const onVisibility = () => {
     if (document.hidden) {
       cancelAnimationFrame(frame);
@@ -93,6 +135,7 @@ export function loadNotebookPages(book: PageFlip, elements: HTMLElement[]) {
   }
   catch (error) {
     disposed = true;
+    touchQueues.delete(book);
     cancelAnimationFrame(frame);
     document.removeEventListener('visibilitychange', onVisibility);
     throw error;
@@ -100,6 +143,7 @@ export function loadNotebookPages(book: PageFlip, elements: HTMLElement[]) {
   finally { Render.prototype.start = originalStart; }
   return () => {
     disposed = true;
+    touchQueues.delete(book);
     cancelAnimationFrame(frame);
     document.removeEventListener('visibilitychange', onVisibility);
     // destroy() leaves the library's delayed init callback and event map alive.

@@ -167,13 +167,25 @@ try {
         });
         await page.keyboard.press('ArrowRight');
         await page.waitForTimeout(1500);
-        const turn = await page.evaluate(() => ({
-          longestTaskMs: Math.max(0, ...window.notebookPerformance.longTasks),
-          gapsOver34ms: window.notebookPerformance.gaps.filter(gap => gap > 34).length,
-          maxFrameGapMs: Math.max(0, ...window.notebookPerformance.gaps),
-          status: document.querySelector('.notebook-accessible-status')?.textContent ?? null,
-        }));
+        const turn = await page.evaluate(() => {
+          const gaps = window.notebookPerformance.gaps;
+          const sorted = gaps.slice(2).sort((a, b) => a - b);
+          const nativeFrameMs = sorted[Math.floor(sorted.length * .25)] || 16.7;
+          const droppedFrameThresholdMs = nativeFrameMs * 1.75;
+          const droppedFrames = gaps.filter(gap => gap > droppedFrameThresholdMs).length;
+          return {
+            longestTaskMs: Math.max(0, ...window.notebookPerformance.longTasks),
+            nativeFrameMs,
+            droppedFrameThresholdMs,
+            droppedFrames,
+            droppedFrameRatio: droppedFrames / Math.max(1, gaps.length),
+            maxFrameGapMs: Math.max(0, ...gaps),
+            status: document.querySelector('.notebook-accessible-status')?.textContent ?? null,
+          };
+        });
         assert.equal(turn.status, turnStatus, `${name}/${cache}: the measured turn reaches the next page`);
+        assert(turn.maxFrameGapMs <= turn.nativeFrameMs * 2.25, `${name}/${cache}: page turn never stalls for multiple display refreshes ${JSON.stringify(turn)}`);
+        assert(turn.droppedFrameRatio <= .1, `${name}/${cache}: page turn keeps pace with the display's native refresh rate ${JSON.stringify(turn)}`);
         const result = { profile: name, run: run + 1, cache, startup, opening,
           idle: { styleMutations, ...metricDifference(before, after) }, turn };
         results.push(result);
@@ -187,7 +199,8 @@ try {
         console.log(JSON.stringify({ profile: name, run: run + 1, cache, startupSurface: startup.surface, fcpMs: startup.fcpMs,
           openingMs: opening?.clickToReadingReadyMs ?? null,
           longestTaskMs: startup.longestTaskMs, cls: startup.cls, idleStyleMutations: styleMutations,
-          idleTaskMs: result.idle.TaskDuration * 1000, turnGapsOver34ms: turn.gapsOver34ms }));
+          idleTaskMs: result.idle.TaskDuration * 1000, nativeFrameMs: turn.nativeFrameMs,
+          droppedFrameRatio: turn.droppedFrameRatio }));
       }
       await context.close();
     }

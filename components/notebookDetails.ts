@@ -40,9 +40,9 @@ export function useNotebookDetails(
     if (!sheet || leaves[index].classList.contains('is-detached')) return;
     const left = !portrait && index % 2 === 0;
     animation.current = sheet.animate([
-      { transform: 'perspective(1800px) rotateY(0deg)', filter: 'brightness(1)' },
-      { transform: `perspective(1800px) rotateY(${left ? 0.65 : -0.65}deg)`, filter: 'brightness(1.007)', offset: 0.28 },
-      { transform: 'perspective(1800px) rotateY(0deg)', filter: 'brightness(1)' },
+      { transform: 'perspective(1800px) rotateY(0deg)' },
+      { transform: `perspective(1800px) rotateY(${left ? 0.65 : -0.65}deg)`, offset: 0.28 },
+      { transform: 'perspective(1800px) rotateY(0deg)' },
     ], { duration: 310, easing: 'cubic-bezier(.2,.7,.3,1)' });
     return () => { animation.current?.cancel(); animation.current = null; };
   }, [page, portrait, turning, reducedMotion, leaves]);
