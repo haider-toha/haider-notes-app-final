@@ -2367,6 +2367,12 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *the halal guys* - the cart on 53rd and 6th at 1am, for the white sauce. you know the one.
 - *joe's pizza* - in greenwich village, where i once stood outside in the rain eating a slice, which is the only correct way to do it.
 
+**seattle**
+- *mama sambusa kitchen* - a somali kitchen down in brighton where every dish on the menu is named after a relative and the sambusas are folded by hand that morning. it stays open until 4am, which is how i ended up there twice in one week.
+- *sabah* - east african on rainier avenue, ten years in the same room. goat over bariis, the spiced rice, with sabaayad to tear into it and a glass of shah after.
+- *aladdin charburger* - all halal, in the u-district, open until half one in the morning. the fries come buried under fried chicken and nobody should be eating that at that hour, which did not stop me.
+- *jack's fish spot* - wild pacific salmon on the grill at the back of pike place, past the crowd filming the fish throwers. salt, pepper, butter, lemon and nothing else. fish is one of the few things i never have to ask about.
+
 **san francisco**
 - *old mandarin islamic restaurant* - halal chinese that shouldn't exist but does. the hot pot felt like a well-kept secret.
 - *reem's california* - arab bakery. the mana'eesh with za'atar hit different when you're far from home.
@@ -2377,6 +2383,17 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *nomad asian bistro* - halal chinese in long beach that's been going since 1980, with the quiet confidence of a place that's had forty years to get it right. order the cumin lamb, the scallion pancakes and the hand-pulled noodles.
 - *fatima's grill* - a downey spot doing lebanese-mexican fusion that sounds completely wrong and turns out exactly right. the shawarma fries and the birria tacos are all halal.
 - *al-noor* - a pakistani room in lawndale that's been there since '98, with goat biryani and a crowd of regulars who've been coming since the day it opened.
+
+**dallas**
+- *musume* - contemporary asian in the hall arts district and the best meal i've had anywhere in north america, which i did not see coming from a plate of lamb lollipops. shoyu gari and a thai basil reduction on the lamb, and then the chicken, which i was still thinking about a week later.
+- *ricky's hot chicken* - halal nashville hot chicken out of a richardson strip mall. ricky started in his garage giving samples away and the heat ladder now runs up through habanero, ghost, scorpion and reaper. i stopped a long way short of the top.
+- *bilad bakery* - iraqi, on south greenville in richardson, with bread coming out of the oven all day. shawarma in iraqi bread with amba and their pickles runs about five dollars and nothing on the plate is trying to impress you.
+- *afrah* - the main street place in richardson everyone in dfw defaults to, and they're right to. saj bread rolled and baked in front of you while you wait.
+
+**miami**
+- *makla halal* - a one-man counter tucked inside a shop on 71st street in north beach, open twenty-four hours, everything cooked to order by sam. the lamb and beef shawarma is why you go and the halal philly cheesesteak is why i went back.
+- *shahs of kabob* - persian on sunset drive in south miami. the first thing i check in a persian kitchen is the rice and theirs is right, basmati steamed with butter and saffron with the crisp golden tahdig lifted off the bottom of the pot. the koobideh after that is a formality.
+- *el palacio de los jugos* - the flagler street one, red and yellow awnings, going since 1977. most of what's behind the glass is off-limits to me so i get a mamey batido and stand at the counter with everyone else, which was most of the point anyway.
 
 **paris**
 - *l'as du fallafel* - in the marais, eaten standing in a cobblestone alley with the sauce dripping down my hand. perfect.
@@ -2394,7 +2411,6 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *star kabab* - the seekh kebabs my dad used to take me to as a kid, the thing my taste buds were trained on and everything else has been a comparison ever since.
 - *kacchi bhai* - if you want to understand what biryani is supposed to taste like, you start here, with the potatoes at the bottom, caramelised and spiced.
 
-`/*
 **kuala lumpur**
 - *nasi lemak wanjo* - a kampung baru institution since the sixties, with a dark, sweet sambal over coconut rice that pulls a queue at breakfast and another one all over again at supper.
 - *line clear* - penang's legendary nasi kandar, transplanted to kl. you point at what you want and they flood the rice with a mix of gravies and it's still the most authentic version in the city.
@@ -2410,7 +2426,17 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *green chilli chicken rice* - one stall doing one dish since '99, a fried chicken thigh over pandan coconut rice under a rough green chilli sambal. they shut the moment it runs out, usually some time in the early afternoon.
 - *selera rasa* - the nasi lemak at adam road that singaporeans will genuinely argue is the best in the country, with fragrant rice, crisp ikan bilis and a serious sambal.
 - *haji kadir* - a golden mile institution doing sup tulang merah, marrow bones in a fierce red gravy that you suck straight out through a straw. messy and completely worth it.
-`*/ + `
+
+**ulaanbaatar**
+- *bes halal food* - a kazakh counter on the bottom floor of hunnu mall out in yarmag, which is the least promising sentence in this note and where i ended up eating most often.
+- *hurrem sultan* - turkish, off chinggis khan avenue, and the kitchen and the floor staff are turkish top to bottom so you can stop asking. lahmacun and a proper pide.
+- *naturel doner kepap* - certified halal doner on tokyo street in bayanzurkh, on the walk between the wrestling palace and the chinggis khaan hotel. get the iskender.
+
+**bayan-ölgii**
+- *beshbarmak, in a ger* - the west of the country is kazakh and muslim, minarets among the gers, so for the first time in mongolia i stopped reading labels. boiled mutton over flat hand-cut noodles eaten with your hands, which is what the name means. five fingers.
+- *ölgii bazaar* - baursak still hot out of the oil, samsa, whole stalls selling nothing but aaruul, the dried milk curds. the western aaruul is less sour than the eastern and it's the only version i got all the way through.
+- *kuurdak* - mutton, offal and potato fried down together in one pan. what gets cooked when a family has the time and the fat to spare.
+
 **general rule**
 i trust hole-in-the-wall places with bad lighting and no english menu over anywhere with "curated" in the description. food should be a little inconvenient.`,
   },
@@ -2522,6 +2548,12 @@ i keep a longer list in notion but these are the ones i'd actually give someone.
 - *central park* - the reservoir loop at dawn, watching the city wake up from inside a rectangle of green.
 - *the high line* - an elevated park built on old train tracks, best in the early morning before the tourists arrive.
 
+**seattle**
+- *jack block park* - a public park wedged inside a working container terminal in west seattle, so you get the whole downtown skyline off the water with cranes in the frame and almost nobody else there. everyone else is queuing at kerry park for a worse angle.
+- *schmitz preserve park* - the only old-growth forest left inside the city limits, a ravine in west seattle with muddy unsigned trails and a creek at the bottom. the city is gone about four minutes in.
+- *ballard locks* - boats raised and lowered inside a concrete chamber and, underneath it, a twenty-one-step fish ladder with viewing windows at eye level. the sockeye come through in july and august. free, and i stayed two hours.
+- *interlaken park* - the capitol hill ravine, good in the rain, which in seattle is the only endorsement worth anything.
+
 **san francisco**
 - *lands end trail* - the coastal path runs from the old sutro baths ruins out to a little cypress labyrinth above the surf and the golden gate keeps appearing through the trees until you forget you're in a city at all.
 - *tank hill* - the overlook locals climb instead of twin peaks, with the same wide view across the bay and none of the tour buses. best in the last of the evening light.
@@ -2533,6 +2565,17 @@ i keep a longer list in notion but these are the ones i'd actually give someone.
 - *the bradbury building* - a downtown office building you can wander into for free, with a sunlit victorian atrium of wrought iron railings and open cage lifts that you'll recognise the second you walk in from blade runner.
 - *museum of jurassic technology* - a dim and deliberately confusing little museum in culver city where you genuinely can't tell what's real and what's been invented, with a quiet russian tea room up on the roof when you need to recover.
 
+**dallas**
+- *the katy trail* - three and a half miles of the old missouri-kansas-texas rail bed running through uptown and oak lawn. the stretch past reverchon park is the only part of dallas that was obviously built for someone on foot.
+- *white rock lake* - nine miles round the reservoir and flat the entire way. do it at dawn, which in a dallas summer is the only hour you'd willingly be outside.
+- *kiest conservation area* - seventy-nine acres of real dirt trail and unploughed prairie behind the tennis centre in oak cliff, three and a half miles from downtown. nothing announces it and at seven in the morning there's nobody on it.
+- *coombs creek trail* - kessler park, following the creek under old oaks. it's a footpath through a wealthy neighbourhood more than a trail, and still the nicest walk in oak cliff.
+
+**miami**
+- *the venetian causeway* - twelve short arched bridges hopping island to island from downtown across to miami beach, about two and a half miles with pavement the whole way, and a better walk than any beach in the city.
+- *matheson hammock, west side* - the trail on the forest side of old cutler road, through what's left of the ancient miami hammock, 500-year-old oaks and limestone pushing up through the path. cross the road afterwards and climb the banyans.
+- *bear cut preserve* - key biscayne, a mile down the trail then right at the pavilion, out to a sandbar with a fossilised reef and hermit crabs in the shallows. it only works at low tide, so read the table before you go.
+
 **paris**
 - *the marais* - getting lost in the side streets among the falafel, the bookshops and the cobblestones. paris at walking pace.
 
@@ -2540,7 +2583,6 @@ i keep a longer list in notion but these are the ones i'd actually give someone.
 - *the flaucher* - the gravel islands and shallow channels of the isar where münchners spend whole summer afternoons grilling and swimming, far wilder and emptier than the englischer garten if you walk a little upstream from thalkirchen.
 - *glockenbachviertel* - the most lived-in corner of the city, where people gather on the steps around gärtnerplatz with corner-shop beers on warm evenings and you can wander for hours without any plan at all.
 
-`/*
 **kuala lumpur**
 - *kampung baru* - a malay village of wooden stilt houses that's somehow held its ground seven hundred metres from the petronas towers, with food on every corner and the unhurried feel of an older city that refuses to leave.
 - *bukit tunku* - the greenest and quietest corner of kl, all winding roads under old trees and colonial houses. there's a lookout over the whole skyline at changkat tunku.
@@ -2554,7 +2596,12 @@ i keep a longer list in notion but these are the ones i'd actually give someone.
 - *the rail corridor* - twenty-four kilometres of disused railway with the tracks lifted and the whole line left to the grass and if you walk the bukit timah stretch early enough it's just you and the green the entire way.
 - *pulau ubin* - a short bumboat from changi takes you to the last of kampong singapore, where you rent a rattling old bike and ride past granite quarries, mangroves and the strange little german girl shrine.
 - *lazarus island* - a near-empty crescent of white sand and clear water a short ferry from the city, the beach singaporeans quietly keep for themselves while everyone else is queueing for sentosa.
-`*/ + `
+
+**mongolia**
+- *bogd khan uul* - the sacred mountain on the south side of ulaanbaatar, 2,261 metres, formally protected since 1778, which makes it about a century older than yellowstone. up through the larch from zaisan to dugui tsagaan. the main path is eroded to rubble from foot traffic and the better ones peel off to the left, and the deer are not remotely afraid of you.
+- *chingeltei khairkhan* - thirty minutes north of the centre and up past thirteen ovoos, the stone cairns you walk clockwise around. wild strawberries on the slope in summer and the ger districts laid out below.
+- *altai tavan bogd* - the far western corner where mongolia, russia and china meet. seven hours of bad road out of ölgii, then seven kilometres on foot to a camp under huiten peak at 4,374 metres with the potanin glacier running twenty kilometres down the valley. nothing i've walked since has been that quiet.
+
 **nature escapes**
 - *peak district* - mam tor and the great ridge, proper hiking with the wind in your face and sheep everywhere.
 - *the lake district* - i did helvellyn in the rain and couldn't see a thing and it was still worth it.
