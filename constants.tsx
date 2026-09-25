@@ -2370,7 +2370,7 @@ most days i still feel like the bottleneck and lately i've started to think that
 **seattle**
 - *mama sambusa kitchen* - a somali kitchen down in brighton where every dish on the menu is named after a relative and the sambusas are folded by hand that morning. it stays open until 4am and i ended up there twice in one week.
 - *sabah* - east african on rainier avenue, ten years in the same room. goat over bariis, the spiced rice, with sabaayad to tear into it and a glass of shah after.
-- *aladdin charburger* - all halal, in the u-district, open until half one in the morning. the fries come buried under fried chicken and nobody should be eating that at that hour and i did anyway.
+- *aladdin charburger* - all halal, in the u-district, open until half one in the morning. the fries come buried under fried chicken. nobody should be eating that at that hour and i did anyway.
 - *jack's fish spot* - wild pacific salmon on the grill at the back of pike place, past the crowd filming the fish throwers. salt, pepper, butter, lemon and nothing else. fish is one of the few things i never have to ask about.
 
 **san francisco**
