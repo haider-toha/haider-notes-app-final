@@ -2385,7 +2385,7 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *al-noor* - a pakistani room in lawndale that's been there since '98, with goat biryani and a crowd of regulars who've been coming since the day it opened.
 
 **dallas**
-- *musume* - contemporary asian in the hall arts district and the best meal i've had anywhere in north america, which i did not see coming from a plate of lamb lollipops. shoyu gari and a thai basil reduction on the lamb, and then the chicken, which i was still thinking about a week later.
+- *musume* - contemporary asian in the hall arts district and the best meal i've had anywhere in north america, which i did not see coming from a plate of lamb lollipops. shoyu gari and a thai basil reduction on the lamb, then the chicken, which i'm still thinking about hours later. i only ate there today, so ask me again in a month.
 - *ricky's hot chicken* - halal nashville hot chicken out of a richardson strip mall. ricky started in his garage giving samples away and the heat ladder now runs up through habanero, ghost, scorpion and reaper. i stopped a long way short of the top.
 - *bilad bakery* - iraqi, on south greenville in richardson, with bread coming out of the oven all day. shawarma in iraqi bread with amba and their pickles runs about five dollars and nothing on the plate is trying to impress you.
 - *afrah* - the main street place in richardson everyone in dfw defaults to, and they're right to. saj bread rolled and baked in front of you while you wait.
