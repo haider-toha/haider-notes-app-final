@@ -2368,9 +2368,9 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *joe's pizza* - in greenwich village, where i once stood outside in the rain eating a slice, which is the only correct way to do it.
 
 **seattle**
-- *mama sambusa kitchen* - a somali kitchen down in brighton where every dish on the menu is named after a relative and the sambusas are folded by hand that morning. it stays open until 4am, which is how i ended up there twice in one week.
+- *mama sambusa kitchen* - a somali kitchen down in brighton where every dish on the menu is named after a relative and the sambusas are folded by hand that morning. it stays open until 4am and i ended up there twice in one week.
 - *sabah* - east african on rainier avenue, ten years in the same room. goat over bariis, the spiced rice, with sabaayad to tear into it and a glass of shah after.
-- *aladdin charburger* - all halal, in the u-district, open until half one in the morning. the fries come buried under fried chicken and nobody should be eating that at that hour, which did not stop me.
+- *aladdin charburger* - all halal, in the u-district, open until half one in the morning. the fries come buried under fried chicken. nobody should be eating that at that hour and i did anyway.
 - *jack's fish spot* - wild pacific salmon on the grill at the back of pike place, past the crowd filming the fish throwers. salt, pepper, butter, lemon and nothing else. fish is one of the few things i never have to ask about.
 
 **san francisco**
@@ -2385,15 +2385,15 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *al-noor* - a pakistani room in lawndale that's been there since '98, with goat biryani and a crowd of regulars who've been coming since the day it opened.
 
 **dallas**
-- *musume* - contemporary asian in the hall arts district and the best meal i've had anywhere in north america, which i did not see coming from a plate of lamb lollipops. shoyu gari and a thai basil reduction on the lamb, then the chicken, which i'm still thinking about hours later. i only ate there today, so ask me again in a month.
+- *musume* - contemporary asian in the hall arts district and the best meal i've had anywhere in north america, and i did not see that coming from a plate of lamb lollipops. shoyu gari and a thai basil reduction on the lamb, then the chicken, which i'm still thinking about hours later. i only ate there today, so ask me again in a month.
 - *ricky's hot chicken* - halal nashville hot chicken out of a richardson strip mall. ricky started in his garage giving samples away and the heat ladder now runs up through habanero, ghost, scorpion and reaper. i stopped a long way short of the top.
 - *bilad bakery* - iraqi, on south greenville in richardson, with bread coming out of the oven all day. shawarma in iraqi bread with amba and their pickles runs about five dollars and nothing on the plate is trying to impress you.
 - *afrah* - the main street place in richardson everyone in dfw defaults to, and they're right to. saj bread rolled and baked in front of you while you wait.
 
 **miami**
-- *makla halal* - a one-man counter tucked inside a shop on 71st street in north beach, open twenty-four hours, everything cooked to order by sam. the lamb and beef shawarma is why you go and the halal philly cheesesteak is why i went back.
+- *makla halal* - a one-man counter tucked inside a shop on 71st street in north beach, open twenty-four hours, everything cooked to order by sam. you go for the lamb and beef shawarma. i went back for the halal philly cheesesteak.
 - *shahs of kabob* - persian on sunset drive in south miami. the first thing i check in a persian kitchen is the rice and theirs is right, basmati steamed with butter and saffron with the crisp golden tahdig lifted off the bottom of the pot. the koobideh after that is a formality.
-- *el palacio de los jugos* - the flagler street one, red and yellow awnings, going since 1977. most of what's behind the glass is off-limits to me so i get a mamey batido and stand at the counter with everyone else, which was most of the point anyway.
+- *el palacio de los jugos* - the flagler street one, red and yellow awnings, going since 1977. most of what's behind the glass is off-limits to me so i get a mamey batido and drink it standing at the counter. that was most of the point.
 
 **paris**
 - *l'as du fallafel* - in the marais, eaten standing in a cobblestone alley with the sauce dripping down my hand. perfect.
@@ -2428,13 +2428,13 @@ most days i still feel like the bottleneck and lately i've started to think that
 - *haji kadir* - a golden mile institution doing sup tulang merah, marrow bones in a fierce red gravy that you suck straight out through a straw. messy and completely worth it.
 
 **ulaanbaatar**
-- *bes halal food* - a kazakh counter on the bottom floor of hunnu mall out in yarmag, which is the least promising sentence in this note and where i ended up eating most often.
+- *bes halal food* - a kazakh counter on the bottom floor of hunnu mall out in yarmag. a food court in a shopping centre, and i ate there more than anywhere else in the city.
 - *hurrem sultan* - turkish, off chinggis khan avenue, and the kitchen and the floor staff are turkish top to bottom so you can stop asking. lahmacun and a proper pide.
 - *naturel doner kepap* - certified halal doner on tokyo street in bayanzurkh, on the walk between the wrestling palace and the chinggis khaan hotel. get the iskender.
 
 **bayan-ölgii**
-- *beshbarmak, in a ger* - the west of the country is kazakh and muslim, minarets among the gers, so for the first time in mongolia i stopped reading labels. boiled mutton over flat hand-cut noodles eaten with your hands, which is what the name means. five fingers.
-- *ölgii bazaar* - baursak still hot out of the oil, samsa, whole stalls selling nothing but aaruul, the dried milk curds. the western aaruul is less sour than the eastern and it's the only version i got all the way through.
+- *beshbarmak, in a ger* - the west of the country is kazakh and muslim, minarets among the gers, so for the first time in mongolia i stopped reading labels. boiled mutton over flat hand-cut noodles eaten with your hands. the name means five fingers.
+- *ölgii bazaar* - baursak still hot out of the oil, samsa, whole stalls selling nothing but aaruul, the dried milk curds. the western aaruul is less sour than the eastern and it's the one i could finish.
 - *kuurdak* - mutton, offal and potato fried down together in one pan. what gets cooked when a family has the time and the fat to spare.
 
 **general rule**
@@ -2549,7 +2549,7 @@ i keep a longer list in notion but these are the ones i'd actually give someone.
 - *the high line* - an elevated park built on old train tracks, best in the early morning before the tourists arrive.
 
 **seattle**
-- *jack block park* - a public park wedged inside a working container terminal in west seattle, so you get the whole downtown skyline off the water with cranes in the frame and almost nobody else there. everyone else is queuing at kerry park for a worse angle.
+- *jack block park* - a public park wedged inside a working container terminal in west seattle, so you get the whole downtown skyline off the water with cranes in the frame and hardly anyone around. everyone else is queuing at kerry park for a worse angle.
 - *schmitz preserve park* - the only old-growth forest left inside the city limits, a ravine in west seattle with muddy unsigned trails and a creek at the bottom. the city is gone about four minutes in.
 - *ballard locks* - boats raised and lowered inside a concrete chamber and, underneath it, a twenty-one-step fish ladder with viewing windows at eye level. the sockeye come through in july and august. free, and i stayed two hours.
 - *interlaken park* - the capitol hill ravine, good in the rain, which in seattle is the only endorsement worth anything.
@@ -2567,8 +2567,8 @@ i keep a longer list in notion but these are the ones i'd actually give someone.
 
 **dallas**
 - *the katy trail* - three and a half miles of the old missouri-kansas-texas rail bed running through uptown and oak lawn. the stretch past reverchon park is the only part of dallas that was obviously built for someone on foot.
-- *white rock lake* - nine miles round the reservoir and flat the entire way. do it at dawn, which in a dallas summer is the only hour you'd willingly be outside.
-- *kiest conservation area* - seventy-nine acres of real dirt trail and unploughed prairie behind the tennis centre in oak cliff, three and a half miles from downtown. nothing announces it and at seven in the morning there's nobody on it.
+- *white rock lake* - nine miles round the reservoir and flat the entire way. do it at dawn. any later in a dallas summer and you won't get round it.
+- *kiest conservation area* - seventy-nine acres of real dirt trail and unploughed prairie behind the tennis centre in oak cliff, three and a half miles from downtown. there's no sign for it and at seven in the morning there's nobody on it.
 - *coombs creek trail* - kessler park, following the creek under old oaks. it's a footpath through a wealthy neighbourhood more than a trail, and still the nicest walk in oak cliff.
 
 **miami**
